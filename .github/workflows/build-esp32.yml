@@ -1,0 +1,19 @@
+name: GitHub Actions Demo
+on: [push]
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout
+      with:
+        submodules: 'recursive'
+    - name: Commit files
+      run: |
+        cp boards/esp32-idf/* .
+    - name: esp-idf build
+      uses: espressif/esp-idf-ci-action@release-v4.3
+      with:
+        path: ''

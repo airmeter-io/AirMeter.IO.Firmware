@@ -11,7 +11,7 @@ menu "AirQuality.Dev"
         default 2
         help
             The RX/TX pin pair to use for communication with the CO2 sensor
-
+ 
     config CO2_UART_SENSEAIR
         depends on CO2_UART_ENABLE
         bool "Enable UART Support for Senseair Sunrise"

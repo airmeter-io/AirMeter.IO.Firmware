@@ -1,19 +1,38 @@
-name: GitHub Actions Demo
+name: Build ESP32
 on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+    - name: Install zip
+      run: sudo apt-get install -y zip
     - name: Checkout repo
       uses: actions/checkout@v2
       with:
         submodules: 'recursive'
-    - name: Commit files
+    - name: Copy SDK Config
       run: |
         cp boards/esp32-idf/* .
-        pwd
-        cat sdkconfig
     - name: esp-idf build
       uses: espressif/esp-idf-ci-action@release-v4.3
       with:
         path: '.'
+
+    - name: Build Artifacts
+      run: |
+        chmod a+x boards/esp32-idf/buildzipdir.sh
+        boards/esp32-idf/buildzipdir.sh
+    - name: 'Upload Artifact'
+      uses: actions/upload-artifact@v2
+      with:
+        name: ESP32Binaries
+        path: build/esp32build.zip
+        retention-days: 5
+        
+
+
+
+
+
+
+    

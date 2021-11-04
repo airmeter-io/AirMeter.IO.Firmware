@@ -5,7 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repo
-      uses: actions/checkout@develop
+      uses: actions/checkout@v2
       with:
         submodules: 'recursive'
     - name: Commit files

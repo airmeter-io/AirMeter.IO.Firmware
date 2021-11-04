@@ -1,30 +1,22 @@
+![The AirMeter.io web interface](https://i.ibb.co/D9CSpRw/banner.png)
 
-<small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
+The responsive web interface guides the user through through calibration & configuration. The most recent readings are displayed using visually striking gauges and the on-device data logs are made available as charts. 
 
-[a relative link](docs/esp8266_build.md)
+Up to six months of readings can be recorded in flash memory. Equally however an *AirMeter.io* device can be used as part of a cloud using the MQTT publishing feature. 
 
-# OpenCO2 Monitor
+The on-device web interface is built using [ReactJS](https://reactjs.org), [Charts.js](https://www.chartjs.org/)  & [Canvas Gauges](https://canvas-gauges.com/) and simply invokes REST APIs made exposed by the firmware. As the packaged ReactJS app is served from a dedicated partition by the C++ core, it can be replaced entirely with any application written in JavaScript.
 
-The aim of this project is to provide a comprehensive firmware dedicated to CO2 monitoring. 
 
-# Build a device
+## Why Measure CO2?
 
-## Using an ESP32 MCU
+It is now accepted by major public health agencies that COVID-19 can and does spread through aerosols. See [Centers for Disease Control and Prevention](https://www.cdc.gov/coronavirus/2019-ncov/science/science-briefs/sars-cov-2-transmission.html), [World Health Organisation (WHO)](https://www.who.int/news-room/q-a-detail/coronavirus-disease-covid-19-how-is-it-transmitted), [European Centre for Disease Prevention and Control (ECDC)](https://www.ecdc.europa.eu/en/covid-19/questions-answers/questions-answers-basic-facts).
 
-[Device & firmware build instructions for ESP32 based designs](docs/esp32_build.md)
+The outside CO2 level away from combustion sources is relatively constant at ~415ppm. When a person exhales the release air containing 35,000-45,000ppm therefore the level of CO2 in an enclosed space is a *proxy* to the level of exhaled air which hasn't been ventilated.
 
-## Using an ESP8266 MCU
+If the CO2 level is too high then ventilation & filtration are the primary approaches to reducing the level of potentially dangerous aerosols. 
 
-[Device & firmware build instructions for ESP8266 based designs](docs/esp8266_build.md)
+## More Information
 
-# Supported CO2 Sensors
-
-|Model|Notes |
-|--|--|
-|Senseair Sunrise I2C|Supported and tested|
-|Winsen MH-Z19B|Supported and tested|
-|Winsen MH-Z19C|Supported and tested|
-|Winsen MH-Z14|Should work but not tested|
-|Cubic CM1107|Supported and tested|
-|Cubic CM1106|Should work but not tested|
-
+This project relies directly on a number of open source projects, has learnt from other projects & individuals. The links below attempt a best as is possible to give full credit where it is due.
+- [Open source projects directly used by *AirMeter.io*](https://airmeter.io/thirdparty-components)
+- [Credits to individuals and projects who contributed their expertise](https://airmeter.io/credits)

@@ -2,9 +2,7 @@ name: GitHub Actions Demo
 on: [push]
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
     - name: Checkout repo
       uses: actions/checkout
@@ -16,4 +14,4 @@ jobs:
     - name: esp-idf build
       uses: espressif/esp-idf-ci-action@release-v4.3
       with:
-        path: ''
+        path: '.'

@@ -11,6 +11,6 @@ cp boards/esp32-idf/flash* boards/esp32-idf/readme* /tmp/build/esp32zip
 cp LICENSE /tmp/build/esp32zip
 cp webui/dist/bundle.js.LICENSE.txt /tmp/build/esp32zip
 ls /tmp/build/esp32zip
-zip -j /tmp/build/ESP32Binaries$RELTAG.zip /tmp/build/esp32zip/*
+zip -j /tmp/build/ESP32Binaries$GITHUB_REF_NAME.zip /tmp/build/esp32zip/*
 
 

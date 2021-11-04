@@ -24,7 +24,6 @@ jobs:
 
     - name: Build Artifacts
       run: |
-        export RELTAG=${{ github.ref }}
         export
         chmod a+x boards/esp32-idf/buildzipdir.sh
         boards/esp32-idf/buildzipdir.sh

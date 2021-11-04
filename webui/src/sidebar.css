@@ -1,0 +1,68 @@
+
+.w3-sidebar {
+    display: none;
+    
+    top: 0px;
+    right:0px;
+    opacity: 95%;
+  }
+  
+  .infobutton {
+    position: absolute;
+    right: 0px;
+    bottom: 0px;
+    fill: #009688;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    padding: 5px;
+  }
+  
+  .infobutton:hover {
+     fill: #00b9a7;
+     border: none;
+     background: transparent;
+  }
+
+  .infobutton svg {
+      width: 50px;
+      height: 50px;
+  }
+  
+  .sidebarContent {
+    overflow-y: auto;
+    height: calc(100% - 50px);
+    scrollbar-face-color: #333232;
+    scrollbar-base-color: #333232;
+    scrollbar-3dlight-color: #333232;
+    scrollbar-highlight-color: #333232;;
+    scrollbar-track-color: #646464;
+    scrollbar-arrow-color: #646464;
+    scrollbar-shadow-color: #333232;
+    scrollbar-dark-shadow-color: #333232;
+  }
+  
+  
+  .sidebarContent::-webkit-scrollbar { width: 8px; height: 3px;}
+  .sidebarContent::-webkit-scrollbar-button {  background-color: #666; }
+  .sidebarContent::-webkit-scrollbar-track {  background-color: #646464;}
+  .sidebarContent::-webkit-scrollbar-track-piece { background-color: #000;}
+  .sidebarContent::-webkit-scrollbar-thumb { height: 50px; background-color: #666; border-radius: 3px;}
+  .sidebarContent::-webkit-scrollbar-corner { background-color: #646464;}
+  .sidebarContent::-webkit-resizer { background-color: #666;}
+  
+
+  @media screen and (max-device-width: 400px) {
+    .w3-sidebar {
+       width: 100%;
+    }
+  
+    .infobutton svg {
+        width: 100px;
+        height: 100px;
+    }
+
+    .w3-sidebar .closebutton {
+        float: right;
+    }
+  }

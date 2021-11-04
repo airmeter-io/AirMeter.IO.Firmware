@@ -1,0 +1,68 @@
+.closeButton {
+    cursor: hand;
+    fill: #91ccc7;
+    width: 40px;
+    margin-top: 10px;
+}
+
+.closeButton:hover {
+    fill: #b0ddd9;
+}
+
+.popupAction {
+    background-color: #91ccc7;
+    cursor: pointer;
+    width: 100px;
+    height: 3em;
+    text-decoration: none;;
+    text-align: center;
+    vertical-align: middle;
+    color: #005a51;
+    display: table-cell;
+}
+
+.popup {
+    min-height: 500px;
+}
+
+.popupAction:hover {
+    background-color: #b0ddd9;
+}
+
+.popupActionSeparator {
+    display: table-cell;
+    width: 20px;
+}
+
+
+.actionsContainer {
+    height: 3em; overflow: hidden;
+}
+
+.popupActions {
+    padding-bottom: 10px;
+}
+
+.rightPopupActions {
+    float: right;
+}
+
+
+@media screen and (max-device-width: 400px) {
+    .popup > div {
+        width: 95%;
+    }
+
+    .closeButton {
+        width: 80px;
+        height: 80px;
+    }
+
+    .popupAction {
+        width: 200px;
+    }
+
+    .popupActionSeparator {
+        width: 40px;
+    }
+  }

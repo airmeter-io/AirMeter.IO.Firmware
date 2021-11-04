@@ -1,0 +1,8 @@
+/build
+/schematic/breadboard.fzz
+/.vscode/settings.json
+/sdkconfig.old
+/.vscode
+/webui/node_modules
+/sdkconfig
+/sdkconfig.defaults

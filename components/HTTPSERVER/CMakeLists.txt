@@ -1,0 +1,16 @@
+idf_component_register(
+  SRCS "src/HttpRequest.cpp"
+      "src/HttpServer.cpp"
+      "src/HttpUrlHandler.cpp"
+      "src/Json.cpp"
+      "src/JsonArray.cpp"
+  INCLUDE_DIRS "include"
+                "../../common"
+  REQUIRES "json"
+           "nvs_flash"
+           "mqtt"
+           "spiffs"
+           "GENERAL"
+           "esp_http_server"
+           "ESP8266-RTOS-FONTS"
+           "ESP8266-RTOS-SSD1306")

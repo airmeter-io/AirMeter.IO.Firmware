@@ -1,0 +1,241 @@
+.menuToolTip {
+  position: absolute;
+}
+
+.input:error {
+  background: rgb(238,174,174);
+  background: radial-gradient(circle, rgba(238,174,174,1) 0%, rgba(233,213,148,0.23573179271708689) 100%);
+}
+
+.slidecontainer {
+  width: 100%;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 10px;
+}
+
+.slider {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 25px;
+  background: #d3d3d3;
+  outline: none;
+  opacity: 0.7;
+  -webkit-transition: .2s;
+  transition: opacity .2s;
+}
+
+.slider:hover {
+  opacity: 1;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 25px;
+  height: 25px;
+  background: #04AA6D;
+  cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+  width: 25px;
+  height: 25px;
+  background: #04AA6D;
+  cursor: pointer;
+}
+
+
+.checkbox {
+  display: block;
+  position: relative;
+  padding-left: 35px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+.checkbox input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+.checkmark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 25px;
+  width: 25px;
+  background-color: #eee;
+}
+.checkbox:hover input ~ .checkmark {
+  background-color: #ccc;
+}
+.checkbox input:checked ~ .checkmark {
+  background-color: #2196F3;
+}
+.checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+.checkbox input:checked ~ .checkmark:after {
+  display: block;
+}
+
+label.checkbox {
+  padding-bottom: 15px;
+  border-bottom: 1px solid #ccc;
+}
+
+.checkbox .checkmark:after {
+  left: 9px;
+  top: 5px;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 3px 3px 0;
+  -webkit-transform: rotate(45deg);
+  -ms-transform: rotate(45deg);
+  transform: rotate(45deg);
+}
+
+.burgerMenuContainer {
+  display:table-cell;
+  vertical-align: middle;
+  text-align: right;
+  height: 40px;
+}
+
+.burgerMenu {
+  fill: #91ccc7;
+  cursor: pointer;
+  column-width: 60px;
+  width: 50px;
+  height: 50px;
+  text-decoration: none;;
+
+  color: #005a51;
+  display:inline-block;
+}
+
+.burgerMenu:hover {
+  fill: #b0ddd9;
+}
+
+header{
+  display: table; height: 3em; overflow: hidden; width:100%;
+}
+
+.header {
+  width: 100%;
+  display: table-row;
+}
+
+.leftheader  {
+  display: table-cell;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.leftHeader > div {
+  display: table;
+}
+
+.leftHeader > div > svg {
+  width: 70px;
+  height: 70px;
+  fill:#ddfcf9;
+  display: table-cell;
+  vertical-align: middle;
+  padding:10px;
+}
+
+.leftHeader > div > h1 {
+  color: #ddfcf9;
+  display: table-cell;
+  vertical-align: middle;
+  padding-left: 15px;
+  font-size: 190%;
+  font-weight: bold;
+}
+
+.menuContainer {
+  display: table-row;
+  margin-top: 40px;
+  margin-bottom: 40px;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.menuItem {
+  display: table-cell;
+  text-align: center;
+  vertical-align: middle;
+  margin-bottom: 40px;
+  cursor: pointer;
+}
+
+.menuItemSelected {
+  display: table-cell;
+  text-align: center;
+  vertical-align: middle;
+  cursor: default;
+  margin-bottom: 40px;
+  background-color: #95dfd8;
+}
+
+.menuItemSeparator {
+  display: table-cell;
+  width: 40px;
+}
+
+.menuItem:hover {
+  background-color: #b0ddd9;
+}
+
+.menuItem svg, .menuItemSelected svg{
+  height: 180px;
+  width: 180px;
+  padding: 10px;
+}
+
+.menuItem div, .menuItemSelected div {
+  text-align: center;
+  font-size: 125%;
+  font-weight: bold;
+}
+
+.menuItem:hover div,.menuItemSelected div {
+  color: black;
+}
+
+
+@media screen and (max-device-width: 400px) {
+  .burgerMenuPopup {
+     width: 100%;
+     height: 100%;
+  }
+
+  .burgerMenu { 
+    width: 80px;
+    height: 80px;
+  }
+
+  html,body, table {
+    font-size: 30px;
+  }
+
+  .leftHeader > div > svg {
+    width: 90px;
+    height: 90px;
+    padding: 5px;
+  }
+
+  h1{font-size:72px}h2{font-size:60px}h3{font-size:48px}h4{font-size:40px}h5{font-size:36px}h6{font-size:32px}
+}

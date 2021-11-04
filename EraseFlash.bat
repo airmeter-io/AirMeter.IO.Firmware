@@ -1,0 +1,1 @@
+python3 ../ESP8266_RTOS_SDK/components/esptool_py/esptool/esptool.py --chip esp8266 --port COM4 --baud 115200 --before default_reset --after hard_reset erase_flash

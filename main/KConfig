@@ -1,0 +1,48 @@
+menu "AirQuality.Dev"
+
+    config CO2_UART_ENABLE
+        bool "Enable UART CO2 Sensors"
+        default y
+
+    config CO2_UART_NUM
+        depends on CO2_UART_ENABLE
+        int "UART Number"
+        range 0 2
+        default 2
+        help
+            The RX/TX pin pair to use for communication with the CO2 sensor
+
+    config CO2_UART_SENSEAIR
+        depends on CO2_UART_ENABLE
+        bool "Enable UART Support for Senseair Sunrise"
+        default y
+        help    
+            Enables support for the Senseair Sunrise sensor. This is a low power 3.3v sensor.
+
+
+    config CO2_UART_CUBIC
+        depends on CO2_UART_ENABLE
+        bool "Enable Cubic UART Support"
+        default y
+                
+    config CO2_UART_WINSEN
+        depends on CO2_UART_ENABLE
+        bool "Enable Cubic UART Support"
+        default y
+
+    menu "I2C Bus"
+        config I2C_SDA_PIN
+            int "SDA GPIO Number"
+            range 0 39
+            default 21
+            help
+                The GPIO PIN to use as SDA for the I2C bus.
+
+        config I2C_SCL_PIN
+            int "SCL GPIO Number"
+            range 0 39
+            default 22
+            help
+                The GPIO PIN to use as SDL for the I2C bus.      
+    endmenu
+endmenu

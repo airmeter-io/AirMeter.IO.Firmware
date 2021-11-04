@@ -1,0 +1,15 @@
+idf_component_register(
+  SRCS "src/PinSerial.cpp"
+      "src/SoftSerial.cpp"
+      "src/HWSerial.cpp"
+      "src/softuart.c"
+  INCLUDE_DIRS "include"
+                "../../common"
+  REQUIRES "json"
+           "nvs_flash"
+           "mqtt"
+           "spiffs"
+           "esp_http_server"
+           "ESP8266-RTOS-FONTS"
+           "ESP8266-RTOS-SSD1306"
+           "hal" "esp_hw_support")

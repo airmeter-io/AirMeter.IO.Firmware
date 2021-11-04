@@ -1,0 +1,16 @@
+idf_component_register(
+  SRCS "src/CaptiveDNS.cpp"
+    "src/Wifi.cpp"
+    "src/WifiManager.cpp"
+  INCLUDE_DIRS "include"
+              "../../common"
+  REQUIRES "json"
+          "nvs_flash"
+          "mqtt"
+          "spiffs"
+          "HTTPSERVER"
+          "SSD1306"
+          "esp_http_server"
+          "ESP8266-RTOS-FONTS"
+          "ESP8266-RTOS-SSD1306"
+)

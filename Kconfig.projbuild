@@ -1,0 +1,10 @@
+menu "OpenCO2Monitor config"
+
+config OPENCO2_MONITOR_ENABLESECUREWIFIPROVISIONING
+    bool "Enable Secure Provisioning"
+    default n
+    select OPENCO2_MONITOR_ENABLESECUREWIFIPROVISIONING
+    help
+        Enable this option for secure Wifi provisioning to use a WPA2 PSK network whilst provisioning. Requires an SSD1306 display to display the randomly generated Wifi password
+        
+endmenu

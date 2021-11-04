@@ -1,5 +1,8 @@
 name: Build ESP32
-on: [push]
+on:
+  push:
+    tags:
+      - 'v*'
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -25,13 +28,27 @@ jobs:
         export
         chmod a+x boards/esp32-idf/buildzipdir.sh
         boards/esp32-idf/buildzipdir.sh
-    - name: 'Upload Artifact'
-      uses: actions/upload-artifact@v2
-      with:
-        name: ESP32Binaries-${{ github.ref }}
-        path: /tmp/build/esp32zip/
-        retention-days: 5
-        
+    - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body_path: CHANGELOG.md
+          draft: false
+          prerelease: false
+    - name: Upload ESP32 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: /tmp/build/esp32build.zip
+          asset_name: ESP32Binaries${{ github.ref }}
+          asset_content_type: application/zip          
+    
 
 
 

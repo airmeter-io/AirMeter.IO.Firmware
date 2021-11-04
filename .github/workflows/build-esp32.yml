@@ -28,7 +28,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: ESP32Binaries
-        path: build/esp32build.zip
+        path: /tmp/build/esp32build.zip
         retention-days: 5
         
 

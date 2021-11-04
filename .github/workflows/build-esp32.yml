@@ -28,7 +28,7 @@ jobs:
     - name: 'Upload Artifact'
       uses: actions/upload-artifact@v2
       with:
-        name: ESP32Binaries-{{github.ref}}
+        name: ESP32Binaries-${{ github.ref }}
         path: /tmp/build/esp32zip/
         retention-days: 5
         

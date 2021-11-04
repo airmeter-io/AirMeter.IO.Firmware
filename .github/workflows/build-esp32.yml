@@ -11,6 +11,8 @@ jobs:
     - name: Commit files
       run: |
         cp boards/esp32-idf/* .
+        pwd
+        cat sdkconfig
     - name: esp-idf build
       uses: espressif/esp-idf-ci-action@release-v4.3
       with:

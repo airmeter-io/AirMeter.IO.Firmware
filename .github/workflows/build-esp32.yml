@@ -24,13 +24,14 @@ jobs:
 
     - name: Build Artifacts
       run: |
-        pwd
+        export RELTAG=${{ github.ref }}
         export
         chmod a+x boards/esp32-idf/buildzipdir.sh
         boards/esp32-idf/buildzipdir.sh
+
     - uses: ncipollo/release-action@v1
       with:
-        artifacts: "ESP32${{ github.ref }}.tar.gz, /tmp/build/esp32zip/*"
+        artifacts: "/tmp/build/*.zip"
         bodyFile: "CHANGELOG.md"
         token: ${{ secrets.GITHUB_TOKEN }}
     

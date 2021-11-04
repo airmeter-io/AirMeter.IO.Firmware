@@ -1,3 +1,6 @@
+## What is AirMeter.io?
+AirMeter.io is an OpenSource platform for building Internet of Things (IoT) connected CO2 monitors.
+
 ![The AirMeter.io web interface](https://i.ibb.co/D9CSpRw/banner.png)
 
 The responsive web interface guides the user through through calibration & configuration. The most recent readings are displayed using visually striking gauges and the on-device data logs are made available as charts. 

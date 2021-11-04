@@ -28,7 +28,6 @@ jobs:
         export
         chmod a+x boards/esp32-idf/buildzipdir.sh
         boards/esp32-idf/buildzipdir.sh
-    - uses: actions/checkout@v2
     - uses: ncipollo/release-action@v1
       with:
         artifacts: "ESP32${{ github.ref }}.tar.gz, /tmp/build/esp32zip/*"

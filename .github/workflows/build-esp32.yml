@@ -45,8 +45,8 @@ jobs:
         GITHUB_TOKEN: ${{ github.token }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: /tmp/build/esp32build.zip
-        asset_name: ESP32Binaries${{ github.ref }}.zip
+        asset_path: /tmp/build/esp32zip/*
+        asset_name: ESP32Binaries-${{ github.ref }}.zip
         asset_content_type: application/zip          
     
 

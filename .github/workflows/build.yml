@@ -10,14 +10,14 @@ jobs:
     - name: Install zip
       run: sudo apt-get install -y zip
     - name: Checkout repo
-      uses: actions/checkout@v3
+      uses: actions/checkout@v2
       with:
         submodules: 'recursive'
     - name: Copy SDK Config
       run: |
         pwd
         cp boards/esp8266-rtossdk/* .        
-    - uses: airmeter-io/esp8266-rtos-sdk@v2
+    - uses: airmeter-io/esp8266-rtos-sdk@v3
   # build-esp32:
   #   runs-on: ubuntu-latest
   #   steps:

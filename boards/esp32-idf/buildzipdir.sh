@@ -2,7 +2,6 @@
 
 mkdir /tmp/build
 mkdir /tmp/build/esp32zip
-cp ../../opt/esp/idf/components/esptool_py/esptool/esptool.py /tmp/build/esp32zip
 cp build/bootloader/bootloader.bin /tmp/build/esp32zip
 cp build/partition_table/partition-table.bin /tmp/build/esp32zip
 cp build/ota_data_initial.bin /tmp/build/esp32zip

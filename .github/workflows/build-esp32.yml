@@ -20,8 +20,8 @@ jobs:
 
     - name: Build Artifacts
       run: |
-        chmod a+x boards/esp32-idf/buildzipdir.sh
-        boards/esp32-idf/buildzipdir.sh
+        chmod a+x boards\esp32-idf\buildzipdir.sh
+        boards\esp32-idf\buildzipdir.sh
     - name: 'Upload Artifact'
       uses: actions/upload-artifact@v2
       with:

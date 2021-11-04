@@ -28,26 +28,12 @@ jobs:
         export
         chmod a+x boards/esp32-idf/buildzipdir.sh
         boards/esp32-idf/buildzipdir.sh
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+    - uses: actions/checkout@v2
+    - uses: ncipollo/release-action@v1
       with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
-        body_path: CHANGELOG.md
-        draft: false
-        prerelease: false
-    - name: Upload ESP32 
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: /tmp/build/esp32zip/*
-        asset_name: ESP32Binaries-${{ github.ref }}.zip
-        asset_content_type: application/zip          
+        artifacts: "ESP32${{ github.ref }}.tar.gz, /tmp/build/esp32zip/*"
+        bodyFile: "CHANGELOG.md"
+        token: ${{ secrets.GITHUB_TOKEN }}
     
 
 

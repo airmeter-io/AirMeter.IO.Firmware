@@ -22,6 +22,7 @@ jobs:
     - name: Build Artifacts
       run: |
         pwd
+        export
         chmod a+x boards/esp32-idf/buildzipdir.sh
         boards/esp32-idf/buildzipdir.sh
     - name: 'Upload Artifact'

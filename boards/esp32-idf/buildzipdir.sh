@@ -1,4 +1,4 @@
-#!/bin.sh
+#!/bin/sh
 
 mkdir build/esp32zip
 cp ../../opt/esp/idf/components/esptool_py/esptool/esptool.py build/esp32zip

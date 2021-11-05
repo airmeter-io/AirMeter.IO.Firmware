@@ -52,7 +52,6 @@ jobs:
           GCC_FILE="${GCC_PREFIX}-gcc"
           TOOLCHAIN_DIR="${HOME}/.espressif/tools"
           REPO_DIR=`pwd`
-          EXAMPLE_DIR="${REPO_DIR}/examples"
           __PROJECT_PATH=`pwd`
           __PROJECT_TOOLCHAIN_VERSION="esp-2020r3-49-gd5524c1-8.4.0"
           # XXX actions/checkout does not allow to checkout a repository other
@@ -62,7 +61,7 @@ jobs:
           # cache-idf-tools needs PROJECT_TOOLCHAIN_DIR
           echo "::set-output name=PROJECT_TOOLCHAIN_DIR::${TOOLCHAIN_DIR}"
           # XXX prefix all the environment variables with `__PROJECT_` to avoid pollution
-          echo "__PROJECT_EXAMPLE_DIR=${EXAMPLE_DIR}" >> ${GITHUB_ENV}
+  
           echo "__PROJECT_GCC_FILE=${GCC_FILE}" >> ${GITHUB_ENV}
           echo "__PROJECT_GCC_PREFIX=${GCC_PREFIX}" >> ${GITHUB_ENV}
           echo "__PROJECT_TOOLCHAIN_DIR=${TOOLCHAIN_DIR}" >> ${GITHUB_ENV}
@@ -102,24 +101,13 @@ jobs:
           mkdir -p "${__PROJECT_CCACHE_BIN_DIR}"
           (cd "${__PROJECT_CCACHE_BIN_DIR}" && ln -s /usr/bin/ccache "${__PROJECT_GCC_FILE}")
           echo "PATH=${__PROJECT_CCACHE_BIN_DIR}:$PATH:${__PROJECT_TOOLCHAIN_DIR}/${__PROJECT_GCC_PREFIX}/${__PROJECT_TOOLCHAIN_VERSION}/${__PROJECT_GCC_PREFIX}/bin" >> ${GITHUB_ENV}
-          echo "CCACHE_BASEDIR=${__PROJECT_EXAMPLE_DIR}" >> ${GITHUB_ENV}
           echo "CCACHE_NOHASHDIR=true" >> ${GITHUB_ENV}
       - name: Build (make)
         if: ${{ matrix.build_method == 'make' }}
         run: |
-          IGNORE_FILE="ci-ignore-esp8266"
-          # these drivers do not compile for ESP8266 yet
-          export EXCLUDE_COMPONENTS="max7219 mcp23x17 led_strip max31865"
-          cd "${__PROJECT_EXAMPLE_DIR}"
-          for i in $(ls -d *); do
-            if [ ! -e "${__PROJECT_EXAMPLE_DIR}/${i}/${IGNORE_FILE}" ]; then
-              cd "${__PROJECT_EXAMPLE_DIR}/${i}"
-              echo "Building ${i}..."
-              make defconfig
-              make -j$(nproc)
-            fi
-          done
-
+          cd __PROJECT_PATH
+          make
+          
 
   # build:
   #   runs-on: ubuntu-20.04

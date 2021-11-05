@@ -104,7 +104,7 @@ jobs:
       - name: Build (make)
         if: ${{ matrix.build_method == 'make' }}
         run: |
-          cd ${{ __PROJECT_PATH }}
+          cd "${ __PROJECT_PATH }"
           make
           
 

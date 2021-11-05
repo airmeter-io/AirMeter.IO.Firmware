@@ -104,7 +104,10 @@ jobs:
       - name: Build (make)
         if: ${{ matrix.build_method == 'make' }}
         run: |
-          cd "${ __PROJECT_PATH }"
+          pwd
+          export
+          cd $__PROJECT_PATH
+          pwd
           make
           
 

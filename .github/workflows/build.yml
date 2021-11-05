@@ -51,7 +51,7 @@ jobs:
 
     - name: Extract branch name
       shell: bash
-      run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#*/})"
+      run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#/refs/tags/})"
       id: extract_branch        
     - uses: julb/action-post-twitter-status@v1
       with:

@@ -55,7 +55,7 @@ jobs:
       id: extract_branch        
     - uses: julb/action-post-twitter-status@v1
       with:
-        status: "AirMeter.io ${{ steps.extract_branch.outputs.branch }} is now available at https://github.com/airmeter-io/AirMeter.IO.Firmware/releases/tag/${{ steps.extract_branch.outputs.branch }}"
+        message: "AirMeter.io ${{ steps.extract_branch.outputs.branch }} is now available at https://github.com/airmeter-io/AirMeter.IO.Firmware/releases/tag/${{ steps.extract_branch.outputs.branch }}"
         twitter_app_consumer_api_key: ${{ secrets.TWITTER_CONSUMER_API_KEY }}
         twitter_app_consumer_api_secret_key: ${{ secrets.TWITTER_CONSUMER_API_SECRET }}
         twitter_app_access_token: ${{ secrets.TWITTER_ACCESS_TOKEN }}

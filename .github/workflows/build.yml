@@ -53,13 +53,13 @@ jobs:
       shell: bash
       run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
       id: extract_branch        
-    - uses: infraway/tweet-action@v1.0.1
+    - uses: julb/action-post-twitter-status@v1
       with:
         status: "AirMeter.io ${{ steps.extract_branch.outputs.branch }} is now available at https://github.com/airmeter-io/AirMeter.IO.Firmware/releases/tag/${{ steps.extract_branch.outputs.branch }}"
-        api-key: ${{ secrets.TWITTER_CONSUMER_API_KEY }}
-        api-secret: ${{ secrets.TWITTER_CONSUMER_API_SECRET }}
-        access-token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
-        access-token-secret: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
+        twitter_app_consumer_api_key: ${{ secrets.TWITTER_CONSUMER_API_KEY }}
+        twitter_app_consumer_api_secret_key: ${{ secrets.TWITTER_CONSUMER_API_SECRET }}
+        twitter_app_access_token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
+        twitter_app_access_token_secret: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
     
 
 

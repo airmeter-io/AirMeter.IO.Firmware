@@ -4,21 +4,7 @@ on:
     tags:
       - 'v*'
 jobs:
-  build-esp8266:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Install zip
-      run: sudo apt-get install -y zip
-    - name: Checkout repo
-      uses: actions/checkout@v2
-      with:
-        submodules: 'recursive'
-    - name: Copy SDK Config
-      run: |
-        pwd
-        cp boards/esp8266-rtossdk/* .        
-    - uses: airmeter-io/esp8266-rtos-sdk@v3
-  # build-esp32:
+  # build-esp8266:
   #   runs-on: ubuntu-latest
   #   steps:
   #   - name: Install zip
@@ -30,23 +16,49 @@ jobs:
   #   - name: Copy SDK Config
   #     run: |
   #       pwd
-  #       cp boards/esp32-idf/* .
-  #   - name: esp-idf build
-  #     uses: espressif/esp-idf-ci-action@release-v4.3
-  #     with:
-  #       path: '.'
+  #       cp boards/esp8266-rtossdk/* .        
+  #   - uses: airmeter-io/esp8266-rtos-sdk@v3
+  build-esp32:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Install zip
+      run: sudo apt-get install -y zip
+    - name: Checkout repo
+      uses: actions/checkout@v2
+      with:
+        submodules: 'recursive'
+    - name: Copy SDK Config
+      run: |
+        pwd
+        cp boards/esp32-idf/* .
+    - name: esp-idf build
+      uses: espressif/esp-idf-ci-action@release-v4.3
+      with:
+        path: '.'
 
-  #   - name: Build Artifacts
-  #     run: |
-  #       export
-  #       chmod a+x boards/esp32-idf/buildzipdir.sh
-  #       boards/esp32-idf/buildzipdir.sh
+    - name: Build Artifacts
+      run: |
+        export
+        chmod a+x boards/esp32-idf/buildzipdir.sh
+        boards/esp32-idf/buildzipdir.sh
 
-  #   - uses: ncipollo/release-action@v1
-  #     with:
-  #       artifacts: "/tmp/build/*.zip"
-  #       bodyFile: "CHANGELOG.md"
-  #       token: ${{ secrets.GITHUB_TOKEN }}
+    - uses: ncipollo/release-action@v1
+      with:
+        artifacts: "/tmp/build/*.zip"
+        bodyFile: "CHANGELOG.md"
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Extract branch name
+      shell: bash
+      run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+      id: extract_branch        
+    - uses: ethomson/send-tweet-action@v1
+      with:
+        status: "AirMeter.io ${{ steps.extract_branch.outputs.branch }} is now available at https://github.com/airmeter-io/AirMeter.IO.Firmware/releases/tag/${{ steps.extract_branch.outputs.branch }}"
+        consumer-key: ${% raw %}{{ secrets.TWITTER_CONSUMER_API_KEY }}{% endraw %}
+        consumer-secret: ${% raw %}{{ secrets.TWITTER_CONSUMER_API_SECRET }}{% endraw %}
+        access-token: ${% raw %}{{ secrets.TWITTER_ACCESS_TOKEN }}{% endraw %}
+        access-token-secret: ${% raw %}{{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}{% endraw %}
     
 
 

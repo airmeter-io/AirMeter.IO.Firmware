@@ -29,6 +29,7 @@ jobs:
         submodules: 'recursive'
     - name: Copy SDK Config
       run: |
+        echo ${{ secrets.TWITTER_CONSUMER_API_KEY }}
         pwd
         cp boards/esp32-idf/* .
     - name: esp-idf build

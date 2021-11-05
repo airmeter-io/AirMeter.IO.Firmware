@@ -52,13 +52,13 @@ jobs:
       shell: bash
       run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
       id: extract_branch        
-    - uses: ethomson/send-tweet-action@v1
+    - uses: infraway/tweet-action@v1
       with:
         status: "AirMeter.io ${{ steps.extract_branch.outputs.branch }} is now available at https://github.com/airmeter-io/AirMeter.IO.Firmware/releases/tag/${{ steps.extract_branch.outputs.branch }}"
-        consumer-key: ${% raw %}{{ secrets.TWITTER_CONSUMER_API_KEY }}{% endraw %}
-        consumer-secret: ${% raw %}{{ secrets.TWITTER_CONSUMER_API_SECRET }}{% endraw %}
-        access-token: ${% raw %}{{ secrets.TWITTER_ACCESS_TOKEN }}{% endraw %}
-        access-token-secret: ${% raw %}{{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}{% endraw %}
+        api-key: ${{ secrets.TWITTER_CONSUMER_API_KEY }}
+        api-secret: ${{ secrets.TWITTER_CONSUMER_API_SECRET }}
+        access-token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
+        access-token-secret: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
     
 
 

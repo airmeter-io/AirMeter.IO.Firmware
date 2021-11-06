@@ -4,20 +4,6 @@ on:
     tags:
       - 'v*'
 jobs:
-  # build-esp8266:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - name: Install zip
-  #     run: sudo apt-get install -y zip
-  #   - name: Checkout repo
-  #     uses: actions/checkout@v2
-  #     with:
-  #       submodules: 'recursive'
-  #   - name: Copy SDK Config
-  #     run: |
-  #       pwd
-  #       cp boards/esp8266-rtossdk/* .        
-  #   - uses: airmeter-io/esp8266-rtos-sdk@v3
   build_esp32:
     runs-on: ubuntu-20.04
     steps:
@@ -153,7 +139,8 @@ jobs:
           make
       - name: Build Artifacts
         run: |
-          export
+          chmod a+x build-web-partition.sh
+          ./build-web-partition.sh
           chmod a+x boards/esp8266-rtossdk/buildzipdir.sh
           boards/esp8266-rtossdk/buildzipdir.sh          
       - name: Store Artifacts
@@ -189,7 +176,7 @@ jobs:
         id: extract_branch        
       - uses: julb/action-post-twitter-status@v1
         with:
-          message: "AirMeter ${{ steps.extract_branch.outputs.branch }} is now available for download at https://github.com/airmeter-io/AirMeter.io.Firmware/releases/tag/${{ steps.extract_branch.outputs.branch }}"
+          message: "AirMeter ${{ steps.extract_branch.outputs.branch }} is now available for download: https://github.com/airmeter-io/AirMeter.io.Firmware/releases/tag/${{ steps.extract_branch.outputs.branch }}"
           twitter_app_consumer_api_key: ${{ secrets.TWITTER_CONSUMER_API_KEY }}
           twitter_app_consumer_api_secret_key: ${{ secrets.TWITTER_CONSUMER_API_SECRET }}
           twitter_app_access_token: ${{ secrets.TWITTER_ACCESS_TOKEN }}

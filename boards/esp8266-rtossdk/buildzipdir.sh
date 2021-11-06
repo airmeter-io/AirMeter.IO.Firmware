@@ -11,6 +11,6 @@ cp boards/esp8266-rtossdk/flash* boards/esp8266-rtossdk/readme* /tmp/build/esp82
 cp LICENSE /tmp/build/esp8266zip
 cp webui/dist/bundle.js.LICENSE.txt /tmp/build/esp8266zip
 ls /tmp/build/esp8266zip
-zip -j /tmp/build/ESP8266Binaries$GITHUB_REF_NAME.zip /tmp/build/esp8266zip/*
+zip -j /tmp/build/AirMeter.io-binary-esp8266-$GITHUB_REF_NAME.zip /tmp/build/esp8266zip/*
 
 

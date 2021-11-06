@@ -4,7 +4,11 @@
 //#define BUFFER_SIZE 50
 #define BUFFER_SIZE (4096-sizeof(FlashDataBlockHeader))
 
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)    
 RTC_DATA_ATTR uint8_t Temporary[BUFFER_SIZE];
+#else
+uint8_t Temporary[BUFFER_SIZE];
+#endif
 
 void DataManagerRamTemporaryStore::Flush(time_t pBlockStartTime)  {
     _blockStartTime = pBlockStartTime;

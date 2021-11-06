@@ -105,14 +105,26 @@ jobs:
           echo "CCACHE_NOHASHDIR=true" >> ${GITHUB_ENV}
       - name: Build (make)
         if: ${{ matrix.build_method == 'make' }}
-        run: |
-          pwd
-          export
-          ls /home/runner/.espressif/tools/xtensa-lx106-elf/esp-2020r3-49-gd5524c1-8.4.0/xtensa-lx106-elf/bin
-          cd $__PROJECT_PATH
-          pwd
+        run: |         
           make
+      - name: Store Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: esp8266-binaries
+          path: |
+            /tmp/build/*.zip
           
+  Complete:
+    name: Releasing new version
+    needs: build_esp8266
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v2
+      - name: List Artifacts
+        shell: bash
+        run: |
+          ls
 
   # build:
   #   runs-on: ubuntu-20.04

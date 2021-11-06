@@ -18,7 +18,7 @@ jobs:
   #       pwd
   #       cp boards/esp8266-rtossdk/* .        
   #   - uses: airmeter-io/esp8266-rtos-sdk@v3
-  build-esp32:
+  build_esp32:
     runs-on: ubuntu-20.04
     steps:
     - name: Install zip

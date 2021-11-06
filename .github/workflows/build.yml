@@ -165,8 +165,7 @@ jobs:
           
   release_and_tweet:
     name: Releasing new version
-    needs: build_esp8266
-    needs: build_esp32
+    needs: [build_esp8266, build_esp32]
     runs-on: ubuntu-20.04
     steps:
       - name: Download artifacts

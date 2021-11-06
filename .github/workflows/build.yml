@@ -168,6 +168,8 @@ jobs:
     needs: [build_esp8266, build_esp32]
     runs-on: ubuntu-20.04
     steps:
+      - name: Checkout
+        uses: actions/checkout@v2    
       - name: Download artifacts
         uses: actions/download-artifact@v2
       - name: List Artifacts

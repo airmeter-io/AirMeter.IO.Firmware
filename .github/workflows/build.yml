@@ -19,7 +19,7 @@ jobs:
   #       cp boards/esp8266-rtossdk/* .        
   #   - uses: airmeter-io/esp8266-rtos-sdk@v3
   build-esp32:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
     - name: Install zip
       run: sudo apt-get install -y zip
@@ -43,24 +43,155 @@ jobs:
         chmod a+x boards/esp32-idf/buildzipdir.sh
         boards/esp32-idf/buildzipdir.sh
 
-    - uses: ncipollo/release-action@v1
+    - name: Store Artifacts
+      uses: actions/upload-artifact@v2
       with:
-        artifacts: "/tmp/build/*.zip"
-        bodyFile: "CHANGELOG.md"
-        token: ${{ secrets.GITHUB_TOKEN }}
+        name: esp32-binaries
+        path: |
+          /tmp/build/*.zip        
 
-    - name: Extract branch name
-      shell: bash
-      run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/tags/})"
-      id: extract_branch        
-    - uses: julb/action-post-twitter-status@v1
-      with:
-        message: "AirMeter ${{ steps.extract_branch.outputs.branch }} is now available for download at https://github.com/airmeter-io/AirMeter.io.Firmware/releases/tag/${{ steps.extract_branch.outputs.branch }}"
-        twitter_app_consumer_api_key: ${{ secrets.TWITTER_CONSUMER_API_KEY }}
-        twitter_app_consumer_api_secret_key: ${{ secrets.TWITTER_CONSUMER_API_SECRET }}
-        twitter_app_access_token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
-        twitter_app_access_token_secret: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
-    
+  # Borrowed from and credit to https://github.com/UncleRus/esp-idf-lib
+  build_esp8266:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        build_method:
+
+          # XXX build examples with make only
+          # idf.py in ESP8266 RTOS SDK is broken in many ways.
+          - make
+        branch:
+          - v3.4
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'        
+      - name: Copy SDK Config
+        run: |
+          cp boards/esp8266-rtossdk/* .
+      - name: Install python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get install \
+            bison \
+            ccache \
+            flex \
+            gcc \
+            git \
+            gperf \
+            libffi-dev \
+            libncurses-dev \
+            libssl-dev \
+            make \
+            wget
+      - name: Set environment variables
+        id: set_env
+        run: |
+          SDK_NAME="ESP8266_RTOS_SDK"
+          GCC_PREFIX="xtensa-lx106-elf"
+          GCC_FILE="${GCC_PREFIX}-gcc"
+          TOOLCHAIN_DIR="${HOME}/.espressif/tools"
+          REPO_DIR=`pwd`
+          __PROJECT_PATH=`pwd`
+          __PROJECT_TOOLCHAIN_VERSION="esp-2020r3-49-gd5524c1-8.4.0"
+          # XXX actions/checkout does not allow to checkout a repository other
+          # than under __PROJECT_PATH
+          IDF_PATH="${__PROJECT_PATH}/idf"
+          echo "IDF_PATH=${IDF_PATH}" >> ${GITHUB_ENV}
+          # cache-idf-tools needs PROJECT_TOOLCHAIN_DIR
+          echo "::set-output name=PROJECT_TOOLCHAIN_DIR::${TOOLCHAIN_DIR}"
+          # XXX prefix all the environment variables with `__PROJECT_` to avoid pollution
+  
+          echo "__PROJECT_GCC_FILE=${GCC_FILE}" >> ${GITHUB_ENV}
+          echo "__PROJECT_GCC_PREFIX=${GCC_PREFIX}" >> ${GITHUB_ENV}
+          echo "__PROJECT_TOOLCHAIN_DIR=${TOOLCHAIN_DIR}" >> ${GITHUB_ENV}
+          echo "__PROJECT_PATH=${__PROJECT_PATH}" >> ${GITHUB_ENV}
+          echo "__PROJECT_BUILD_COMMAND=${__PROJECT_BUILD_COMMAND}" >> ${GITHUB_ENV}
+          echo "__PROJECT_BUILD_COMMAND_ARG=${__PROJECT_BUILD_COMMAND_ARG}" >> ${GITHUB_ENV}
+          echo "__PROJECT_TOOLCHAIN_VERSION=${__PROJECT_TOOLCHAIN_VERSION}" >> ${GITHUB_ENV}
+      - name: Checkout the SDK
+        uses: actions/checkout@v2
+        with:
+          repository: espressif/ESP8266_RTOS_SDK
+          path: idf
+          submodules: recursive
+          ref: ${{ matrix.branch }}
+          # XXX git.eclipse.org does not allow to fetch a commit. fetch all
+          # the commits.
+          fetch-depth: 0
+
+      - name: Install python requirements (pip)
+        run: |
+          python -m pip install --user -r ${IDF_PATH}/requirements.txt
+      - name: Cache toolchain
+        id: cache-idf-tools
+        if: ${{ matrix.branch != 'master' }}
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.set_env.outputs.PROJECT_TOOLCHAIN_DIR }}
+          key: ${{ runner.os }}-${{ matrix.branch }}-esp8266-cache-tools
+
+      - name: Install toolchain
+        if: ${{ steps.cache-idf-tools.outputs.cache-hit != 'true' || matrix.branch == 'master' }}
+        run: |
+          ${IDF_PATH}/install.sh
+      - name: Setup ccache (make)
+        run: |
+          __PROJECT_CCACHE_BIN_DIR="${HOME}/ccache_bin"
+          mkdir -p "${__PROJECT_CCACHE_BIN_DIR}"
+          (cd "${__PROJECT_CCACHE_BIN_DIR}" && ln -s /usr/bin/ccache "${__PROJECT_GCC_FILE}")
+          echo "PATH=${__PROJECT_CCACHE_BIN_DIR}:$PATH:${__PROJECT_TOOLCHAIN_DIR}/${__PROJECT_GCC_PREFIX}/${__PROJECT_TOOLCHAIN_VERSION}/${__PROJECT_GCC_PREFIX}/bin" >> ${GITHUB_ENV}
+          echo "CCACHE_NOHASHDIR=true" >> ${GITHUB_ENV}
+      - name: Build (make)
+        if: ${{ matrix.build_method == 'make' }}
+        run: |         
+          make
+      - name: Build Artifacts
+        run: |
+          export
+          chmod a+x boards/esp8266-rtossdk/buildzipdir.sh
+          boards/esp8266-rtossdk/buildzipdir.sh          
+      - name: Store Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: esp8266-binaries
+          path: |
+            /tmp/build/*.zip
+          
+  release_and_tweet:
+    name: Releasing new version
+    needs: build_esp8266
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v2
+      - name: List Artifacts
+        shell: bash
+        run: |
+          ls
+
+      - uses: ncipollo/release-action@v1
+        with:
+          artifacts: "esp32-binaries/*.zip, esp8266-binaries/*.zip"
+          bodyFile: "CHANGELOG.md"
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract branch name
+        shell: bash
+        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/tags/})"
+        id: extract_branch        
+      - uses: julb/action-post-twitter-status@v1
+        with:
+          message: "AirMeter ${{ steps.extract_branch.outputs.branch }} is now available for download at https://github.com/airmeter-io/AirMeter.io.Firmware/releases/tag/${{ steps.extract_branch.outputs.branch }}"
+          twitter_app_consumer_api_key: ${{ secrets.TWITTER_CONSUMER_API_KEY }}
+          twitter_app_consumer_api_secret_key: ${{ secrets.TWITTER_CONSUMER_API_SECRET }}
+          twitter_app_access_token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
+          twitter_app_access_token_secret: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
 
 
 

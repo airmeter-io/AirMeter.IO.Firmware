@@ -21,7 +21,7 @@ extern "C" {
 }
 
 
-
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)    
 void print_wakeup_reason(){
 	auto wakeup_reason = esp_sleep_get_wakeup_cause();
 	switch(wakeup_reason)
@@ -34,6 +34,7 @@ void print_wakeup_reason(){
 		default : printf("Wakeup was not caused by deep sleep %d\n",wakeup_reason); break;
 	}
 }
+#endif
 
 void MainLogicLoop::ProcessEvents() {
     _buttons->ProcessQueue();
@@ -183,7 +184,9 @@ bool MountSpiffs(esp_vfs_spiffs_conf_t& pConf) {
 
 extern "C" void app_main(void)
 {
+    #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)    
     print_wakeup_reason();
+    #endif
     ESP_LOGI(TAG, "CO2 Monitor Firmware\n");
     ESP_LOGI(TAG, "ESPIDF Version: %s\n", esp_get_idf_version());
    

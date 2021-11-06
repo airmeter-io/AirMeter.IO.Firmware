@@ -108,7 +108,9 @@ void MainLogicLoop::Run() {
     // }
     
     bool gotNtp = false;
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)    
     esp_sleep_enable_wifi_wakeup();
+#endif
     while (true) {
         _display->RenderReadings();
         // printf("Slept \n");

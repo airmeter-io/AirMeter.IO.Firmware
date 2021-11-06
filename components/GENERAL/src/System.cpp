@@ -10,9 +10,11 @@ char* System::GetMCUName(){
     switch((int)chipInfo.model) {
         case 0 : return (char*)"ESP8266";
         case (int)esp_chip_model_t::CHIP_ESP32 : return (char*)"ESP32";
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)        
         case (int)esp_chip_model_t::CHIP_ESP32S2 : return (char*)"ESP32S2";
         case (int)esp_chip_model_t::CHIP_ESP32S3 : return (char*)"ESP32S3";
         case (int)esp_chip_model_t::CHIP_ESP32C3 : return (char*)"ESP32C3";
+#endif
     }
     return (char*)"Unknown";
 }

@@ -8,7 +8,7 @@ CONFIG_IDF_TARGET="esp8266"
 #
 # SDK tool configuration
 #
-CONFIG_SDK_TOOLPREFIX="~/co2build/xtensa-lx106-elf/bin/xtensa-lx106-elf-"
+CONFIG_SDK_TOOLPREFIX="xtensa-lx106-elf-"
 CONFIG_SDK_PYTHON="python3"
 # CONFIG_SDK_MAKE_WARN_UNDEFINED_VARIABLES is not set
 CONFIG_BOOTLOADER_INIT_SPI_FLASH=y

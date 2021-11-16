@@ -7,8 +7,7 @@ Json::Json() {
 }
 
 Json::Json(std::string pJson) {
-    _json = cJSON_Parse(pJson.c_str());
-    ESP_LOGI(TAG, "Registering URI handlers");
+    _json = cJSON_Parse(pJson.c_str());   
     if (_json == NULL)
     {
        ESP_LOGI(TAG, "Coult not parse JSON");

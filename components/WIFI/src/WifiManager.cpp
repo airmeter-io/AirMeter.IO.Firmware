@@ -73,6 +73,7 @@ void WifiManager::ProcessWifiEvent(wifi_event_t pEventId, void *pEvent) {
             break;
         case WIFI_EVENT_STA_BEACON_TIMEOUT :      
             break;
+
         case WIFI_EVENT_MAX :      
             break;                        
 #endif             
@@ -99,7 +100,9 @@ void WifiManager::ProcessIPEvent(ip_event_t pEvent, void *pEventData) {
         case IP_EVENT_PPP_GOT_IP :      
             break;
         case IP_EVENT_PPP_LOST_IP :      
-            break;                      
+            break;  
+        case IP_EVENT_ETH_LOST_IP : 
+            break;                                
 #endif 
             
     }

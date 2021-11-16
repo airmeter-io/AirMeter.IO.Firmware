@@ -11,7 +11,7 @@
 
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)
 #include "HWSerial.h"
-#define SerialESP32 new HWSerial(UART_NUM_2)
+#define SerialESP32 new HWSerial(CONFIG_CO2_UART_NUM)
 #define Serial SerialESP32
 #else 
 #include "SoftSerial.h"

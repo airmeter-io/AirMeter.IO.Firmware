@@ -125,7 +125,7 @@ void MainLogicLoop::Run() {
         if(mqtt!=nullptr) mqtt->Tick();
 
         if(!gotNtp) {
-            for(auto i = 0; i< LWIP_DHCP_MAX_NTP_SERVERS; i++) {
+            for(auto i = 0; i< 2; i++) {
                 if(sntp_getserver(i)!=0) {
                     ESP_LOGI(TAG,"NTP %s\n", ipaddr_ntoa(sntp_getserver(i)));
                     gotNtp = true;

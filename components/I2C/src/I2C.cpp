@@ -4,7 +4,7 @@ I2C::I2C(gpio_num_t pSdaPin, gpio_num_t pSclPin) {
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)
 
 #define I2C_MASTER_NUM              0                          /*!< I2C master i2c port number, the number of i2c peripheral interfaces available will depend on the chip */
-#define I2C_MASTER_FREQ_HZ          400000                     /*!< I2C master clock frequency */
+#define I2C_MASTER_FREQ_HZ          100000                     /*!< I2C master clock frequency */
 #define I2C_MASTER_TX_BUF_DISABLE   0                          /*!< I2C master doesn't need buffer */
 #define I2C_MASTER_RX_BUF_DISABLE   0                          /*!< I2C master doesn't need buffer */
 #define I2C_MASTER_TIMEOUT_MS       1000
@@ -18,7 +18,7 @@ I2C::I2C(gpio_num_t pSdaPin, gpio_num_t pSclPin) {
         .sda_pullup_en = GPIO_PULLUP_ENABLE,
         .scl_pullup_en = GPIO_PULLUP_ENABLE,
 		.master = {.clk_speed = I2C_MASTER_FREQ_HZ },
-		.clk_flags = 0
+		.clk_flags = I2C_SCLK_SRC_FLAG_FOR_NOMAL
     };
 
 
@@ -50,8 +50,8 @@ bool I2C::Scan() {
 		i2c_master_write_byte(cmd, (i << 1) | I2C_MASTER_WRITE, 1 /* expect ack */);
 		i2c_master_stop(cmd);
 
-		espRc = i2c_master_cmd_begin(I2C_NUM_0, cmd, 10/portTICK_PERIOD_MS);
-		if (espRc == 0) 
+		espRc = i2c_master_cmd_begin(I2C_NUM_0, cmd, 25/portTICK_PERIOD_MS);
+		if (espRc != 0xffffffff) 
         {
             temp[index] = i;
             index++;            

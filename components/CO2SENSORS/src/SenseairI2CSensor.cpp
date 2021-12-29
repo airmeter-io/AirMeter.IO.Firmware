@@ -67,9 +67,9 @@ bool SenseairI2CSensor::RefreshValues() {
         ushort measurementCount = ppmBytes[7];
         ushort measurementSeconds = ppmBytes[8]*256 + ppmBytes[9];
         measurementSeconds*=2;
-        _temp = std::to_string(tempRaw/100)+"."+std::to_string(tempRaw % 100);
+       _temp = std::to_string(tempRaw/100)+"."+std::to_string(tempRaw % 100);
 
-        _measurementInfo = std::to_string(measurementSeconds) + "s since reading #"+std::to_string(measurementCount);
+       _measurementInfo = std::to_string(measurementSeconds) + "s since reading #"+std::to_string(measurementCount);
     }
    
     return true;
@@ -132,9 +132,12 @@ void SenseairI2CSensor::ReadMeasurementModeInfo() {
 }
 
 #define TAG "SenseI2C"
+
+
+
 bool SenseairI2CSensor::ReadRegister(uint8_t pRegAddr, uint8_t *pRegData, uint32_t pLen)
 {
-ESP_LOGV(TAG, "Read(len=%d)", pLen);
+ printf("Read(len=%d, %d)\n", pLen, (int)pRegAddr);
 
     esp_err_t ret = ESP_OK;
     
@@ -142,64 +145,39 @@ ESP_LOGV(TAG, "Read(len=%d)", pLen);
     for(auto attempts = 0; attempts < 5; attempts++) {
         if(attempts>0)
             vTaskDelay(500 / portTICK_RATE_MS);
-        i2c_cmd_handle_t cmd = i2c_cmd_link_create();
+        i2c_cmd_handle_t cmd = NULL;
+        
         esp_err_t espRc =1;
-        while(true) {
-            i2c_master_start(cmd);
-            i2c_master_write_byte(cmd, 0x68 << 1 | I2C_MASTER_WRITE, 1 /* expect ack */);
-            i2c_master_stop(cmd);
-            if(!i2c_master_cmd_begin(I2C_NUM_0, cmd, 100/portTICK_PERIOD_MS))
-                break;  
-            i2c_cmd_link_delete(cmd); 
-            cmd = i2c_cmd_link_create();     
-        }
+        uint8_t cmdMem[I2C_LINK_RECOMMENDED_SIZE(1)] = { 0 };
 
+        cmd = i2c_cmd_link_create_static(cmdMem, I2C_LINK_RECOMMENDED_SIZE(1));
         i2c_master_start(cmd);
-        i2c_master_write_byte(cmd, (  0x68 << 1 ) | I2C_MASTER_WRITE, true);
-        i2c_master_write_byte(cmd,pRegAddr,true);
+        i2c_master_write_byte(cmd, 0x68 << 1 | I2C_MASTER_WRITE, 1 /* expect ack */);
         i2c_master_stop(cmd);
-        ret = i2c_master_cmd_begin(I2C_NUM_0, cmd, 100/portTICK_RATE_MS);
-        if ( ret != ESP_OK ) {
-            ESP_LOGE(TAG, "fs Fail to read device ( port = %d, addr = %02x, err=%d, %d )", I2C_NUM_0, pRegAddr, ret, 0x68);
-        }
+        ret = i2c_master_cmd_begin(I2C_NUM_0, cmd, 100/portTICK_PERIOD_MS);
+        i2c_cmd_link_delete_static(cmd);
+           
 
+        vTaskDelay(5 / portTICK_RATE_MS);
 
+        cmd = i2c_cmd_link_create_static(cmdMem, I2C_LINK_RECOMMENDED_SIZE(1));
         i2c_master_start(cmd);
-        i2c_master_write_byte(cmd, ( 0x68<< 1 ) | I2C_MASTER_READ, true);
-        i2c_master_read(cmd, pRegData, pLen, I2C_MASTER_LAST_NACK);
+        i2c_master_write_byte(cmd, 0x68 << 1 | I2C_MASTER_WRITE, 1 /* expect ack */);
+        i2c_master_write(cmd,&pRegAddr,1,true);
         i2c_master_stop(cmd);
+        ret = i2c_master_cmd_begin(I2C_NUM_0, cmd, 100/portTICK_PERIOD_MS);
+        i2c_cmd_link_delete_static(cmd);
 
-        ret = i2c_master_cmd_begin(I2C_NUM_0, cmd, 1000/portTICK_RATE_MS);
-        i2c_cmd_link_delete(cmd);
+        ret = i2c_master_read_from_device(I2C_NUM_0, 0x68, pRegData, pLen, 1000 / portTICK_RATE_MS);
+
         if ( ret != ESP_OK ) {
-            ESP_LOGE(TAG, "Fail to read device ( port = %d, addr = %02x, err=%d )", I2C_NUM_0, pRegAddr, ret);
-            
+            ESP_LOGE(TAG, "Fail to read device ( port = %d, addr = %02x, err=%d )", I2C_NUM_0, pRegAddr, ret);      
         } else 
             break;        
     }
 
     return ret == ESP_OK;
 
-    //  I2CDeviceSessionCommand commands[6] = {
-    //     I2CDeviceSessionCommand(I2CDeviceSessionCommandType::Wakeup),
-    //     I2CDeviceSessionCommand(I2CDeviceSessionCommandType::StartWrite),
-    //     I2CDeviceSessionCommand(I2CDeviceSessionCommandType::WriteByte, pRegAddr),
-    //     I2CDeviceSessionCommand(I2CDeviceSessionCommandType::Execute, 100, true),
-    //     I2CDeviceSessionCommand(I2CDeviceSessionCommandType::StartRead, (uint8_t *)pRegData, pLen),
-    //     I2CDeviceSessionCommand(I2CDeviceSessionCommandType::Execute, 1000, false)
-    // };
-    
-    // for(auto attempts = 0; attempts < 5; attempts++) {
-    //    if(attempts>0) {
-    //        vTaskDelay(500 / portTICK_RATE_MS);
-    //        //printf("Retrying %d...\n",attempts);
-    //    }
-    //     auto result = _session->RunCommand(commands, 6);
-    //     if(result) {
-    //         printf("Sucessfully read %.2x\n", pRegAddr);
-    //         return true;
-    //     }
-    // }
     return false;
 }
 

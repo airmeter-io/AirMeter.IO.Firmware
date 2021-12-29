@@ -36,6 +36,7 @@ idf_component_register(
              "spiffs"
              "esp_http_server"
              "ESP8266-RTOS-FONTS"
-             "ESP8266-RTOS-SSD1306")
+             "ESP8266-RTOS-SSD1306"
+             "CalEPD")
              
 spiffs_create_partition_image(web ../webui/distgz FLASH_IN_PROJECT)

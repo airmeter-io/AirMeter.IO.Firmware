@@ -4,7 +4,7 @@
 #include "CubicCO2Sensor.h"
 #include "SenseairI2CSensor.h"
 #include "SenseairModBusSensor.h"
-
+#include "SCD30Sensor.h"
 
 
 
@@ -27,9 +27,17 @@ SensorManager::SensorManager(GeneralSettings& pSettings, I2C& pI2C, DataManager&
     printf("Searching for I2C CO2 Sensor from %d devices: ", count);
     for(auto i = 0; i < count; i++) {
         auto device = _i2c.GetDevice(i);
-        if(device == 0x68) {
-        _co2Sensor = new SenseairI2CSensor(_i2c.CreateSession(device));
+        
+        switch(device) {
+
+            case 0x68 :
+                _co2Sensor = new SenseairI2CSensor(_i2c.CreateSession(device));
+                break;
+            case 0x61 :
+                _co2Sensor = new Scd30Sensor(_i2c.CreateSession(device));
+                break;                
         }
+
         printf("%.2x ", device);
     }
     printf("\n");

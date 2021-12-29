@@ -5,6 +5,7 @@ idf_component_register(
     "src/SenseairBase.cpp"
     "src/SenseairI2CSensor.cpp"
     "src/SenseairModbusSensor.cpp"
+    "src/SCD30Sensor.cpp"
   INCLUDE_DIRS "include"
               "../../common"
   REQUIRES "json"

@@ -8,7 +8,7 @@ Scd30Sensor::Scd30Sensor(I2CDeviceSession* pSession) : _session(pSession) {
     RegisterValue(&_valMeasurementInterval);
     RegisterValue(&_valTemperatureOffset);
     RegisterValue(&_valAltitude);
-
+    
     ReadSoftwareVersion();    
     ReadSerialNo();
     ReadMeasurementInterval();      
@@ -46,7 +46,7 @@ bool Scd30Sensor::ReadCommand(Scd30I2CCommand pCommand, uint8_t* pParamData, uin
     uint8_t buffer[2 + (numParamWords * 3)];
 
     buffer[0] = pCommand >> 8;
-    buffer[1] = pCommand & 8;
+    buffer[1] = pCommand & 0xff;
     auto ptr = buffer+2;
    
     if (pParamData && numParamWords)
@@ -61,13 +61,17 @@ bool Scd30Sensor::ReadCommand(Scd30I2CCommand pCommand, uint8_t* pParamData, uin
     ESP_LOGV(TAG, "Sending buffer:");
     uint8_t cmdMem[I2C_LINK_RECOMMENDED_SIZE(1)] = { 0 };
     auto cmd = i2c_cmd_link_create_static(cmdMem, I2C_LINK_RECOMMENDED_SIZE(1));
+    printf("Sending %.4x: ", pCommand);
+    for(auto i = 0; i <sizeof(buffer) ; i++)
+        printf("%.2x ",buffer[i]);            
+    printf("\n");
     i2c_master_start(cmd);
     i2c_master_write_byte(cmd, 0x61 << 1 | I2C_MASTER_WRITE, 1);
     i2c_master_write(cmd,buffer,sizeof(buffer),true);
     i2c_master_stop(cmd);
     auto ret = i2c_master_cmd_begin(I2C_NUM_0, cmd, 100/portTICK_PERIOD_MS);
     i2c_cmd_link_delete_static(cmd);
-    ets_delay_us(3500);
+    ets_delay_us(5500);
     auto numResponseWords = pNumResponseBytes % 2 ? pNumResponseBytes/2 + 1 : pNumResponseBytes/2;
     if(pResponseData && numResponseWords) {
         uint8_t inBuf[3*numResponseWords];
@@ -91,6 +95,10 @@ bool Scd30Sensor::ReadCommand(Scd30I2CCommand pCommand, uint8_t* pParamData, uin
                 responseData[i*2 +1] = *(ptr+1);   
                 ptr+=3;             
             }
+            printf("Received: ");
+            for(auto i = 0; i <pNumResponseBytes ; i++)
+                printf("%.2x ",responseData[i]);            
+            printf("\n");
         }
     }
 
@@ -99,11 +107,17 @@ bool Scd30Sensor::ReadCommand(Scd30I2CCommand pCommand, uint8_t* pParamData, uin
 
 bool Scd30Sensor::RefreshValues() {
     uint8_t valueData[12];
+    uint8_t readyStatus[2] = {0,0};
+    while(!ReadCommand(Scd30I2CCommand::GET_READY_STATUS, nullptr, 0, (uint16_t *)readyStatus, sizeof(readyStatus)) || readyStatus[1]!=1)
+    {
+        ESP_LOGE(TAG, "Not ready");
+        vTaskDelay(50 / portTICK_RATE_MS);
+    }
 
-    if(!ReadCommand(Scd30I2CCommand::READ_MEASUREMENT, nullptr, 0, (uint16_t *)valueData, sizeof(valueData)))
+    while(!ReadCommand(Scd30I2CCommand::READ_MEASUREMENT, nullptr, 0, (uint16_t *)valueData, sizeof(valueData)))
     {
         ESP_LOGE(TAG, "Failed to read measurement from SCD30");
-        return false;
+        vTaskDelay(50 / portTICK_RATE_MS);
     }
     uint32_t co2Raw =(uint32_t)((valueData[0] << 24) | (valueData[1] << 16) | (valueData[2] << 8) | valueData[3]  );
     uint32_t tempRaw =(uint32_t)((valueData[4] << 24) | (valueData[5] << 16) | (valueData[6] << 8) | valueData[7]  );
@@ -153,7 +167,19 @@ void Scd30Sensor::ReadMeasurementInterval() {
         return;
     }
     _valMeasurementInterval.value.i = (intervalBytes[0] << 8) + intervalBytes[1];
-    printf("Measurement Interval: %d\n",  _valMeasurementInterval.value.i);
+     printf("Measurement Interval: %d\n",  _valMeasurementInterval.value.i);
+    if(_valMeasurementInterval.value.i!=2)  {
+        SetMeasurementInterval(2);
+        while(!ReadCommand(Scd30I2CCommand::SET_MEASUREMENT_INTERVAL, nullptr, 0, &intervalBytes, 1))
+        {
+            vTaskDelay(500 / portTICK_RATE_MS);
+            ESP_LOGV(TAG, "Failed to read measurement interval from SCD30");
+            return;
+        }
+        _valMeasurementInterval.value.i = (intervalBytes[0] << 8) + intervalBytes[1];
+         printf("Measurement Interval (Reset): %d\n",  _valMeasurementInterval.value.i);
+    }
+   
 }   
 
 void Scd30Sensor::ReadABCStatus() {
@@ -187,7 +213,7 @@ void Scd30Sensor::ReadAltitude() {
         ESP_LOGV(TAG, "Failed to read altitude from SCD30");
         return;
     }
-    _valTemperatureOffset.value.i = (bytes[0] << 8) + bytes[1];
+    _valAltitude.value.i = (bytes[0] << 8) + bytes[1];
 }
 
 
@@ -228,19 +254,44 @@ bool Scd30Sensor::GetIsABCEnabled() {
     return _isAbcEnabled;
 }
 
+int Scd30Sensor::GetMinDaysPerABCCycle() {
+    return 7;
+}
+
+int Scd30Sensor::GetMaxDaysPerABCCycle() {
+    return 7;
+}
+
+int Scd30Sensor::GetMinBasePPM()
+{
+    return 400;
+}
+
+int Scd30Sensor::GetMaxBasePPM()
+{
+    return 2000;
+}
+
 void Scd30Sensor::DisableABC() { 
     uint8_t paramBytes[2]  = {0,0};
     while(!ReadCommand(Scd30I2CCommand::GET_OR_SET_ABC, paramBytes, sizeof(paramBytes), nullptr, 0))
     {
         vTaskDelay(500 / portTICK_RATE_MS);
         ESP_LOGV(TAG, "Failed to disable ABC on SCD30");
-      //  return;
     }
     ReadABCStatus();  
 }
 
 void Scd30Sensor::ManualCalibration(int pBaseLinePPM) {
+    uint8_t paramBytes[2];
+    paramBytes[0] = pBaseLinePPM >> 8;
+    paramBytes[1] = pBaseLinePPM & 0xFF;
 
+    while(!ReadCommand(Scd30I2CCommand::SET_EXTERNAL_REF_VALUE, paramBytes, sizeof(paramBytes), nullptr, 0))
+    {
+        vTaskDelay(500 / portTICK_RATE_MS);
+        ESP_LOGV(TAG, "Failed to set FRC value on SCD30");
+    }
 }
 
 void Scd30Sensor::EnableABC(int pBaseLinePPM, int pNumberOfDaysPerCycle) { 
@@ -249,7 +300,18 @@ void Scd30Sensor::EnableABC(int pBaseLinePPM, int pNumberOfDaysPerCycle) {
     {
         vTaskDelay(500 / portTICK_RATE_MS);
         ESP_LOGV(TAG, "Failed to enable ABC on SCD30");
-      //  return;
     }
     ReadABCStatus();  
+}
+
+void Scd30Sensor::SetMeasurementInterval(uint16_t pIntervalSeconds) { 
+    uint8_t paramBytes[2];
+    paramBytes[0] = pIntervalSeconds >> 8;
+    paramBytes[1] = pIntervalSeconds & 0xFF;
+    while(!ReadCommand(Scd30I2CCommand::SET_MEASUREMENT_INTERVAL, paramBytes, sizeof(paramBytes), nullptr, 0))
+    {
+        vTaskDelay(500 / portTICK_RATE_MS);
+        ESP_LOGV(TAG, "Failed toset measurement interval on SCD30");
+    }
+    //ReadMeasurementInterval();
 }

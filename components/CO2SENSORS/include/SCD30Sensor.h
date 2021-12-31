@@ -42,7 +42,8 @@ class Scd30Sensor : public CO2Sensor {
     void ReadABCStatus();  
     void ReadTemperatureOffset();  
     void ReadAltitude();  
-    
+    void SetMeasurementInterval(uint16_t pIntervalSeconds);
+
     uint Crc8(void *pData, size_t pLength);
 public:
     Scd30Sensor(I2CDeviceSession* pSession);
@@ -50,6 +51,11 @@ public:
     std::string& GetSerialNo()  override;
     std::string& GetDeviceName() override;
     std::string& GetSWVersion() override;
+
+    int GetMinDaysPerABCCycle() override;
+    int GetMaxDaysPerABCCycle() override;
+    int GetMinBasePPM() override;
+    int GetMaxBasePPM() override;
 
     bool RefreshValues() override;
     int GetPPM() override;

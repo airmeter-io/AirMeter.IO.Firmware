@@ -27,6 +27,7 @@ class Json ;
 class Json {
     cJSON *_json ;
     bool _dontFree = false;
+    Json(cJSON* pJson);
 public:
     Json();
     Json(std::string pJson);
@@ -34,7 +35,11 @@ public:
     bool GetBoolProperty(const std::string& pProperty);
     int GetIntProperty(const std::string& pProperty);
     uint GetUIntProperty(const std::string& pProperty);
+    Json* GetObjectProperty(const std::string & pProperty);
     bool HasProperty(const std::string& pProperty);
+    bool HasObjectProperty(const std::string& pProperty);
+    bool HasArrayProperty(const std::string& pProperty);
+    void GetAsArrayElements(std::vector<Json*>& pElements);
     void CreateStringProperty(const std::string& pProperty, const std::string& pValue);
     void CreateNumberProperty(const std::string& pProperty, uint pValue);
     void CreateNumberProperty(const std::string& pProperty, int pValue);

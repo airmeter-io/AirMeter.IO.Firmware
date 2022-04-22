@@ -4,6 +4,11 @@
 #define TAG "Json"
 Json::Json() {
     _json = cJSON_CreateObject();
+
+}
+
+Json::Json(cJSON* pJson) : _json(pJson) {
+    _dontFree = true;
 }
 
 Json::Json(std::string pJson) {
@@ -20,6 +25,15 @@ Json::~Json() {
     if(!_dontFree)
         cJSON_Delete(_json);
 }
+
+
+Json* Json::GetObjectProperty(const std::string & pProperty) {
+    cJSON * result= cJSON_GetObjectItemCaseSensitive(_json, pProperty.c_str());
+    if(result!=nullptr) 
+        return new Json(result);
+    return nullptr;
+}
+
 
 std::string Json::GetStringProperty(const std::string& pProperty) {
     auto result= cJSON_GetObjectItemCaseSensitive(_json, pProperty.c_str());
@@ -83,6 +97,20 @@ bool Json::HasProperty(const std::string& pProperty) {
     return false;
 }
 
+bool Json::HasObjectProperty(const std::string& pProperty) {
+    auto result= cJSON_GetObjectItemCaseSensitive(_json, pProperty.c_str());
+    if (cJSON_IsObject(result))
+        return true;    
+    return false;
+}
+
+bool Json::HasArrayProperty(const std::string& pProperty) {
+    auto result= cJSON_GetObjectItemCaseSensitive(_json, pProperty.c_str());
+    if (cJSON_IsArray(result))
+        return true;    
+    return false;
+}
+
 void Json::CreateNumberProperty(const std::string& pProperty, double pValue) {
     CreateStringProperty(pProperty, std::to_string(pValue)); 
 }
@@ -119,4 +147,10 @@ std::string Json::Print() {
 
 cJSON* Json::GetJsonObject() {
     return _json;
+}
+
+void Json::GetAsArrayElements(std::vector<Json*>& pElements) {
+    auto size = cJSON_GetArraySize(_json);
+    for(auto i = 0; i < size; i++)
+        pElements.push_back(new Json(cJSON_GetArrayItem(_json,i)));
 }

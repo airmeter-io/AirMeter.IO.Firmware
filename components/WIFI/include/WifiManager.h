@@ -77,6 +77,7 @@ public:
     std::string& GetNetmask();
     std::string& GetGateway();
     bool GetIsProvisioning();
+    
     std::string& GetSSID();
     int GetChannel();
     wifi_auth_mode_t GetAuthMode();

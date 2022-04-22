@@ -8,7 +8,7 @@
 
 class WifiUIImplementation {
 public:
-   virtual void ProcessEvents() = 0;
+   virtual time_t ProcessEvents() = 0;
    virtual void DisplayAPAuthInfo(const std::string& pSSID, const std::string& pPassword);
 
 };
@@ -27,6 +27,7 @@ public:
     ~Wifi();
     
     bool IsProvisioned();
+    bool IsConnected();
     void StartProvisioning();
     WifiManager& GetManager();
     wifi_ap_record_t *FindNetwork(const std::string& pSsid);

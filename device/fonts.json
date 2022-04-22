@@ -1,0 +1,14 @@
+[
+    {
+        "Name": "Small",
+        "File": "Roboto-Regular-12.afnt"
+    },
+    {
+        "Name": "Medium",
+        "File": "Manrope-Regular-18.afnt"
+    },
+    {
+        "Name": "Large",
+        "File": "Manrope-Regular-25.afnt"
+    }
+]

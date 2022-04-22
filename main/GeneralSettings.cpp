@@ -43,8 +43,8 @@ void GeneralSettings::LoadSettings(Json& pJson) {
         _mqttTopic = pJson.GetStringProperty("MqttTopic");    
     if(pJson.HasProperty("MqttPublishSecondDelay"))
         _mqttPublishSecondDelay = pJson.GetIntProperty("MqttPublishSecondDelay");           
-    if(pJson.HasProperty("CO2SensorType")) 
-        _sensorType = (CO2SensorType)pJson.GetIntProperty("CO2SensorType");
+ //   if(pJson.HasProperty("CO2SensorType")) 
+ //       _sensorType = (CO2SensorType)pJson.GetIntProperty("CO2SensorType");
     if(pJson.HasProperty("SensorUpdateInterval")) 
         _sensorUpdateInterval = (CO2SensorType)pJson.GetIntProperty("SensorUpdateInterval");        
 }

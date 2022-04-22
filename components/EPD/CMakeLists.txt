@@ -1,0 +1,21 @@
+idf_component_register(
+  SRCS "src/SSD1680.cpp"
+    "src/EPDBackBuffer.cpp"
+    "src/EPDDrawTarget.cpp"
+    "src/DEPG0213BN.cpp"
+    "src/epdspi.cpp"
+  INCLUDE_DIRS "include"
+              "../../common"
+  REQUIRES "json"
+          "nvs_flash"
+          "I2C"
+          "HTTPSERVER"
+          "mqtt"
+          "spiffs"
+          "esp_http_server"
+          "ESP8266-RTOS-FONTS"
+          "ESP8266-RTOS-SSD1306"
+          "GPIOROUTING"
+          "BITMAPFONT"
+          
+)

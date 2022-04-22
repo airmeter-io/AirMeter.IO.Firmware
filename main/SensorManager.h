@@ -19,9 +19,12 @@ class SensorManager {
     DataManager _dataManager;
     
     time_t _lastSensorRead = 0;
+    void EnableSensorReadGPIO();
+    void DisableSensorReadGPIO();
 public:
     SensorManager(GeneralSettings& pSettings, I2C& pI2C, DataManager& pDataManager);
     ~SensorManager();
     ValueModel& GetValues();
-    void UpdateValues();
+    time_t UpdateValues();
+    inline time_t GetLastSensorRead() { return _lastSensorRead; }
 };

@@ -6,7 +6,8 @@
 
 class SenseairI2CSensor : public SenseairBase {
     I2CDeviceSession*  _session;
-   
+    bool _hasDataRestore = false;
+    uint8_t _sensorStateData[25] = { 0x1 };
     void ReadFirmwareVersion();
     void ReadSensorID();
     void ReadCalibrationStatus();

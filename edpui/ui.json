@@ -1,0 +1,28 @@
+{
+    "DefaultScreen": "HOME",
+    "Screens": [
+        {
+            "Name": "HOME",
+            "Draw": [
+                {
+                    "Type": "Clear",
+                    "Color": "White"
+                },
+                {
+                    "Type": "Text",
+                    "Color": "Black",
+                    "Font": "Large",
+                    "X": 1,
+                    "Y": 1,
+                    "W": 200,
+                    "H": 40,
+                    "Justify": "Left",
+                    "Text": "{CO2Ppm}"
+                }
+            ],
+            "Actions": [
+                
+            ]
+        }
+    ]
+}

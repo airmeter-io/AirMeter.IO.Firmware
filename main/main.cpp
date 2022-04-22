@@ -11,13 +11,24 @@
 #include "MqttManager.h"
 #include <dirent.h> 
 #include "PasswordGenerator.h"
-#include "DataManagerRamTemporaryStore.h"
-#include "DataManagerFlashDataStore.h"
+#include "BatteryManager.h"
+//#include <gdepg0213BN.h>
 
+#include "FontManager.h"
+
+
+#include <tinyutf8/tinyutf8.h>
 #define TAG "CO2 Monitor"
 
 extern "C" {
     #include "esp_sleep.h"
+    #include "soc/rtc.h"
+    #include "soc/rtc_cntl_reg.h"
+    #include "soc/efuse_reg.h"
+    #include "freertos/xtensa_timer.h"
+    #include "esp_pm.h"
+    #include "driver/gpio.h"
+    
 }
 
 
@@ -26,7 +37,7 @@ void print_wakeup_reason(){
 	auto wakeup_reason = esp_sleep_get_wakeup_cause();
 	switch(wakeup_reason)
 	{
-		case  ESP_SLEEP_WAKEUP_EXT0  : printf("Wakeup caused by external signal using RTC_IO\n"); break;
+		case ESP_SLEEP_WAKEUP_EXT0  : printf("Wakeup caused by external signal using RTC_IO\n"); break;
 		case ESP_SLEEP_WAKEUP_EXT1  : printf("Wakeup caused by external signal using RTC_CNTL\n"); break;
 		case ESP_SLEEP_WAKEUP_TIMER  : printf("Wakeup caused by timer\n"); break;
 		case ESP_SLEEP_WAKEUP_TOUCHPAD  : printf("Wakeup caused by touchpad\n"); break;
@@ -36,24 +47,41 @@ void print_wakeup_reason(){
 }
 #endif
 
-void MainLogicLoop::ProcessEvents() {
-    _buttons->ProcessQueue();
-    _sensorManager->UpdateValues();
+time_t MainLogicLoop::ProcessEvents() {
+   
+    auto result =  _sensorManager->UpdateValues();
+    if(_sensorManager->GetLastSensorRead()>_lastRead && _screenManager!=nullptr) {
+        printf("Triggering update\n");
+        _lastRead = _sensorManager->GetLastSensorRead();
+        _screenManager->TriggerUpdate();
+    }
+
+    return result;
 }
 
 void MainLogicLoop::DisplayAPAuthInfo(const std::string& pSSID, const std::string& pPassword) {
     _display->RenderAccessPointInfo(pSSID, pPassword);
 }
 
+MainLogicLoop::MainLogicLoop() {
+    _i2c = new I2C(GPIO_NUM_4, GPIO_NUM_5);
+    _i2c->Scan();
+    _generalSettings = new GeneralSettings();
+    _ramStore = new DataManagerRamTemporaryStore();
+    _flashStore = new DataManagerFlashDataStore();
+    _dataManager = new DataManager(_flashStore,_ramStore);
+    _sensorManager = new SensorManager(*_generalSettings, *_i2c, *_dataManager);
+    _voltageStr[0] = 0;
+    GpioManager::Setup();
+}
 
 void MainLogicLoop::Run() {
-    I2C i2c(GPIO_NUM_4, GPIO_NUM_5);
-    _buttons = new ButtonManager();
-    printf("Hello!\n");
-    i2c.Scan();
+
+        printf("Hello!\n");
     
+    auto battery = new BatteryManager();
     auto httpServer = new HttpServer();
-    _generalSettings = new GeneralSettings();
+    
 
     if(_generalSettings->GetApPassword().length()==0) {
         PasswordGenerator pwGen;
@@ -66,16 +94,14 @@ void MainLogicLoop::Run() {
     WebContentHandler *webContent = nullptr;
     MqttManager* mqtt = nullptr;
     
-    auto ramStore = new DataManagerRamTemporaryStore();
-    auto flashStore = new DataManagerFlashDataStore();
-    auto dataManager = new DataManager(flashStore,ramStore);
+   
     
-    _sensorManager = new SensorManager(*_generalSettings, i2c, *dataManager);
+   
     
-    _display = new Oledssd1306Display(*_generalSettings, _sensorManager->GetValues(), wifi, i2c );
+    _display = new Oledssd1306Display(*_generalSettings, _sensorManager->GetValues(), wifi, *_i2c );
     httpServer->Start();
  
-    command = new CommandHandler(wifi, *_generalSettings, _sensorManager->GetValues(), *dataManager);
+    command = new CommandHandler(wifi, *_generalSettings, _sensorManager->GetValues(), *_dataManager);
     webContent = new WebContentHandler();
     httpServer->AddUrlHandler(webContent);
     httpServer->AddUrlHandler(command);
@@ -89,6 +115,7 @@ void MainLogicLoop::Run() {
         wifi.StartProvisioning();
         vTaskDelay(2000 / portTICK_RATE_MS);
     } else {
+    
         printf("Already provisioned starting WiFi...\n");
 
         sntp = new SntpManager(_generalSettings->GetNtpServers(), _generalSettings->GetEnableDhcpNtp());
@@ -101,7 +128,7 @@ void MainLogicLoop::Run() {
         }
     }
 
-    _sensorManager->UpdateValues();
+    auto wait = _sensorManager->UpdateValues();
     // while(true) {
     //     _display->RenderReadings();
     //     vTaskDelay(2000 / portTICK_RATE_MS);
@@ -111,16 +138,45 @@ void MainLogicLoop::Run() {
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)    
     esp_sleep_enable_wifi_wakeup();
 #endif
+    //setCpuFrequencyMhz(80);
+    uint32_t j = 0;
+    
     while (true) {
         _display->RenderReadings();
-        // printf("Slept \n");
-        // esp_sleep_enable_timer_wakeup(100000000 );
-        // esp_light_sleep_start() ;
-        // printf("Woken up\n");
-        //  print_wakeup_reason();
-        vTaskDelay(1000 / portTICK_RATE_MS);
+
+        // if(wifi.IsConnected()) {
+        // //   printf("Slept \n");
+        //    // esp_sleep_enable_timer_wakeup(100000000 );
+        //    // esp_light_sleep_start() ;
+        // //   printf("Woken up\n");
+        //     // print_wakeup_reason();
         
-        ProcessEvents();
+        //     // setCpuFrequencyMhz(10);
+        //     for(auto i = 0; i < wait*10; i++) {
+        //         esp_sleep_enable_timer_wakeup(100000);
+        //         esp_sleep_enable_wifi_wakeup();
+        //         esp_light_sleep_start();
+        //         switch(esp_sleep_get_wakeup_cause()) {
+        //             case ESP_SLEEP_WAKEUP_TIMER :
+        //                 break;
+        //             case ESP_SLEEP_WAKEUP_WIFI : 
+        //                 printf("Wifi wakeup");
+        //                 break;
+        //             default: 
+        //                 break;
+        //         }
+        //          vTaskDelay(1 / portTICK_RATE_MS);
+        //     }
+        // } else 
+            vTaskDelay(5000 / portTICK_RATE_MS);
+        if(j%5 == 0) {
+            auto voltage = battery->GetBatteryVoltage();
+            auto major = (int)voltage;
+            auto minor = (int)((voltage - major)*100);
+            snprintf(_voltageStr, sizeof(_voltageStr)-1, "%d.%dV", major, minor);
+        }
+        j++;
+        wait = ProcessEvents();
 
         if(mqtt!=nullptr) mqtt->Tick();
 
@@ -140,12 +196,55 @@ void MainLogicLoop::Run() {
 
 }
 
+ std::string MainLogicLoop::ResolveValue(std::string pName) {
+    if(pName == "CO2Ppm") { 
+        if(_sensorManager->GetValues().CO2==nullptr)
+            return "-";
+        return std::to_string(_sensorManager->GetValues().CO2->GetPPM());
+    }
+    if(pName == "Temp")
+        return _sensorManager->GetValues().Bme280.GetTemperatureStr();
+    if(pName == "Pressure")
+        return _sensorManager->GetValues().Bme280.GetPressureStr(2);
+    if(pName == "Humidity")
+        return _sensorManager->GetValues().Bme280.GetHumidityStr();
+    if(pName == "Time") {
+        
+        time_t now;
+        time(&now);
+        char buf[sizeof "07:07:09Z"];
+        strftime(buf, sizeof buf, "%H:%M", gmtime(&now));
+        return buf;
+    }
+    if(pName == "BatVolts") {
+        return _voltageStr;
+    }
+    return "ERR";
+ }
+
+void MainLogicLoop::RunUI() {
+    _screenManager = new ScreenManager(*this);
+    _screenManager->Run();
+   
+}
+
+
+MainLogicLoop *mainLoop;
+
 static void i2ctask(void *arg)
 {
-	MainLogicLoop main;
-    main.Run();
+    mainLoop->Run();
 	vTaskDelete(NULL);
 }
+
+
+static void uiTask(void *arg)
+{
+    mainLoop->RunUI();
+	vTaskDelete(NULL);
+}
+
+
 
 bool MountSpiffs(esp_vfs_spiffs_conf_t& pConf) {
     esp_err_t ret = esp_vfs_spiffs_register(&pConf);
@@ -184,8 +283,37 @@ bool MountSpiffs(esp_vfs_spiffs_conf_t& pConf) {
 
 
 
+
+//Gdepg0213BN display(io);
+
 extern "C" void app_main(void)
 {
+
+    // Configure dynamic frequency scaling:
+    // maximum and minimum frequencies are set in sdkconfig,
+    // automatic light sleep is enabled if tickless idle support is enabled.
+  // io.init(4,false);
+ //   printf("SPI Inited\n");
+ //   vTaskDelay(5000 / portTICK_RATE_MS);
+    
+
+
+#if CONFIG_IDF_TARGET_ESP32
+    esp_pm_config_esp32_t pm_config = {
+#elif CONFIG_IDF_TARGET_ESP32S2
+    esp_pm_config_esp32s2_t pm_config = {
+#elif CONFIG_IDF_TARGET_ESP32C3
+    esp_pm_config_esp32c3_t pm_config = {
+#elif CONFIG_IDF_TARGET_ESP32S3
+    esp_pm_config_esp32s3_t pm_config = {
+#endif
+        .max_freq_mhz = 160,
+        .min_freq_mhz = 40,
+        .light_sleep_enable = true
+    };
+   // esp_pm_get_configuration(&pm_config);
+    printf("Min = %d, max = %d, light=%s\n",(int)pm_config.min_freq_mhz, (int)pm_config.max_freq_mhz, pm_config.light_sleep_enable ? "yes" : "no");
+    ESP_ERROR_CHECK( esp_pm_configure(&pm_config) );
     #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)    
     print_wakeup_reason();
     #endif
@@ -213,8 +341,23 @@ extern "C" void app_main(void)
     };
     
     MountSpiffs(conf);
-  
 
+    conf = {
+      .base_path = "/dev",
+      .partition_label = "dev",
+      .max_files = 5,
+      .format_if_mount_failed = true
+    };
+    
+    MountSpiffs(conf);
+
+    tiny_utf8::string str = u8"Hello €100";
+    for( char32_t codepoint : str){
+      printf("%X\n", codepoint);
+    }
+
+    mainLoop = new MainLogicLoop();
     xTaskCreate(i2ctask, "i2ctask", 4096, NULL, 10, NULL);
+    xTaskCreate(uiTask, "uiTask", 4096, NULL, 10, NULL);
 }
 

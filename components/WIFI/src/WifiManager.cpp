@@ -242,6 +242,7 @@ WifiManager::WifiManager() {
     tcpip_adapter_init();
     //ESP_ERROR_CHECK(esp_event_loop_create_default());
     esp_wifi_init(&_initConfig);
+    esp_wifi_set_ps(WIFI_PS_MAX_MODEM);
     ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &WifiManageEventHandler, this));
     ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, ESP_EVENT_ANY_ID, &WifiManageEventHandler, this));
 }
@@ -329,7 +330,7 @@ bool WifiManager::EnableStationOnly() {
     }
 
     ESP_ERROR_CHECK(esp_wifi_start());
-   
+
     return true;
 }
 
@@ -397,7 +398,7 @@ bool  WifiManager::ConfigureStationAP(const wifi_ap_record_t * pAp, const std::s
     _wifiConfig.sta.bssid_set = false;
     _wifiConfig.sta.btm_enabled = false;
   //  _wifiConfig.sta.channel = pAp->primary;
-    _wifiConfig.sta.listen_interval  = 0;
+    _wifiConfig.sta.listen_interval  = 0; //6;
     memset(_wifiConfig.sta.password,0, sizeof(_wifiConfig.sta.password));
     strncpy((char *)_wifiConfig.sta.password, pPassword.c_str(), sizeof(_wifiConfig.sta.password));
     _wifiConfig.sta.pmf_cfg.capable = false;
@@ -465,8 +466,10 @@ bool WifiManager::ConnectStation() {
         esp_wifi_start();
         _wifiIsStarted = true;
     }
+   // esp_wifi_set_ps(WIFI_PS_MAX_MODEM);
     ESP_ERROR_CHECK(esp_wifi_connect());
     printf("Connecting...\n");
+
     return true;
 }
 

@@ -1,0 +1,129 @@
+{
+    "DefaultScreen": "HOME",
+    "Screens": [
+        {
+            "Name": "HOME",
+            "Draw": [
+                {
+                    "Type": "Clear",
+                    "Color": "White"
+                },
+                {
+                    "Type": "Text",
+                    "Color": "Black",
+                    "Font": "Large",
+                    "X": 0,
+                    "Y": 0,
+                    "W": 250,
+                    "H": 122,
+                    "Justify": "Center",
+                    "VerticalAlign": "Middle",
+                    "Text": "{CO2Ppm}ppm"
+                },
+                {
+                    "Type": "Text",
+                    "Color": "Black",
+                    "Font": "Small",
+                    "X": 0,
+                    "Y": 0,
+                    "W": 250,
+                    "H": 122,
+                    "Justify": "Left",
+                    "VerticalAlign": "Top",
+                    "Text": "{Temp}C"
+                },
+                {
+                    "Type": "Text",
+                    "Color": "Black",
+                    "Font": "Small",
+                    "X": 0,
+                    "Y": 0,
+                    "W": 250,
+                    "H": 122,
+                    "Justify": "Center",
+                    "VerticalAlign": "Top",
+                    "Text": "{BatVolts}"
+                },
+                {
+                    "Type": "Text",
+                    "Color": "Black",
+                    "Font": "Small",
+                    "X": 0,
+                    "Y": 0,
+                    "W": 250,
+                    "H": 122,
+                    "Justify": "Right",
+                    "VerticalAlign": "Top",
+                    "Text": "{Humidity}%"
+                },
+                {
+                    "Type": "Text",
+                    "Color": "Black",
+                    "Font": "Small",
+                    "X": 0,
+                    "Y": 0,
+                    "W": 250,
+                    "H": 122,
+                    "Justify": "Left",
+                    "VerticalAlign": "Bottom",
+                    "Text": "{Pressure}hPa"
+                },
+                {
+                    "Type": "Text",
+                    "Color": "Black",
+                    "Font": "Small",
+                    "X": 0,
+                    "Y": 0,
+                    "W": 250,
+                    "H": 122,
+                    "Justify": "Right",
+                    "VerticalAlign": "Bottom",
+                    "Text": "{Time}"
+                }
+               
+            ]
+        },
+        {
+            "Name": "HOME2",
+            "Draw": [
+                {
+                    "Type": "Clear",
+                    "Color": "White"
+                },
+                {
+                    "Type": "Text",
+                    "Color": "Black",
+                    "Font": "Large",
+                    "X": 1,
+                    "Y": 50,
+                    "W": 200,
+                    "H": 40,
+                    "Justify": "Left",
+                    "Text": "{CO2Ppm}ppm"
+                },
+                {
+                    "Type": "Text",
+                    "Color": "Black",
+                    "Font": "Small",
+                    "X": 1,
+                    "Y": 90,
+                    "W": 200,
+                    "H": 40,
+                    "Justify": "Left",
+                    "Text": "{Temp}C {Humidity}%"
+                },
+                {
+                    "Type": "Text",
+                    "Color": "Black",
+                    "Font": "Small",
+                    "X": 1,
+                    "Y": 115,
+                    "W": 200,
+                    "H": 40,
+                    "Justify": "Left",
+                    "Text": "{Pressure}hPa"
+                }
+            ]
+        }
+    ]
+}

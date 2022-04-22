@@ -23,6 +23,10 @@ SensorManager::SensorManager(GeneralSettings& pSettings, I2C& pI2C, DataManager&
     _settings(pSettings), 
     _i2c(pI2C), 
     _dataManager(pDataManager) {
+    ESP_ERROR_CHECK(gpio_set_direction(GPIO_NUM_19, (gpio_mode_t)GPIO_MODE_DEF_OUTPUT));
+    EnableSensorReadGPIO();
+    vTaskDelay(50 / portTICK_RATE_MS);        
+    pI2C.Scan();
     auto count = _i2c.GetNumDevices();
     printf("Searching for I2C CO2 Sensor from %d devices: ", count);
     for(auto i = 0; i < count; i++) {
@@ -65,22 +69,39 @@ SensorManager::SensorManager(GeneralSettings& pSettings, I2C& pI2C, DataManager&
     }
     _values.CO2 = _co2Sensor;
     _bme = new BME280(_i2c);
+    DisableSensorReadGPIO();
+
 }
 
 SensorManager::~SensorManager() {
 
 }
 
+void SensorManager::EnableSensorReadGPIO()  {
+    ESP_ERROR_CHECK(gpio_set_level(GPIO_NUM_19,1));
+}
+
+void SensorManager::DisableSensorReadGPIO() {
+    ESP_ERROR_CHECK(gpio_set_level(GPIO_NUM_19,0));
+}
+
+
 ValueModel& SensorManager::GetValues() {
     return _values;
 }
 
-void SensorManager::UpdateValues() {
+
+time_t SensorManager::UpdateValues() {
     time_t curTime;
     time(&curTime);
     if(curTime - _lastSensorRead >= _settings.GetSensorUpdateInterval()) {
+      
+        
+        EnableSensorReadGPIO();
         if(_co2Sensor) _co2Sensor->RefreshValues();
+        
         _bme->ReadSensorValues(_values.Bme280);
+        DisableSensorReadGPIO();
         _lastSensorRead = curTime;
         time(&curTime);
 
@@ -101,5 +122,8 @@ void SensorManager::UpdateValues() {
         };
 
         _dataManager.WriteEntry(entry);
-    }    
+        time(&curTime);
+       
+    }   
+    return _settings.GetSensorUpdateInterval() - (curTime - _lastSensorRead); 
 }

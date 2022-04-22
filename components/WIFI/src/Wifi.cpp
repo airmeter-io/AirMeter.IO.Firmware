@@ -130,5 +130,9 @@ wifi_ap_record_t *Wifi::FindNetwork(const std::string& pSsid) {
     return nullptr;
 }
 
+bool Wifi::IsConnected() {
+    return _wifiManager.IsStationConnected();
+}
+
 
 

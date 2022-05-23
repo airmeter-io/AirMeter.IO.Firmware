@@ -2,6 +2,7 @@
 
 #include "Common.h"
 #include "DataManagerPrivate.h"
+#include <pthread.h>
 
 class DataManagerFlashDataStore;
 class DataManagerQuery;
@@ -31,6 +32,7 @@ public:
 class DataManager {
     DataEntry *_last = nullptr;
     uint _written = 0;
+    pthread_mutex_t _mutex;
     IDataManagerTemporaryStore* _store;
     DataManagerFlashDataStore* _flashStore;
     DataPointType GetRequiredBlockType(const DataEntry &pEntry);

@@ -1,17 +1,11 @@
 idf_component_register(
    SRCS "CalibrationCommands.cpp"
         "CaptiveRedirectHandler.cpp"
-        "CommandHandler.cpp"
-        "DataManager.cpp"
-        "DataManagerFlashDataStore.cpp"
-        "DataManagerQuery.cpp"
-        "DataManagerRamTemporaryStore.cpp"
-        "GeneralSettings.cpp"
+        "CommandHandler.cpp"       
         "main.cpp"
         "MonitorDisplay.cpp"
         "MqttManager.cpp"
         "OledSsd1306Display.cpp"
-        "SensorManager.cpp"
         "SetupCommands.cpp"
         "ViewCommands.cpp"
         "WebContentHandler.cpp"
@@ -36,13 +30,14 @@ idf_component_register(
              "esp_http_server"
              "ESP8266-RTOS-FONTS"
              "ESP8266-RTOS-SSD1306"
-             "CalEPD"
              "esp_timer"
              "EPD"
              "GPIOROUTING"
              "UTF8"
              "SCREENMANAGER"
-             "BATTERY")
+             "BATTERY"
+             "SENSORMANAGER"
+             "DATAMANAGER")
              
 spiffs_create_partition_image(web ../webui/distgz FLASH_IN_PROJECT)
 spiffs_create_partition_image(dev ../device FLASH_IN_PROJECT)

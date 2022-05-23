@@ -1,7 +1,7 @@
 
 
 idf_component_register(
-  SRCS "src/BitmapFont.cpp"
+  SRCS "src/SensorManager.cpp"
   INCLUDE_DIRS "include"
               "../../common"
   REQUIRES "json"
@@ -13,6 +13,11 @@ idf_component_register(
           "esp_http_server"
           "ESP8266-RTOS-FONTS"
           "ESP8266-RTOS-SSD1306"
-          "UTF8"
+          "BITMAPFONT"
           "EPD"
+          "GPIOROUTING"
+          "CO2SENSORS"
+          "VALUES"
+          "BME280"
+          "DATAMANAGER"
 )

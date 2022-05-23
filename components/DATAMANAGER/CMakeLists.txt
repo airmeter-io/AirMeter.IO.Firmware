@@ -1,18 +1,18 @@
-
-
 idf_component_register(
-  SRCS "src/BitmapFont.cpp"
+  SRCS "src/DataManager.cpp"
+    "src/DataManagerFlashDataStore.cpp"
+    "src/DataManagerQuery.cpp"
+    "src/DataManagerRamTemporaryStore.cpp"
   INCLUDE_DIRS "include"
               "../../common"
   REQUIRES "json"
           "nvs_flash"
           "I2C"
           "HTTPSERVER"
+          "SOFTSERIAL"
           "mqtt"
           "spiffs"
           "esp_http_server"
           "ESP8266-RTOS-FONTS"
           "ESP8266-RTOS-SSD1306"
-          "UTF8"
-          "EPD"
 )

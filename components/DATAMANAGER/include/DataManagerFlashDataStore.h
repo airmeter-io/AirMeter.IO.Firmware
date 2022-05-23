@@ -13,6 +13,7 @@ public:
     uint GetSize();
     uint GetPayloadSize();
     uint8_t* GetPayload();
+    bool Intersects(time_t pFrom, time_t pTo);
 };
 
 class DataManagerFlashDataStore {

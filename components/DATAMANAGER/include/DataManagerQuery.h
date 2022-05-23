@@ -5,6 +5,7 @@
 #include "DataManagerFlashDataStore.h"
 
 class DataManagerQuery {
+    pthread_mutex_t& _mutex;
     DataManagerFlashDataStore& _flashStore;
     IDataManagerTemporaryStore& _store;
     time_t _from;
@@ -17,7 +18,7 @@ class DataManagerQuery {
     uint ProcessBuffer(DataEntry *pEntries, uint pMaxEntries);
 
 public:
-    DataManagerQuery(DataManagerFlashDataStore& pFlashStore, IDataManagerTemporaryStore& pStore, time_t pFrom, time_t pTo);
+    DataManagerQuery(pthread_mutex_t& pMutex, DataManagerFlashDataStore& pFlashStore, IDataManagerTemporaryStore& pStore, time_t pFrom, time_t pTo);
     ~DataManagerQuery();
     uint ReadEntries(DataEntry *pEntries, uint pMaxEntries);
 };

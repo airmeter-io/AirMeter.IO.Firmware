@@ -12,43 +12,16 @@ void EPDDrawTarget::setRotation(int16_t pRotation) {
    _rotation = pRotation;
 }
 
-void inline swap(int16_t a, int16_t b) {
-  auto c = a;
-  a = b;
-  b = a;
+
+
+void EPDDrawTarget::drawPixel(int16_t x, int16_t y, EPDColor color) {
+  AdjustCoOrdinatesForRotation(x,y);
+  if (IsXOutOfRange(x) || IsYOutOfRange(y)) return;
+  
+  DrawPixelUnchecked(x,y,color);
 }
 
-void EPDDrawTarget::drawPixel(int16_t x, int16_t y, uint16_t color) {
- 
-
-  // check rotation, move pixel around if necessary
-  switch (_rotation)
-  {
-    case 1:
-      swap(x, y);
-      x = _buffer.GetWidth() - x - 1;
-      break;
-    case 2:
-      x = _buffer.GetWidth() - x - 1;
-      y = _buffer.GetHeight() - y - 1;
-      break;
-    case 3:
-      swap(x, y);
-      y = _buffer.GetHeight() - y - 1;
-      break;
-  }
-   if ((x < 0) || (x >= _buffer.GetWidth()) || (y < 0) || (y >= _buffer.GetHeight())) return;
-  uint16_t i = x / 8 + y *  _buffer.GetWidth() / 8;
-
-  // This is the trick to draw colors right. Genious Jean-Marc
-  if (color) {
-    _buffer.GetBuffer()[i] = (_buffer.GetBuffer()[i] & (0xFF ^ (1 << (7 - x % 8))));
-    } else {
-    _buffer.GetBuffer()[i] = (_buffer.GetBuffer()[i] | (1 << (7 - x % 8)));
-    }
-}
-
-void EPDDrawTarget::BltMonoBitmap(uint8_t* pData, Dimensions pBitmapSize, Position pDrawAt, Rectangle pClipRectangle, uint16_t pColor){
+void EPDDrawTarget::BltMonoBitmap(uint8_t* pData, Dimensions pBitmapSize, Position pDrawAt, Rectangle pClipRectangle, EPDColor pColor){
   auto dataOFfset = 0;
   uint8_t bits = 0;
   auto bit = 0;
@@ -67,4 +40,39 @@ void EPDDrawTarget::BltMonoBitmap(uint8_t* pData, Dimensions pBitmapSize, Positi
         bits <<= 1;
       }
   }
+}
+
+void EPDDrawTarget::DrawFilledRectangle(int16_t pX, int16_t pY, int16_t pW, int16_t pH, EPDColor pColor) {
+  printf("Draw Rect %d,%d (%d, %d)\n", (int)pX, (int)pY, (int)pW, (int)pH);
+  AdjustCoOrdinatesForRotation(pX,pY);
+  switch (_rotation)
+  {
+    case 1:
+    case 3:
+      Swap(pW, pH);
+    break;
+    default:
+      break;
+  }
+  if(pX<0) {
+    pW+=pX;
+    pX = 0;
+  }
+
+  if(pY<0) {
+    pH+=pY;
+    pY = 0;    
+  }
+
+  if(IsYOutOfRange(pY) || pH<=0 || IsYOutOfRange(pX) || pW<=0 ) return;
+  
+  if(pX+pW>_buffer.GetWidth())
+    pW = _buffer.GetWidth()-pX;
+  if(pY+pH>_buffer.GetHeight())
+    pH = _buffer.GetHeight()-pY;
+printf("Draw Rect (Adjusted) %d,%d (%d, %d)\n", (int)pX, (int)pY, (int)pW, (int)pH);
+  for(int16_t y = pY; y < pY+pH; y++)
+    for(int16_t x = pX; x < pX+pW; x++) {
+        DrawPixelUnchecked(x,y,pColor);
+    }
 }

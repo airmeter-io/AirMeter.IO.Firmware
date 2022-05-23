@@ -4,7 +4,9 @@
 #include "SSD1680.h"
 #include "DEPG0213BN.h"
 
-ScreenManager::ScreenManager(StringValueSource& pValueSource) : _valueSource(pValueSource) {
+ScreenManager::ScreenManager(StringValueSource& pValueSource, SensorManager& pSensorManager) : 
+    _valueSource(pValueSource), 
+    _sensorManager(pSensorManager) {
     auto f = fopen("/dev/ui.json", "rb");
     if (f != NULL) {        
         fseek(f, 0, SEEK_END);
@@ -17,67 +19,80 @@ ScreenManager::ScreenManager(StringValueSource& pValueSource) : _valueSource(pVa
 
         Json json(rawJson);
         LoadScreens(json);
+        _current = _default;
         free(rawJson);
     }
 }
 
+
+std::vector<DrawAction *> ScreenManager::LoadActions(Json* pParentElement, std::string pElementName) {
+    std::vector<DrawAction *> actions;
+    if(pParentElement->HasArrayProperty(pElementName)) {
+        auto drawProp = pParentElement->GetObjectProperty(pElementName);
+        std::vector<Json*> drawElements;
+        drawProp->GetAsArrayElements(drawElements);
+        delete drawProp;
+        for(auto drawItem : drawElements) {
+            auto type = drawItem->GetStringProperty("Type");
+
+            if(type == "Clear") 
+                actions.push_back(new DrawClearAction(*drawItem));
+            else if (type == "Text") 
+                actions.push_back(new DrawTextAction(*drawItem, _fontManager));
+            else if (type == "ChangeScreen") 
+                actions.push_back(new ChangeScreenAction(*drawItem));
+            else if (type == "Calibrate") 
+                actions.push_back(new CalibrateAction(*drawItem));            
+            else if (type == "TriggerUpdate") 
+                actions.push_back(new TriggerUpdateAction(*drawItem));   
+            else if (type == "TimeSeries") 
+                actions.push_back(new DrawTimeSeriesAction(*drawItem));                    
+            delete drawItem;
+        }
+    }
+    return actions;
+}
+
 void ScreenManager::LoadScreens(Json& pJson) {
     auto defaultScreen = pJson.GetStringProperty("DefaultScreen");
-   // printf("Defualt screen is %s\n", defaultScreen.c_str());
     std::vector<Json*> elements;
     auto screensProp = pJson.GetObjectProperty("Screens");
-  //  printf("Got screens property\n");
+ 
     screensProp->GetAsArrayElements(elements);
-  //  printf("Got elements\n");
     delete screensProp;
     for(auto json : elements) {
         printf("Got a screen %X\n", (uint)json);
         if(json->HasProperty("Name")) {
-        //    printf("getting name\n");
             auto name = json->GetStringProperty("Name");
-            printf("Name = %sn\n",name.c_str());
+            printf("Name = %s\n",name.c_str());
             auto screen = new ScreenDefinition(name);
             if(name == defaultScreen) {
                 printf("Setting default screen\n");                
                 _default = screen;
             }
-          //  printf("checking draw\n");
-            if(json->HasArrayProperty("Draw")) {
-                auto drawProp = json->GetObjectProperty("Draw");
-              //  printf("Got draw prop %X\n", (uint)drawProp);
-                std::vector<Json*> drawElements;
-                drawProp->GetAsArrayElements(drawElements);
-               // printf("Got draw elements\n");
-                delete drawProp;
-                for(auto drawItem : drawElements) {
-                 //   printf("Got draw element\n");
-                    auto type = drawItem->GetStringProperty("Type");
-                  //  printf("Got draw element type\n");
-                    if(type == "Clear") 
-                        screen->AddDraw(new DrawClearAction(*drawItem));
-                    else if (type == "Text") 
-                        screen->AddDraw(new DrawTextAction(*drawItem, _fontManager));
-                    delete drawItem;
-                }
-            //    printf("end draw prop\n");
-            }
-        //    printf("checking actions\n");
-            if(json->HasArrayProperty("Actions")) {
-                auto actionProp = json->GetObjectProperty("Actions");
-                std::vector<Json*> actionElements;
-                actionProp->GetAsArrayElements(actionElements);
-                delete actionProp;
 
-                for(auto actionItem : actionElements) {
-                    delete actionItem;
-                }
-            }
+            auto items = LoadActions(json,"Draw");
+            for(auto action : items)
+                screen->AddDraw(action);
+           
+            auto pressedItems = LoadActions(json, "ButtonPressed");
+            auto longReleaseItems = LoadActions(json, "ButtonLongReleased");
+            auto veryLongReleaseItems = LoadActions(json, "ButtonVeryLongReleased");
+            auto releaseItems = LoadActions(json, "ButtonReleased");
+            
+            if(pressedItems.size())
+                screen->AddButton(ButtonEventCode::Pressed, pressedItems);
+            if(longReleaseItems.size())
+                screen->AddButton(ButtonEventCode::LongReleased, longReleaseItems);
+            if(veryLongReleaseItems.size())
+                screen->AddButton(ButtonEventCode::VeryLongReleased, veryLongReleaseItems);
+            if(releaseItems.size())
+                screen->AddButton(ButtonEventCode::Released, releaseItems);
+
             _screens.push_back(screen);
         }
-       // printf("Finished screen\n");
         delete json;        
     }
-   // printf("Finished Loading screens\n");
 }
 
 
@@ -92,23 +107,27 @@ void ScreenManager::Run() {
     io.init(4,false);
    
     ssd1680 = new SSD1680(io);
-    display = new DEPG0213BN(*ssd1680);
+    _display = new DEPG0213BN(*ssd1680);
     
-    auto backBuffer = display->GetBackBuffer();
+    auto backBuffer = _display->GetBackBuffer();
     auto gfx = new EPDDrawTarget(backBuffer);
     
-    auto screen = GetDefault();
+    auto screen = GetCurrent();
     printf("screen = %x\n", (uint)screen);
     gfx->setRotation(1);
     if(screen) {
         DrawContext ctx = {
             .Target = *gfx,
-            .ValueSource = _valueSource
+            .ValueSource = _valueSource,
+            .Sensors = _sensorManager,
+            .Screens = *this
         };
         screen->ExecuteDraw(ctx);
-        display->UpdateFull();
+        _display->UpdateFull();
         
         while(true) {
+            screen = GetCurrent();
+            
         // vTaskDelay(5000 / portTICK_RATE_MS);
             _buttons->WaitForEvents();
             while(_buttons->HasQueued()) {
@@ -116,24 +135,10 @@ void ScreenManager::Run() {
                 if(event.Gpio==0) {
                     printf("Got Refresh request");
                     screen->ExecuteDraw(ctx);
-                    display->UpdatePartial();
+                    _display->UpdatePartial();
                 } else {
-                    switch(event.Code) {
-                        case ButtonEventCode::Pressed:
-                            printf("Presssed %d\n", (int)event.Gpio);
-                            break;
-                        case ButtonEventCode::LongReleased:
-                            printf("Long Press %d\n", (int)event.Gpio);
-                            break;
-                        case ButtonEventCode::VeryLongReleased:
-                            printf("Very Long Press %d\n", (int)event.Gpio);
-                            break;                
-                        case ButtonEventCode::Released:
-                            printf("Released %d\n", (int)event.Gpio);
-                        // display->Test2(message[index]);
-                        
-                            break;
-                    }
+                    screen->ExecuteButton(ctx, event.Code);
+                    _display->UpdatePartial();
                 }
             }
             
@@ -148,4 +153,22 @@ void ScreenManager::TriggerUpdate() {
     auto now = esp_timer_get_time();  
     GpioEvent event = { .Gpio = (gpio_num_t)0, .Level = 1, .When = now };
     xQueueSend(_buttons->GetGpioGroup()->GetQueueHandle(), &event, NULL);
+}
+
+
+void ScreenManager::ChangeScreen(DrawContext& pContext, std::string pScreen) {
+    for(auto screen : _screens) {
+        if(screen->GetName() == pScreen) {
+            _current = screen;
+            screen->ExecuteDraw(pContext);
+            printf("Switched to %s screen and redrawed\n", pScreen.c_str());
+            return;
+        }
+    }
+
+    printf("Tried to switch to %s screen and failed\n", pScreen.c_str());
+}
+
+void ScreenManager::TriggerUpdate(DrawContext& pContext) {
+    _display->UpdatePartial();
 }

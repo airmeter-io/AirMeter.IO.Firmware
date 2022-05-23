@@ -133,20 +133,6 @@ void SenseairI2CSensor::ManualCalibration(int pBaseLinePPM) {
     if(!WriteCalibrationCommand(0x7c, 0x06)) {
         printf("Failed to send calibration command\n");
     }    
-    if(_hasDataRestore) 
-        WriteRegister((uint8_t)SENSEAIR_I2C_RERISTERS::START_SINGLE_MEASUREMENT, _sensorStateData, sizeof(_sensorStateData));
-    else 
-        WriteRegister((uint8_t)SENSEAIR_I2C_RERISTERS::START_SINGLE_MEASUREMENT, _sensorStateData, 1);
-        
-    vTaskDelay(2450 / portTICK_RATE_MS);      
-
-
-    uint8_t calibrationStatus = 0;
-    if(ReadRegister((uint8_t)SENSEAIR_I2C_RERISTERS::CALIBRATION_STATUS, &calibrationStatus, sizeof(calibrationStatus))) 
-        _hasDataRestore = true;
-
-    if(ReadRegister((uint8_t)SENSEAIR_I2C_RERISTERS::POWER_DOWN_DATA, _sensorStateData+1, sizeof(_sensorStateData)-1)) 
-        _hasDataRestore = true;
     _sensorManager->DisableSensorReadGPIO();
 }
 

@@ -19,4 +19,6 @@ idf_component_register(
           "BITMAPFONT"
           "EPD"
           "GPIOROUTING"
+          "SENSORMANAGER"
+          
 )

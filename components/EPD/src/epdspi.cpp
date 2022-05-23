@@ -159,7 +159,7 @@ void EpdSpi::data(const uint8_t *data, int len)
     t.length=len*8;                 //Len is in bytes, transaction length is in bits.
     t.tx_buffer=data;               //Data
     ret=spi_device_transmit(spi, &t);  //Transmit!
-    printf("Plling transmit returned %d\n", (int)ret);
+   
     assert(ret==ESP_OK);            //Should have had no issues.
 }
 

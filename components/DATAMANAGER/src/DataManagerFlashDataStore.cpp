@@ -25,6 +25,16 @@ uint DataManagerFlashDataBucket::GetPayloadSize() {
     return BUCKET_SIZE-sizeof(FlashDataBlockHeader);
 }
 
+bool DataManagerFlashDataBucket::Intersects(time_t pFrom, time_t pTo) {
+    auto header = (FlashDataBlockHeader*)_buffer;
+    if(pTo<header->BlockStartTime)
+        return false;
+    if(pFrom>header->BlockEndTime)
+        return false;
+    
+    return true;
+}
+
 uint8_t* DataManagerFlashDataBucket::GetPayload() {
     return _buffer+sizeof(FlashDataBlockHeader);
 }
@@ -72,6 +82,12 @@ void DataManagerFlashDataStore::ScanBuckets() {
             printf("Failed to load bucket %d\n",i);
         
         if(bucket.GetHeader()->Magic == MAGIC) { 
+             printf("Processing %d as magic valid, block start time %u, block end time %u, block write time %u, datalen %u\n",
+             i, 
+             (uint)bucket.GetHeader()->BlockStartTime,
+             (uint)bucket.GetHeader()->BlockEndTime, 
+             (uint)bucket.GetHeader()->WriteTime, 
+             (uint)bucket.GetHeader()->DataLength);
             if(_latestValid==-1) {
                 _latestValid = i;
                 latest = *bucket.GetHeader();
@@ -81,16 +97,18 @@ void DataManagerFlashDataStore::ScanBuckets() {
                     latest = *bucket.GetHeader();
                 }
             }            
-        }
+        } else 
+            printf("Skipping %d as magic invalid\n", i);
     }
 
     if(_latestValid!=-1) {
         _oldestValid = _latestValid;
         for(auto i  = CalcPrevious(_latestValid); i!=_latestValid; i=CalcPrevious(i) ) {
-            printf("Oldest.. %d\n", i);
+            
             if(!LoadBucket(i, &bucket))
                 printf("Failed to load bucket %d\n",i);
             if(bucket.GetHeader()->Magic == MAGIC) {
+                printf("Oldest.. %d\n", i);
                 if(latest.BlockEndTime>bucket.GetHeader()->BlockEndTime) {
                     _oldestValid = i;
                     latest = *bucket.GetHeader();

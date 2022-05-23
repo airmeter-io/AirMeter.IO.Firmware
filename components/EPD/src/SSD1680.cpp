@@ -74,7 +74,6 @@ void SSD1680::WriteToBWRam(EPDBackBuffer& pBuffer) {
     _spi.cmd(SSD1680Cmd::WriteToBWRam);        // update current data
     auto dataLen = (pBuffer.GetWidth() / 8)*pBuffer.GetHeight();
     uint8_t *sendBuffer = (uint8_t *)malloc(dataLen);
-    printf("Building...\n");
     for (uint16_t y = 0; y < pBuffer.GetHeight(); y++)
     {
         for (uint16_t x = 0; x < pBuffer.GetWidth() / 8; x++)
@@ -85,9 +84,7 @@ void SSD1680::WriteToBWRam(EPDBackBuffer& pBuffer) {
             sendBuffer[idx] = ~data;
         }
     }
-    printf("Sending...\n");
-    _spi.data(sendBuffer,dataLen);
-    printf("Sent..\n");
+    _spi.data(sendBuffer,dataLen);  
     free(sendBuffer);
 }
 

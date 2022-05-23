@@ -2,6 +2,7 @@ idf_component_register(
   SRCS "src/PasswordGenerator.cpp"
     "src/System.cpp"
     "src/Utility.cpp"
+    "src/GeneralSettings.cpp"
   INCLUDE_DIRS "include"
               "../../common"
   REQUIRES "json"
@@ -11,4 +12,5 @@ idf_component_register(
           "esp_http_server"
           "ESP8266-RTOS-FONTS"
           "ESP8266-RTOS-SSD1306"
+          "HTTPSERVER"
 )

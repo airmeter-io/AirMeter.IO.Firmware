@@ -12,6 +12,7 @@
 #include <dirent.h> 
 #include "PasswordGenerator.h"
 #include "BatteryManager.h"
+#include "DataManagerQuery.h"
 //#include <gdepg0213BN.h>
 
 #include "FontManager.h"
@@ -76,9 +77,6 @@ MainLogicLoop::MainLogicLoop() {
 }
 
 void MainLogicLoop::Run() {
-
-        printf("Hello!\n");
-    
     auto battery = new BatteryManager();
     auto httpServer = new HttpServer();
     
@@ -93,11 +91,7 @@ void MainLogicLoop::Run() {
     CaptiveRedirectHandler* captiveRedirect = nullptr;
     WebContentHandler *webContent = nullptr;
     MqttManager* mqtt = nullptr;
-    
-   
-    
-   
-    
+
     _display = new Oledssd1306Display(*_generalSettings, _sensorManager->GetValues(), wifi, *_i2c );
     httpServer->Start();
  
@@ -153,7 +147,7 @@ void MainLogicLoop::Run() {
         
         //     // setCpuFrequencyMhz(10);
         //     for(auto i = 0; i < wait*10; i++) {
-        //         esp_sleep_enable_timer_wakeup(100000);
+          //       esp_sleep_enable_timer_wakeup(100000);
         //         esp_sleep_enable_wifi_wakeup();
         //         esp_light_sleep_start();
         //         switch(esp_sleep_get_wakeup_cause()) {
@@ -222,8 +216,64 @@ void MainLogicLoop::Run() {
     return "ERR";
  }
 
+std::vector<int> MainLogicLoop::ResolveTimeSeries(std::string pName, uint32_t pSecondsInPast, uint32_t pSteps) {
+    std::vector<int> result(pSteps,0);
+    std::vector<int> resultCounts(pSteps,0);
+    if(pName!="CO2Ppm" &&
+       pName!="Temp" &&
+       pName!="Pressure" &&
+       pName!="Humidity")
+       return std::vector<int>();
+    
+    time_t curTime;
+    time(&curTime);
+    auto startTime = curTime-pSecondsInPast;
+    auto query = _dataManager->StartQuery(startTime, curTime);
+    const auto maxEntries = 60;
+    const auto multiplier = 100;
+    auto entries = (DataEntry*)calloc(maxEntries, sizeof(DataEntry));
+
+    auto read = query->ReadEntries(entries, maxEntries);
+    auto perStep = (pSecondsInPast*multiplier)/pSteps;
+    printf("main(): Read %d items\n", (int)read);
+    while(read>0) {
+        
+        for(auto i = 0; i < read; i++)
+        {
+            auto step = ((entries[i].TimeStamp-startTime)*multiplier)/perStep;
+
+            if(entries[i].CO2)
+                printf("%d: C %d\n", (int)step, (int)entries[i].CO2);
+            if(pName=="CO2Ppm")
+                result[step]+=entries[i].CO2;
+            else if (pName=="Temp")
+                result[step]+=entries[i].Temp;
+            else if (pName=="Pressure") 
+                result[step]+=entries[i].Pressure;
+            else if (pName=="Humidity") 
+                result[step]+=entries[i].Humidity;
+            
+            resultCounts[step]++;
+            if(result[step]) printf("Step Result %d\n", (int)result[step]);
+        }
+        read = query->ReadEntries(entries, maxEntries);
+    }
+    int last = 0;
+    for(auto i = 0; i< pSteps; i++) {
+        if(resultCounts[i])
+        {
+            result[i]=result[i]/resultCounts[i];
+            last = result[i];
+        } else
+            result[i] = last;
+    }
+    free(entries);
+    delete query;
+    return result;
+}
+
 void MainLogicLoop::RunUI() {
-    _screenManager = new ScreenManager(*this);
+    _screenManager = new ScreenManager(*this, *_sensorManager);
     _screenManager->Run();
    
 }
@@ -288,16 +338,6 @@ bool MountSpiffs(esp_vfs_spiffs_conf_t& pConf) {
 
 extern "C" void app_main(void)
 {
-
-    // Configure dynamic frequency scaling:
-    // maximum and minimum frequencies are set in sdkconfig,
-    // automatic light sleep is enabled if tickless idle support is enabled.
-  // io.init(4,false);
- //   printf("SPI Inited\n");
- //   vTaskDelay(5000 / portTICK_RATE_MS);
-    
-
-
 #if CONFIG_IDF_TARGET_ESP32
     esp_pm_config_esp32_t pm_config = {
 #elif CONFIG_IDF_TARGET_ESP32S2

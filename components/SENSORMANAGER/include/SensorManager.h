@@ -9,7 +9,7 @@
 #include "PinSerial.h"
 #include "DataManager.h"
 
-class SensorManager {
+class SensorManager : private ISensorManager {
     CO2Sensor* _co2Sensor = nullptr;
     PinSerial* _serial = nullptr;
     BME280* _bme;
@@ -19,12 +19,13 @@ class SensorManager {
     DataManager _dataManager;
     
     time_t _lastSensorRead = 0;
-    void EnableSensorReadGPIO();
-    void DisableSensorReadGPIO();
+    void EnableSensorReadGPIO() override;
+    void DisableSensorReadGPIO() override;
 public:
     SensorManager(GeneralSettings& pSettings, I2C& pI2C, DataManager& pDataManager);
     ~SensorManager();
     ValueModel& GetValues();
     time_t UpdateValues();
+    void Calibrate();
     inline time_t GetLastSensorRead() { return _lastSensorRead; }
 };

@@ -1,6 +1,7 @@
 #pragma once
 #include "FontFileStructure.h"
 #include <tinyutf8/tinyutf8.h>
+#include "EPDBackBuffer.h"
 #include <string>
 
 
@@ -37,7 +38,7 @@ enum DrawTextVerticalAlign {
 class IFontBltTarget {
 public:
     virtual ~IFontBltTarget()  {}
-    virtual void BltMonoBitmap(uint8_t* pData, Dimensions pBitmapSize, Position pDrawAt, Rectangle pClipRectangle, uint16_t pColor) = 0;
+    virtual void BltMonoBitmap(uint8_t* pData, Dimensions pBitmapSize, Position pDrawAt, Rectangle pClipRectangle, EPDColor pColor) = 0;
 };
 
 
@@ -66,7 +67,7 @@ public:
         const tiny_utf8::string& pText, 
         IFontBltTarget& pTarget,
         Rectangle pDrawAt, 
-        uint16_t pColor, 
+        EPDColor pColor, 
         DrawTextJustify pJustify, 
         DrawTextVerticalAlign pVerticalAlign,
         uint pLineSpacing);

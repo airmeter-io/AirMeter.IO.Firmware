@@ -31,6 +31,7 @@ class MainLogicLoop : private WifiUIImplementation, private StringValueSource {
     time_t ProcessEvents() override ;
     void DisplayAPAuthInfo(const std::string& pSSID, const std::string& pPassword) override;
     std::string ResolveValue(std::string pName) override;
+    std::vector<int> ResolveTimeSeries(std::string pName, uint32_t pSecondsInPast, uint32_t pSteps) override;
     time_t _lastRead = 0;
 public:
     MainLogicLoop();

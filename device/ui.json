@@ -81,10 +81,167 @@
                     "Text": "{Time}"
                 }
                
+            ],
+            "ButtonReleased": [
+                {
+                    "Type": "ChangeScreen",
+                    "Screen": "CO2CHART"
+                } 
+            ],
+            "ButtonLongReleased": [
+                {
+                    "Type": "Clear",
+                    "Color": "White"
+                },
+                {
+                    "Type": "Text",
+                    "Color": "Black",
+                    "Font": "Large",
+                    "X": 0,
+                    "Y": 0,
+                    "W": 250,
+                    "H": 122,
+                    "Justify": "Left",
+                    "VerticalAlign": "Top",
+                    "Text": "{CO2Ppm}ppm"
+                }
+            ],
+            "ButtonVeryLongReleased": [
+                {
+                    "Type": "ChangeScreen",
+                    "Screen": "CALIBRATE"
+                }                
             ]
         },
         {
-            "Name": "HOME2",
+            "Name": "CALIBRATE",
+            "Draw": [
+                {
+                    "Type": "Clear",
+                    "Color": "White"
+                },
+                {
+                    "Type": "Text",
+                    "Color": "Black",
+                    "Font": "Small",
+                    "X": 0,
+                    "Y": 0,
+                    "W": 250,
+                    "H": 122,
+                    "Justify": "Center",
+                    "VerticalAlign": "Top",
+                    "Text": "Take device outside"
+                },
+                {
+                    "Type": "Text",
+                    "Color": "Black",
+                    "Font": "Small",
+                    "X": 0,
+                    "Y": 22,
+                    "W": 250,
+                    "H": 122,
+                    "Justify": "Center",
+                    "VerticalAlign": "Top",
+                    "Text": "{CO2Ppm}ppm"
+                },
+                {
+                    "Type": "Text",
+                    "Color": "Black",
+                    "Font": "Small",
+                    "X": 0,
+                    "Y": 44,
+                    "W": 250,
+                    "H": 122,
+                    "Justify": "Center",
+                    "VerticalAlign": "Top",
+                    "Text": "Wait For Minimum"
+                },
+                {
+                    "Type": "Text",
+                    "Color": "Black",
+                    "Font": "Small",
+                    "X": 0,
+                    "Y": 0,
+                    "W": 250,
+                    "H": 122,
+                    "Justify": "Left",
+                    "VerticalAlign": "Bottom",
+                    "Text": "CANCEL"
+                },
+                {
+                    "Type": "Text",
+                    "Color": "Black",
+                    "Font": "Small",
+                    "X": 0,
+                    "Y": 0,
+                    "W": 250,
+                    "H": 102,
+                    "Justify": "Left",
+                    "VerticalAlign": "Bottom",
+                    "Text": "Short"
+                },
+                {
+                    "Type": "Text",
+                    "Color": "Black",
+                    "Font": "Small",
+                    "X": 0,
+                    "Y": 0,
+                    "W": 250,
+                    "H": 122,
+                    "Justify": "Right",
+                    "VerticalAlign": "Bottom",
+                    "Text": "CONFIRM"
+                },
+                {
+                    "Type": "Text",
+                    "Color": "Black",
+                    "Font": "Small",
+                    "X": 0,
+                    "Y": 0,
+                    "W": 250,
+                    "H": 102,
+                    "Justify": "Right",
+                    "VerticalAlign": "Bottom",
+                    "Text": "Long"
+                }
+            ],
+            "ButtonVeryLongReleased": [
+                {
+                    "Type": "Clear",
+                    "Color": "White"
+                }, 
+                {
+                    "Type": "Text",
+                    "Color": "Black",
+                    "Font": "Small",
+                    "X": 0,
+                    "Y": 0,
+                    "W": 250,
+                    "H": 122,
+                    "Justify": "Center",
+                    "VerticalAlign": "Middle",
+                    "Text": "CALIBRATING"
+                }, 
+                {
+                    "Type": "TriggerUpdate"
+                }, 
+                {
+                    "Type": "Calibrate"                  
+                },             
+                {
+                    "Type": "ChangeScreen",
+                    "Screen": "CALIBRATIONDONE"
+                }                
+            ],
+            "ButtonReleased": [
+                {
+                    "Type": "ChangeScreen",
+                    "Screen": "HOME"
+                }                
+            ]
+        },
+        {
+            "Name": "CALIBRATIONDONE",
             "Draw": [
                 {
                     "Type": "Clear",
@@ -94,35 +251,82 @@
                     "Type": "Text",
                     "Color": "Black",
                     "Font": "Large",
-                    "X": 1,
-                    "Y": 50,
-                    "W": 200,
-                    "H": 40,
-                    "Justify": "Left",
+                    "X": 0,
+                    "Y": 0,
+                    "W": 250,
+                    "H": 122,
+                    "Justify": "Center",
+                    "VerticalAlign": "Middle",
                     "Text": "{CO2Ppm}ppm"
                 },
                 {
                     "Type": "Text",
                     "Color": "Black",
                     "Font": "Small",
-                    "X": 1,
-                    "Y": 90,
-                    "W": 200,
-                    "H": 40,
-                    "Justify": "Left",
-                    "Text": "{Temp}C {Humidity}%"
+                    "X": 0,
+                    "Y": 0,
+                    "W": 250,
+                    "H": 122,
+                    "Justify": "Center",
+                    "VerticalAlign": "Top",
+                    "Text": "Calibration Done"
                 },
                 {
                     "Type": "Text",
                     "Color": "Black",
                     "Font": "Small",
-                    "X": 1,
-                    "Y": 115,
-                    "W": 200,
-                    "H": 40,
+                    "X": 0,
+                    "Y": 0,
+                    "W": 250,
+                    "H": 122,
                     "Justify": "Left",
-                    "Text": "{Pressure}hPa"
+                    "VerticalAlign": "Bottom",
+                    "Text": "CLOSE"
+                },
+                {
+                    "Type": "Text",
+                    "Color": "Black",
+                    "Font": "Small",
+                    "X": 0,
+                    "Y": 0,
+                    "W": 250,
+                    "H": 102,
+                    "Justify": "Left",
+                    "VerticalAlign": "Bottom",
+                    "Text": "Short"
                 }
+            ],
+            "ButtonReleased": [
+                {
+                    "Type": "ChangeScreen",
+                    "Screen": "HOME"
+                }                
+            ]
+        },
+        {
+            "Name": "CO2CHART",
+            "Draw": [
+                {
+                    "Type": "Clear",
+                    "Color": "White"
+                },
+                {
+                    "Type": "TimeSeries",
+                    "Color": "Black",
+                    "Value": "CO2Ppm",
+                    "X": 0,
+                    "Y": 0,
+                    "W": 250,
+                    "H": 122,
+                    "Steps": 12,
+                    "Minutes": 60
+                }                
+            ],
+            "ButtonReleased": [
+                {
+                    "Type": "ChangeScreen",
+                    "Screen": "HOME"
+                }                
             ]
         }
     ]

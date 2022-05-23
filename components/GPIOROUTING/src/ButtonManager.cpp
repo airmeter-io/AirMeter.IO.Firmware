@@ -5,7 +5,7 @@
 
 
 ButtonManager::ButtonManager(std::vector<gpio_num_t>& pGpios) {
-    _gpioGroup = new GpioGroup(pGpios, false, false, AnyEdge, NotSet);
+    _gpioGroup = new GpioGroup(pGpios, false, true, AnyEdge, NotSet);
     GpioManager::RegisterGpioGroup(_gpioGroup);
     _gpioCount = pGpios.size();
     _gpioStates =  (GpioState*)calloc(pGpios.size(), sizeof(GpioState));
@@ -64,7 +64,7 @@ void ButtonManager::WaitForEvents() {
             }
             auto duration = event.When - GetPressedTick(event.Gpio);
             auto wasPressed = IsPressed(event.Gpio);
-            if( duration > 1000 && (event.Level!=0)!=wasPressed) {
+            if( duration > 1000 && (!event.Level)!=wasPressed) {
             
                 ButtonEvent btnEvent = {
                     .Gpio = event.Gpio,
@@ -72,13 +72,13 @@ void ButtonManager::WaitForEvents() {
                     .Code = ButtonEventCode::Pressed
                 };
                 printf("Button Level Changed %d, %d\n", (int)event.Gpio,(int)event.Level);
-                if(event.Level) 
+                if(!event.Level) 
                     SetPressed(event.Gpio, true);
                 else {
                     SetPressed(event.Gpio, false);
                     if(duration < 500000) 
                         btnEvent.Code = ButtonEventCode::Released;
-                    else if (duration < 1000000) 
+                    else if (duration < 4000000) 
                         btnEvent.Code = ButtonEventCode::LongReleased;
                     else 
                         btnEvent.Code = ButtonEventCode::VeryLongReleased;                

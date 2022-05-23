@@ -60,3 +60,9 @@ public:
     std::vector<CO2SensorValue*>& GetValues();
     std::vector<CO2SensorAction*>& GetActions();
 };
+
+class ISensorManager {
+public:
+    virtual void EnableSensorReadGPIO() = 0;
+    virtual void DisableSensorReadGPIO() = 0;
+};

@@ -5,8 +5,11 @@
 #include "DataManagerFlashDataStore.h"
 
 
-DataManager::DataManager(DataManagerFlashDataStore *pFlashStore, IDataManagerTemporaryStore* pStore) : _store(pStore), _flashStore(pFlashStore) {
 
+DataManager::DataManager(DataManagerFlashDataStore *pFlashStore, IDataManagerTemporaryStore* pStore) : _store(pStore), _flashStore(pFlashStore) {
+   if(pthread_mutex_init (&_mutex, NULL) != 0){
+     printf("Failed to initialize the spiffs mutex");
+   }
 }
 
 DataManager::~DataManager() {
@@ -119,30 +122,35 @@ void DataManager::WriteEntry(const DataEntry& pEntry) {
 
     if(pEntry.TimeStamp < 1000000) return;
 
-    auto entryType = !_last ? DataPointType::Full : GetRequiredBlockType(pEntry);
-    switch(entryType) {
-        case DataPointType::Full :
-            printf("Writing Full Entry\n");
-            WriteFullEntry(pEntry);
-            break;
-        case DataPointType::Compact :
-            printf("Writing Compact Entry\n");
-            WriteCompactEntry(pEntry);
-            break;
-        case DataPointType::VeryCompact :
-            printf("Writing Very Compact Entry\n");
-            WriteVeryCompactEntry(pEntry);
-            break;
-    }
+    if(pthread_mutex_lock(&_mutex) == 0){    
+        auto entryType = !_last ? DataPointType::Full : GetRequiredBlockType(pEntry);
+        switch(entryType) {
+            case DataPointType::Full :
+                printf("Writing Full Entry\n");
+                WriteFullEntry(pEntry);
+                break;
+            case DataPointType::Compact :
+                printf("Writing Compact Entry\n");
+                WriteCompactEntry(pEntry);
+                break;
+            case DataPointType::VeryCompact :
+                printf("Writing Very Compact Entry\n");
+                WriteVeryCompactEntry(pEntry);
+                break;
+        }
 
-    _written++;
-    printf("Used %u, Written=%u\n",_store->GetUsed(),_written);
-    if(!_last) _last = new DataEntry();
-    *_last = pEntry;
+        _written++;
+        printf("Used %u, Written=%u\n",_store->GetUsed(),_written);
+        if(!_last) _last = new DataEntry();
+        *_last = pEntry;
+       pthread_mutex_unlock(&_mutex);
+    }
+    
 }
 
 
 DataManagerQuery* DataManager::StartQuery(time_t pFrom, time_t pTo) {
-    return new DataManagerQuery(*_flashStore, *_store, pFrom, pTo);
+     printf("DM Query %u->%u = %u\n", (uint)pFrom, (uint)pTo, (uint(pTo-pFrom)));
+    return new DataManagerQuery(_mutex,*_flashStore, *_store, pFrom, pTo);
 }
 

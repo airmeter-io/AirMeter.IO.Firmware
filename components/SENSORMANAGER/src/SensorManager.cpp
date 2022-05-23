@@ -35,7 +35,7 @@ SensorManager::SensorManager(GeneralSettings& pSettings, I2C& pI2C, DataManager&
         switch(device) {
 
             case 0x68 :
-                _co2Sensor = new SenseairI2CSensor(_i2c.CreateSession(device));
+                _co2Sensor = new SenseairI2CSensor(_i2c.CreateSession(device), this);
                 break;
             case 0x61 :
                 _co2Sensor = new Scd30Sensor(_i2c.CreateSession(device));
@@ -126,4 +126,11 @@ time_t SensorManager::UpdateValues() {
        
     }   
     return _settings.GetSensorUpdateInterval() - (curTime - _lastSensorRead); 
+}
+
+void SensorManager::Calibrate() {
+    if(_co2Sensor==nullptr)
+        return;
+
+    _co2Sensor->ManualCalibration(400);
 }

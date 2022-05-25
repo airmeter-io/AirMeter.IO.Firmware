@@ -42,12 +42,106 @@ void EPDDrawTarget::BltMonoBitmap(uint8_t* pData, Dimensions pBitmapSize, Positi
   }
 }
 
+// Taken from Adafruit GFX
+void EPDDrawTarget::DrawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
+                             EPDColor color) {
+#if defined(ESP8266)
+  yield();
+#endif
+  int16_t steep = abs(y1 - y0) > abs(x1 - x0);
+  if (steep) {
+    Swap(x0, y0);
+    Swap(x1, y1);
+  }
+
+  if (x0 > x1) {
+    Swap(x0, x1);
+    Swap(y0, y1);
+  }
+
+  int16_t dx, dy;
+  dx = x1 - x0;
+  dy = abs(y1 - y0);
+
+  int16_t err = dx / 2;
+  int16_t ystep;
+
+  if (y0 < y1) {
+    ystep = 1;
+  } else {
+    ystep = -1;
+  }
+
+  for (; x0 <= x1; x0++) {
+    if (steep) {
+      drawPixel(y0, x0, color);
+    } else {
+      drawPixel(x0, y0, color);
+    }
+    err -= dy;
+    if (err < 0) {
+      y0 += ystep;
+      err += dx;
+    }
+  }
+}
+
+// Taken/adaptedfrom Adafruit GFX
+void EPDDrawTarget::DrawDottedLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
+                             EPDColor color) {
+  int drawThis = 0;                              
+#if defined(ESP8266)
+  yield();
+#endif
+  int16_t steep = abs(y1 - y0) > abs(x1 - x0);
+  if (steep) {
+    Swap(x0, y0);
+    Swap(x1, y1);
+  }
+
+  if (x0 > x1) {
+    Swap(x0, x1);
+    Swap(y0, y1);
+  }
+
+  int16_t dx, dy;
+  dx = x1 - x0;
+  dy = abs(y1 - y0);
+
+  int16_t err = dx / 2;
+  int16_t ystep;
+
+  if (y0 < y1) {
+    ystep = 1;
+  } else {
+    ystep = -1;
+  }
+
+  for (; x0 <= x1; x0++) {
+    if (steep) {
+      if(drawThis%3) 
+        drawPixel(y0, x0, color);
+      drawThis++;
+    } else {
+      if(drawThis%3)
+        drawPixel(x0, y0, color);
+      drawThis++;
+    }
+    err -= dy;
+    if (err < 0) {
+      y0 += ystep;
+      err += dx;
+    }
+  }
+}
+
 void EPDDrawTarget::DrawFilledRectangle(int16_t pX, int16_t pY, int16_t pW, int16_t pH, EPDColor pColor) {
-  printf("Draw Rect %d,%d (%d, %d)\n", (int)pX, (int)pY, (int)pW, (int)pH);
+ 
   AdjustCoOrdinatesForRotation(pX,pY);
   switch (_rotation)
   {
     case 1:
+      pX -= pH;
     case 3:
       Swap(pW, pH);
     break;
@@ -70,7 +164,6 @@ void EPDDrawTarget::DrawFilledRectangle(int16_t pX, int16_t pY, int16_t pW, int1
     pW = _buffer.GetWidth()-pX;
   if(pY+pH>_buffer.GetHeight())
     pH = _buffer.GetHeight()-pY;
-printf("Draw Rect (Adjusted) %d,%d (%d, %d)\n", (int)pX, (int)pY, (int)pW, (int)pH);
   for(int16_t y = pY; y < pY+pH; y++)
     for(int16_t x = pX; x < pX+pW; x++) {
         DrawPixelUnchecked(x,y,pColor);

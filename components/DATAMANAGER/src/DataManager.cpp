@@ -25,14 +25,12 @@ void DataManager::WriteToFlash() {
     header->BlockEndTime = _store->GetBlockEndTime();
     
     header->DataLength = _store->Read(bucket.GetPayload(),0 , size);
-    
+    printf("Writing bucket with %u->%u (%u)\n", (uint)header->BlockStartTime, (uint)header->BlockEndTime, (uint)header->DataLength);
     _flashStore->SaveBucket(&bucket);
 }
 
 void DataManager::ClearAllData() {
-    printf("Truncating data\n");
-    if(!truncate("/spiffs/datalog.dat",0)) 
-        printf("Successfully truncated file\n");
+    
 
 }
 

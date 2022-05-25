@@ -10,5 +10,9 @@
     {
         "Name": "Large",
         "File": "Manrope-Regular-25.afnt"
+    },
+    {
+        "Name": "Roboto8pt",
+        "File": "Roboto-Regular-8.afnt"
     }
 ]

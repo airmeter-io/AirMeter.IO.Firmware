@@ -313,12 +313,13 @@
                 {
                     "Type": "TimeSeries",
                     "Color": "Black",
+                    "Font": "Roboto8pt",
                     "Value": "CO2Ppm",
                     "X": 0,
                     "Y": 0,
                     "W": 250,
                     "H": 122,
-                    "Steps": 12,
+                    "Steps": 60,
                     "Minutes": 60
                 }                
             ],

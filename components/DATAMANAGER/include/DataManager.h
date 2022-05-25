@@ -7,14 +7,14 @@
 class DataManagerFlashDataStore;
 class DataManagerQuery;
 
-class DataEntry {
-public:
+typedef struct {
+
     time_t TimeStamp;
     int16_t Temp;
     uint16_t CO2; 
     uint16_t Humidity;  
     uint16_t Pressure;
-};
+} DataEntry;
 
 class IDataManagerTemporaryStore {
 public:

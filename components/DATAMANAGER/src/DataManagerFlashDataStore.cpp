@@ -1,7 +1,7 @@
 #include "DataManagerFlashDataStore.h"
 #include "DataManagerPrivate.h"
 
-#define MAGIC 0x392F389a
+#define MAGIC 0x392F389d
 
 #define BUCKET_SIZE 4096
 
@@ -25,11 +25,11 @@ uint DataManagerFlashDataBucket::GetPayloadSize() {
     return BUCKET_SIZE-sizeof(FlashDataBlockHeader);
 }
 
-bool DataManagerFlashDataBucket::Intersects(time_t pFrom, time_t pTo) {
-    auto header = (FlashDataBlockHeader*)_buffer;
-    if(pTo<header->BlockStartTime)
+bool DataManagerFlashDataBucket::Intersects(const FlashDataBlockHeader& pHeader,time_t pFrom, time_t pTo) {
+
+    if(pTo<pHeader.BlockStartTime)
         return false;
-    if(pFrom>header->BlockEndTime)
+    if(pFrom>pHeader.BlockEndTime)
         return false;
     
     return true;
@@ -82,15 +82,11 @@ void DataManagerFlashDataStore::ScanBuckets() {
             printf("Failed to load bucket %d\n",i);
         
         if(bucket.GetHeader()->Magic == MAGIC) { 
-             printf("Processing %d as magic valid, block start time %u, block end time %u, block write time %u, datalen %u\n",
-             i, 
-             (uint)bucket.GetHeader()->BlockStartTime,
-             (uint)bucket.GetHeader()->BlockEndTime, 
-             (uint)bucket.GetHeader()->WriteTime, 
-             (uint)bucket.GetHeader()->DataLength);
+            
             if(_latestValid==-1) {
                 _latestValid = i;
                 latest = *bucket.GetHeader();
+                
             } else {
                 if(latest.BlockEndTime<bucket.GetHeader()->BlockEndTime) {
                     _latestValid = i;
@@ -107,8 +103,9 @@ void DataManagerFlashDataStore::ScanBuckets() {
             
             if(!LoadBucket(i, &bucket))
                 printf("Failed to load bucket %d\n",i);
+            
             if(bucket.GetHeader()->Magic == MAGIC) {
-                printf("Oldest.. %d\n", i);
+                _blocks[i] = *bucket.GetHeader();
                 if(latest.BlockEndTime>bucket.GetHeader()->BlockEndTime) {
                     _oldestValid = i;
                     latest = *bucket.GetHeader();
@@ -125,6 +122,14 @@ void DataManagerFlashDataStore::ScanBuckets() {
 
 }
 
+bool DataManagerFlashDataStore::GetBucketHeader(uint pIndex, FlashDataBlockHeader* pHeader) {
+    if(!_blocks.count(pIndex))
+        return false;
+    
+    *pHeader = _blocks[pIndex];
+    return true;
+}
+
 uint DataManagerFlashDataStore::GetBucketCount() const {
     return _partition->size/GetBucketSize();
 }
@@ -132,13 +137,13 @@ uint DataManagerFlashDataStore::GetBucketCount() const {
 bool DataManagerFlashDataStore::LoadBucket(uint pIndex, DataManagerFlashDataBucket* pBucket) {
     if(pBucket->GetSize()<GetBucketSize()) return false;
     if(pIndex>=GetBucketCount()) return false;
-
+  //  printf("Loading bucket %u, %x\n",pIndex,pIndex*GetBucketSize());
     auto err = esp_partition_read(_partition, pIndex*GetBucketSize(),pBucket->GetHeader(), GetBucketSize());
     if(err!=ESP_OK) {
         printf("Error Occurred Loading Data Reading Flash Bucket: %d\n", err);
         return false;
     }
-
+  //  printf("Loaded bucket with %u->%u (%u)\n", (uint)pBucket->GetHeader()->BlockStartTime, (uint)pBucket->GetHeader()->BlockEndTime, (uint)pBucket->GetHeader()->DataLength);
     return true;
 }
 uint DataManagerFlashDataStore::GetBucketSize() const {
@@ -148,11 +153,15 @@ void DataManagerFlashDataStore::SaveBucket( DataManagerFlashDataBucket* pBucket)
     pBucket->GetHeader()->Magic = MAGIC;
     time(&pBucket->GetHeader()->WriteTime);
     auto next = CalcNext(_latestValid);
+ //    printf("Saving bucket %u, %x with %u->%u (%u)\n",next,next*GetBucketSize(), (uint)pBucket->GetHeader()->BlockStartTime, (uint)pBucket->GetHeader()->BlockEndTime, (uint)pBucket->GetHeader()->DataLength);
+    esp_partition_erase_range(_partition, next*GetBucketSize(), GetBucketSize()) ;
     auto err = esp_partition_write(_partition,next*GetBucketSize(),pBucket->GetHeader(), GetBucketSize());
     if(err!=ESP_OK) {
         printf("Error Occurred LoadingWriting Flash Bucket: %d\n", err);
         return ;
     }
+
+    _blocks[next] = *pBucket->GetHeader();
 
     if(_latestValid==-1 || _oldestValid == -1)  {
         _latestValid = next;

@@ -46,7 +46,7 @@ std::vector<DrawAction *> ScreenManager::LoadActions(Json* pParentElement, std::
             else if (type == "TriggerUpdate") 
                 actions.push_back(new TriggerUpdateAction(*drawItem));   
             else if (type == "TimeSeries") 
-                actions.push_back(new DrawTimeSeriesAction(*drawItem));                    
+                actions.push_back(new DrawTimeSeriesAction(*drawItem, _fontManager));                    
             delete drawItem;
         }
     }
@@ -122,14 +122,20 @@ void ScreenManager::Run() {
             .Sensors = _sensorManager,
             .Screens = *this
         };
+        printf("Executing first draw\n");
         screen->ExecuteDraw(ctx);
+        printf("Executing first update");
         _display->UpdateFull();
+
+        printf("Done first update");
         
         while(true) {
             screen = GetCurrent();
             
         // vTaskDelay(5000 / portTICK_RATE_MS);
+            printf("Waiting for events\n");
             _buttons->WaitForEvents();
+            printf("Got events\n");
             while(_buttons->HasQueued()) {
                 auto event = _buttons->GetQueued();
                 if(event.Gpio==0) {

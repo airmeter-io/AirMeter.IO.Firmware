@@ -63,7 +63,6 @@ void DrawClearAction::Execute(DrawContext& pContext) {
 
 DrawTextAction::DrawTextAction(Json& pJson, FontManager& pFontManager) {
     _color = EPDColor::White;
-    printf("Text draw item\n");
     if(pJson.HasProperty("Color")) {
         auto colorProp = pJson.GetStringProperty("Color");
         if(colorProp == "White")
@@ -157,9 +156,25 @@ void TriggerUpdateAction::Execute(DrawContext& pContext) {
     pContext.Screens.TriggerUpdate(pContext);
 }
 
-DrawTimeSeriesAction::DrawTimeSeriesAction(Json& pJson) {
+DrawTimeSeriesAction::DrawTimeSeriesAction(Json& pJson, FontManager& pFontManager) {
     if(pJson.HasProperty("Value")) {
         _valueName = pJson.GetStringProperty("Value"); 
+    } 
+
+    _font = nullptr;
+
+    if(pJson.HasProperty("Font")) {
+        auto fontName = pJson.GetStringProperty("Font");
+        _font = pFontManager.GetFont(fontName)->GetFont();
+    }
+    if(_font==nullptr) _font = pFontManager.GetDefaultFont()->GetFont();
+
+    if(pJson.HasProperty("Color")) {
+        auto colorProp = pJson.GetStringProperty("Color");
+        if(colorProp == "White")
+            _color = EPDColor::White;
+        if(colorProp == "Black")
+            _color = EPDColor::Black;  
     } 
 
     if(pJson.HasProperty("X") )
@@ -198,23 +213,81 @@ void DrawTimeSeriesAction::Execute(DrawContext& pContext) {
     auto values = pContext.ValueSource.ResolveTimeSeries(_valueName, _mins*60, _steps);
     printf("Got time series\n");
     
-    auto min = -1;
-    auto max = -1;
+    auto min = 400;
+    auto max = 1000;
+
     
     for(auto val : values) {
+        if(!val) continue;
         if(max<0 || max<val) max = val;
         if(min<0 || min>val) min = val;
     }
+
     auto range =(uint32_t)(max - min);
-    if(range==0)
+    if(range<=0)
         return;
 
-    auto perBar = _w / _steps;
+    auto maxYText = std::to_string(max);
+    auto minYText = std::to_string(min);
+    auto midYText = std::to_string(min+(max-min)/2);
+    auto minXText = std::string("-")+std::to_string(_mins)+"m";
+    auto maxXText = std::string("Now");
+    Dimensions maxYDim;
+    Dimensions minYDim;
+    Dimensions midYDim;
+    Dimensions maxXDim;
+    Dimensions minXDim;
+    auto availableW = _w ;
+    auto availableH = _h;
+    auto perBar = availableW / _steps;
+    auto offsetW = availableW - perBar*_steps;
+    auto x = (int)(_x+offsetW);
+    
+    if(_font!=nullptr) {
+        _font->MeasureUtf8(maxYText,250, maxYDim);
+        _font->MeasureUtf8(minYText,250, minYDim);
+        _font->MeasureUtf8(midYText,250, midYDim);
+        _font->MeasureUtf8(minXText,250, minXDim);
+        _font->MeasureUtf8(maxXText,250, maxXDim);
+        
+        auto maxYWidth = maxYDim.width > minYDim.width ? maxYDim.width : minYDim.width;
+        auto maxXHeight = minXDim.height > maxXDim.height ? minXDim.height : maxXDim.height;
+        if(maxYWidth<midYDim.width) maxYWidth = midYDim.width;
+        maxYWidth+=3;
+        maxXHeight+=3;
+        availableW-= maxYWidth - 2;
+        availableH-= maxXHeight - 2;
+        x+= (maxYWidth + 2);
+        perBar = availableW / _steps;
+        printf("Max font widthY %d, %s\n", (int)maxYWidth, minYText.c_str());
+        _font->DrawUtf8(maxYText,pContext.Target, {.pos {. x = _x+(int)offsetW, .y = _y},.size { .width = maxYWidth, .height =maxYDim.height}},_color, DrawTextJustify::Right,DrawTextVerticalAlign::Top,2);
+        _font->DrawUtf8(midYText,pContext.Target, {.pos {. x = _x+(int)offsetW, .y = _y+(availableH/2)-midYDim.height},.size { .width = maxYWidth, .height =midYDim.height}},_color, DrawTextJustify::Right,DrawTextVerticalAlign::Bottom,2);
+        _font->DrawUtf8(minYText,pContext.Target, {.pos {. x = _x+(int)offsetW, .y = _y+availableH-minYDim.height},.size { .width = maxYWidth, .height =minYDim.height}},_color, DrawTextJustify::Right,DrawTextVerticalAlign::Bottom,2);
+        _font->DrawUtf8(minXText,pContext.Target, {.pos {. x = x-minXDim.width/2, .y = _y+availableH-6},.size { .width = minXDim.width+5, .height =maxXHeight}},_color, DrawTextJustify::Center,DrawTextVerticalAlign::Bottom,2);
+        _font->DrawUtf8(maxXText,pContext.Target, {.pos {. x = x+(int)perBar*(int)_steps-(int)maxXDim.width-3, .y = _y+availableH-6},.size { .width = maxXDim.width+5, .height =maxXHeight}},_color, DrawTextJustify::Right,DrawTextVerticalAlign::Bottom,2);
+    } else 
+        printf("Null Font\n");
+    pContext.Target.DrawLine(x-2,_y, x, _y, _color);
+    pContext.Target.DrawLine(x-2,_y+availableH/2, x, _y+availableH/2, _color);
+    pContext.Target.DrawLine(x-2,_y+availableH, x, _y+availableH, _color);
+    pContext.Target.DrawLine(x,_y, x, _y+availableH, _color);
+    pContext.Target.DrawLine(x,_y+availableH, x+(int)perBar*(int)_steps, _y+availableH, _color);
+    pContext.Target.DrawDottedLine(x,_y+availableH/2, x+(int)perBar*(int)_steps, _y+availableH/2, _color);
+    auto totalGraphWidth = (int)perBar*(int)_steps;
+    for(auto quarterHr = 0; quarterHr<= 4; quarterHr++) 
+        pContext.Target.DrawLine( x+(totalGraphWidth*quarterHr)/4,_y+availableH, x+(totalGraphWidth*quarterHr)/4, _y+availableH+3, _color);
+    for(auto fiveMins = 0; fiveMins< 12; fiveMins++) 
+        if(fiveMins%3)
+            pContext.Target.DrawLine( x+(totalGraphWidth*fiveMins)/12,_y+availableH, x+(totalGraphWidth*fiveMins)/12, _y+availableH+1, _color);
+        
+    
+    
     for(auto step = 0; step < _steps; step++) {
-        printf("%d: %d\n", step, values[step]);
+
         if(!values[step]) continue;
-        int32_t height = ((int32_t)_h  * (int32_t)values[step])/range;
-        pContext.Target.DrawFilledRectangle(_x+step*perBar, _h-height+_y,perBar,height, EPDColor::Black);
+        auto height = ((uint32_t )availableH* ((uint32_t)values[step]-min))/ range;
+
+        pContext.Target.DrawFilledRectangle(x+step*perBar, availableH-height+_y,perBar,height, _color);
     }
 
 }

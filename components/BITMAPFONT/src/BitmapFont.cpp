@@ -107,25 +107,28 @@ void BitmapFont::MeasureUtf8(const tiny_utf8::string& pText, uint32_t pWrapTextA
     for(auto ch : pText) {
         FontCharacterGroupGlyph* glyph;
         uint8_t* data;
-        if(GetGlyph(ch,&glyph, &data)) {            
-            if(pWrapTextAt == 0 || pWrapTextAt > curWidth+glyph->xAdvance)
+        if(GetGlyph(ch,&glyph, &data)) {           
+            if(pWrapTextAt == 0 || pWrapTextAt > curWidth+glyph->xAdvance) {
                curWidth+=glyph->xAdvance;
-            else
+               if(curWidth>pMeasuredSized.width) 
+                  pMeasuredSized.width = curWidth;
+            } else
             {
                 pMeasuredSized.height+=_header.yAdvance;
-                if(curWidth>pMeasuredSized.width)
-                    pMeasuredSized.width = curWidth;
+               
                 if(sinceLastSpace>0) {
                     curWidth = sinceLastSpace+glyph->xAdvance;
                 } else
                     curWidth = glyph->xAdvance;
+                if(curWidth>pMeasuredSized.width)
+                    pMeasuredSized.width = curWidth;
                 sinceLastSpace = 0;
             }
 
             if(ch == ' ')
                 sinceLastSpace = 0;
             else   
-                sinceLastSpace+=glyph->xAdvance;
+                sinceLastSpace+=glyph->xAdvance;            
         }
     }    
 }

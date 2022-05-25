@@ -25,13 +25,19 @@ uint DataManagerRamTemporaryStore::GetUsed() {
 }
 
 uint DataManagerRamTemporaryStore::Read(uint8_t *pDest, uint pOffset, uint pLength) {
-    if(pOffset+pLength>BUFFER_SIZE) pLength = BUFFER_SIZE - pOffset;
+    if(pOffset+pLength>BUFFER_SIZE) {
+        printf("Adjusting read length from %u, %u\n", pLength, BUFFER_SIZE - pOffset);
+        pLength = BUFFER_SIZE - pOffset;
+    } 
     memcpy(pDest, _buffer+pOffset, pLength);
     return pLength;
 }
 
 uint DataManagerRamTemporaryStore::Write(time_t pTimeStamp, uint8_t *pSource, uint pLength) {
-    if(_writeIndex+pLength>BUFFER_SIZE) pLength = BUFFER_SIZE - _writeIndex;
+    if(_writeIndex+pLength>BUFFER_SIZE) {
+        printf("Adjusting write length from %u, %u\n", pLength, BUFFER_SIZE - _writeIndex);
+        pLength = BUFFER_SIZE - _writeIndex;
+    }
     memcpy(_buffer+_writeIndex,pSource, pLength);
     _writeIndex+=pLength;
     if(pTimeStamp>_blockEndTime) _blockEndTime = pTimeStamp;

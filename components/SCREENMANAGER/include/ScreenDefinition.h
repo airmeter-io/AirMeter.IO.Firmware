@@ -51,6 +51,8 @@ public:
 
 class DrawTimeSeriesAction : public DrawAction {
     std::string _valueName;
+    EPDColor _color;
+    BitmapFont* _font;
     int _x;
     int _y;
     int _w;
@@ -58,7 +60,7 @@ class DrawTimeSeriesAction : public DrawAction {
     uint32_t _mins;
     uint32_t _steps;  
 public:
-    DrawTimeSeriesAction(Json& pJson);
+    DrawTimeSeriesAction(Json& pJson, FontManager& pFontManager);
     void Execute(DrawContext& pContext) override;
 };
 

@@ -227,6 +227,9 @@ std::vector<int> MainLogicLoop::ResolveTimeSeries(std::string pName, uint32_t pS
     
     time_t curTime;
     time(&curTime);
+    if(curTime % (pSecondsInPast/pSteps)) 
+        curTime+=(pSecondsInPast/pSteps)-(curTime % (pSecondsInPast/pSteps));
+
     auto startTime = curTime-pSecondsInPast;
     auto query = _dataManager->StartQuery(startTime, curTime);
     const auto maxEntries = 60;
@@ -235,15 +238,16 @@ std::vector<int> MainLogicLoop::ResolveTimeSeries(std::string pName, uint32_t pS
 
     auto read = query->ReadEntries(entries, maxEntries);
     auto perStep = (pSecondsInPast*multiplier)/pSteps;
-    printf("main(): Read %d items\n", (int)read);
     while(read>0) {
         
         for(auto i = 0; i < read; i++)
         {
             auto step = ((entries[i].TimeStamp-startTime)*multiplier)/perStep;
 
-            if(entries[i].CO2)
-                printf("%d: C %d\n", (int)step, (int)entries[i].CO2);
+            if(step<0 || step >= pSteps) {
+                printf("Step out of range %d\n",(int)step);
+                continue;
+            }
             if(pName=="CO2Ppm")
                 result[step]+=entries[i].CO2;
             else if (pName=="Temp")
@@ -254,7 +258,6 @@ std::vector<int> MainLogicLoop::ResolveTimeSeries(std::string pName, uint32_t pS
                 result[step]+=entries[i].Humidity;
             
             resultCounts[step]++;
-            if(result[step]) printf("Step Result %d\n", (int)result[step]);
         }
         read = query->ReadEntries(entries, maxEntries);
     }

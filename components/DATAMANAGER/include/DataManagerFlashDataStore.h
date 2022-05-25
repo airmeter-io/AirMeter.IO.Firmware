@@ -1,6 +1,7 @@
 #pragma once 
 
 #include "Common.h"
+#include<map>
 #include "DataManagerPrivate.h"
 
 class DataManagerFlashDataBucket {
@@ -13,14 +14,14 @@ public:
     uint GetSize();
     uint GetPayloadSize();
     uint8_t* GetPayload();
-    bool Intersects(time_t pFrom, time_t pTo);
+    bool static Intersects(const FlashDataBlockHeader& pHeader, time_t pFrom, time_t pTo);
 };
 
 class DataManagerFlashDataStore {
     const esp_partition_t* _partition;
     int _latestValid = -1;
     int _oldestValid = -1;
-    
+    std::map<uint,FlashDataBlockHeader> _blocks; 
     void ScanBuckets();
    
 public:
@@ -34,6 +35,7 @@ public:
 
     uint GetBucketCount() const;
     bool LoadBucket(uint pIndex, DataManagerFlashDataBucket* pBucket);
+    bool GetBucketHeader(uint pIndex, FlashDataBlockHeader* pHeader);
     uint GetBucketSize() const;
     void SaveBucket(DataManagerFlashDataBucket* pBucket);
 };

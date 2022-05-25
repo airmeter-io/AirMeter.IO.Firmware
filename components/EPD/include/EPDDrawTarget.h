@@ -28,16 +28,16 @@ class EPDDrawTarget : public IFontBltTarget
         switch (_rotation)
         {
             case 1:
-            Swap(pX, pY);
-            pX = _buffer.GetWidth() - pX - 1;
-            break;
+                Swap(pX, pY);
+                pX = _buffer.GetWidth() - pX - 1;
+                break;
             case 2:
-            pX = _buffer.GetWidth() - pX - 1;
-            pY = _buffer.GetHeight() - pY - 1;
-            break;
+                pX = _buffer.GetWidth() - pX - 1;
+                pY = _buffer.GetHeight() - pY - 1;
+                break;
             case 3:
-            Swap(pX, pY);
-            pY = _buffer.GetHeight() - pY - 1;
+                Swap(pX, pY);
+                pY = _buffer.GetHeight() - pY - 1;
             break;
         }
     }
@@ -60,7 +60,10 @@ public:
 
     void drawPixel(int16_t x, int16_t y, EPDColor color);
     void setRotation(int16_t pRotation);
-
+    void DrawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
+                             EPDColor color);
+    void DrawDottedLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
+                             EPDColor color);                             
     inline EPDBackBuffer& GetBackBuffer() {
         return _buffer;
     }

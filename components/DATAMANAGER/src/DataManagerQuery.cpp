@@ -26,7 +26,6 @@ uint DataManagerQuery::ProcessBuffer(DataEntry *pEntries, uint pMaxEntries) {
 
         switch((DataPointType)full->Type) {
             case DataPointType::Full :
-                printf("Full\n");
                 if(_bufferIndex+sizeof(DataPointFull)  > _bucket.GetHeader()->DataLength) {                
                     _bufferIndex = _bucket.GetHeader()->DataLength;
                 }
@@ -38,7 +37,6 @@ uint DataManagerQuery::ProcessBuffer(DataEntry *pEntries, uint pMaxEntries) {
                 _bufferIndex+=sizeof(DataPointFull);
                 break;
             case DataPointType::Compact :
-                printf("Compact\n");
                 if(_bufferIndex+sizeof(DataPointCompact)  > _bucket.GetHeader()->DataLength) {
                     _bufferIndex =  _bucket.GetHeader()->DataLength;
                 }
@@ -50,7 +48,6 @@ uint DataManagerQuery::ProcessBuffer(DataEntry *pEntries, uint pMaxEntries) {
                 _bufferIndex+=sizeof(DataPointCompact);
                 break;
             case DataPointType::VeryCompact :
-                printf("VeryCompact\n");
                 if(_bufferIndex+sizeof(DataPointVeryCompact)  > _bucket.GetHeader()->DataLength) {
                     _bufferIndex =  _bucket.GetHeader()->DataLength;
                 }
@@ -68,6 +65,7 @@ uint DataManagerQuery::ProcessBuffer(DataEntry *pEntries, uint pMaxEntries) {
         
         if(_dataEntry.TimeStamp < _bucket.GetHeader()->BlockStartTime) {
              _bufferIndex = _bucket.GetHeader()->DataLength;
+             printf("Timestamp before block start\n");
              break;
         }
 
@@ -105,59 +103,72 @@ uint DataManagerQuery::ReadEntries(DataEntry *pEntries, uint pMaxEntries) {
        return 0;
     }
     if(_bufferIndex < _bucket.GetHeader()->DataLength) {
-     //   printf("Got some buffer processing it\n");
+        printf("Got some buffer processing it\n");
         auto result = ProcessBuffer(pEntries, pMaxEntries);
         if(result) {
             pthread_mutex_unlock(&_mutex);
             return result;
         }
 
-
-     //    printf("Not enough entries continuing\n");
     }
- //   printf("bucket index %d\n", _bucketIndex);
+    FlashDataBlockHeader blockHeader;
+    
     if(_bucketIndex!=-1) {
-        _flashStore.LoadBucket(_bucketIndex, &_bucket);
-  //    printf("Got flash block processing more of it\n");      
+        auto currentBucket = _bucketIndex;
+        
+            
         _bufferIndex = 0;
         _bucketIndex = _bucketIndex==_flashStore.GetLatest()? -1 : _flashStore.CalcNext(_bucketIndex);
-        if(_bucket.GetHeader()->DataLength>0 && _bucket.Intersects(_from, _to) ) {            
-           auto result =  ProcessBuffer(pEntries, pMaxEntries);
-           pthread_mutex_unlock(&_mutex);
-           return result;
-        }
-     //   printf("Not enough buffer continuing\n");
-        
-        while(_bucketIndex!=-1) {
-         //   printf("Loading next bucket\n");
-            _flashStore.LoadBucket(_bucketIndex, &_bucket);
-            _bucketIndex = _bucketIndex==_flashStore.GetLatest()? -1 : _flashStore.CalcNext(_bucketIndex);
-            auto header =  _bucket.GetHeader();
-            if(!_bucket.Intersects(_from, _to)) {
-            //    printf("Bucket in past skipping\n");
-                continue;
-            } else {
-                if(_from>header->BlockEndTime && _to>header->BlockEndTime ) {
-            //        printf("Bucket in future returning 0 entries\n");
-                   break;
-                } 
-                if(_bucket.GetHeader()->DataLength>0) {
-                    
-                    auto result = ProcessBuffer(pEntries, pMaxEntries);
+  
+        if(_flashStore.GetBucketHeader(currentBucket, &blockHeader)) {          
+            if(blockHeader.DataLength>0 && DataManagerFlashDataBucket::Intersects(blockHeader,_from, _to) ) {            
+                _flashStore.LoadBucket(currentBucket, &_bucket);
+                auto result =  ProcessBuffer(pEntries, pMaxEntries);
+                if(result) {
                     pthread_mutex_unlock(&_mutex);
                     return result;
                 }
-            //    printf("Not enough buffer continuing\n");
-                break;
+            }
+
+        }
+
+        
+        while(_bucketIndex!=-1) {
+            currentBucket = _bucketIndex;
+            _bucketIndex = _bucketIndex==_flashStore.GetLatest()? -1 : _flashStore.CalcNext(_bucketIndex);
+
+            if(_flashStore.GetBucketHeader(currentBucket, &blockHeader)) {            
+                if(!DataManagerFlashDataBucket::Intersects(blockHeader,_from, _to)) {
+        
+                    continue;
+                } else {
+                   
+                    if(_from>blockHeader.BlockEndTime && _to>blockHeader.BlockEndTime ) {
+                       printf("Bucket in future returning 0 entries\n");
+                    break;
+                    } 
+                    if(blockHeader.DataLength>0) {
+                 
+                        _flashStore.LoadBucket(currentBucket, &_bucket);
+                        auto result = ProcessBuffer(pEntries, pMaxEntries);
+                        if(result) {
+                            pthread_mutex_unlock(&_mutex);
+                            return result;
+                        }
+                    }
+              //      printf("Not enough buffer continuing\n");
+                    break;
+                }
             }
         }
     
     } 
 
+
     
     if(!_loadedTemp){
         auto size = _store.GetUsed();
-       printf("Getting temp size %u, %u\n", size,_bucket.GetHeader()->DataLength);
+      // printf("Getting temp size %u, %u\n", size,_bucket.GetHeader()->DataLength);
         if(size> _bucket.GetPayloadSize()) {
          printf("Bucket not big enough to take temporary storage data\n");
             pthread_mutex_unlock(&_mutex);

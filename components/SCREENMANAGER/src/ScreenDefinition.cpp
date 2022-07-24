@@ -1,6 +1,6 @@
 #include "ScreenDefinition.h"
 #include "ScreenManager.h"
-
+#include "QRCodeGenerator.h"
 ScreenDefinition::ScreenDefinition(const std::string pName) : _name(pName) {
 
 }
@@ -290,4 +290,38 @@ void DrawTimeSeriesAction::Execute(DrawContext& pContext) {
         pContext.Target.DrawFilledRectangle(x+step*perBar, availableH-height+_y,perBar,height, _color);
     }
 
+}
+
+DrawQRCodeAction::DrawQRCodeAction(Json& pJson) {
+    if(pJson.HasProperty("X") )
+        _x = pJson.GetIntProperty("X");
+    else
+        _x  = 0;
+
+    if(pJson.HasProperty("Y") )
+        _y = pJson.GetIntProperty("Y");
+    else
+        _y  = 0;
+        
+    if(pJson.HasProperty("W") )
+        _w = pJson.GetIntProperty("W");
+    else
+        _w  = 0;
+        
+    if(pJson.HasProperty("H") )
+        _h = pJson.GetIntProperty("H");
+    else
+        _h  = 0;
+    if(pJson.HasProperty("Text"))
+        _text = StringWithValues(pJson.GetStringProperty("Text"));
+    else
+        _text =StringWithValues(std::string(""));
+}
+
+void DrawQRCodeAction::Execute(DrawContext& pContext) {
+    std::string text;
+    _text.Generate(pContext.ValueSource, text);
+    Rectangle rect =  { .pos = { .x = _x, .y =_y }, .size = {.width = _w, .height = _h } };
+    QRCodeGenerator qrCode;
+    qrCode.Draw(pContext.Target,rect.size, rect.pos, text);
 }

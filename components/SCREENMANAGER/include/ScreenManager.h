@@ -19,6 +19,8 @@ class ScreenManager {
     StringValueSource& _valueSource;
     SensorManager& _sensorManager;
     DEPG0213BN* _display = nullptr;
+    std::string _nextScreen = "";
+    bool _needScreenChange = false;
 public:
     ScreenManager(StringValueSource& pValueSource, SensorManager& pSensorManager);
 
@@ -30,7 +32,7 @@ public:
     }
     void Run();
     void TriggerUpdate();
-
+    void ChangeScreen(std::string pScreen);
     void ChangeScreen(DrawContext& pContext, std::string pScreen);
     void TriggerUpdate(DrawContext& pContext);
 };

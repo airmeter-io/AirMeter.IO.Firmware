@@ -64,6 +64,16 @@ public:
     void Execute(DrawContext& pContext) override;
 };
 
+class DrawQRCodeAction : public DrawAction {
+    StringWithValues _text;
+    int _x;
+    int _y;
+    int _w;
+    int _h;
+public:
+    DrawQRCodeAction(Json& pJson);
+    void Execute(DrawContext& pContext) override;
+};
 
 
 class ChangeScreenAction : public DrawAction {
@@ -102,3 +112,4 @@ public:
         return _name;
     }
 };
+

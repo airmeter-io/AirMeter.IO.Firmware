@@ -244,11 +244,11 @@ void SSD1680::WaitBusy(const char* message, uint16_t busy_time){
     } 
     vTaskDelay(1);//portTICK_RATE_MS);
 
-    // if (esp_timer_get_time()-time_since_boot>7000000)
-    // {
-    //   printf("timeout\n");
-    //   break;
-    // }
+    if (esp_timer_get_time()-time_since_boot>7000000)
+    {
+      printf("timeout\n");
+      break;
+    }
   }
   } else {
   //  printf("Was 0\n");

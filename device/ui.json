@@ -1,5 +1,6 @@
 {
     "DefaultScreen": "HOME",
+    "CaptivePortalScreen": "CAPTIVE",
     "Screens": [
         {
             "Name": "HOME",
@@ -327,6 +328,53 @@
                 {
                     "Type": "ChangeScreen",
                     "Screen": "HOME"
+                }                
+            ]
+        },
+        {
+            "Name": "CAPTIVE",
+            "Draw": [
+                {
+                    "Type": "Clear",
+                    "Color": "White"
+                },
+                {
+                    "Type": "QRCode",                   
+                    "X": 0,
+                    "Y": 0,
+                    "W": 122,
+                    "H": 122,                   
+                    "Text": "WIFI:T:WPA;S:{AccessPointSSID};P:{AccessPointPassword};H:;"
+                }                              
+            ],
+            "ButtonReleased": [
+                {
+                    "Type": "ChangeScreen",
+                    "Screen": "CO2CHART"
+                } 
+            ],
+            "ButtonLongReleased": [
+                {
+                    "Type": "Clear",
+                    "Color": "White"
+                },
+                {
+                    "Type": "Text",
+                    "Color": "Black",
+                    "Font": "Large",
+                    "X": 0,
+                    "Y": 0,
+                    "W": 250,
+                    "H": 122,
+                    "Justify": "Left",
+                    "VerticalAlign": "Top",
+                    "Text": "{CO2Ppm}ppm"
+                }
+            ],
+            "ButtonVeryLongReleased": [
+                {
+                    "Type": "ChangeScreen",
+                    "Screen": "CALIBRATE"
                 }                
             ]
         }

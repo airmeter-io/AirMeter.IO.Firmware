@@ -2,12 +2,12 @@
 
 #include "Common.h"
 #include "qrcode.h"
-#include "SsdDisplay.h"
+#include "EPDDrawTarget.h"
 #include <string>
 
 class QRCodeGenerator {
 public:
     QRCodeGenerator();
     
-    void Display(SsdDisplay& pDisplay, const std::string& pContent);
+    void Draw(EPDDrawTarget& pTarget, const Dimensions& pDimensions, const Position& pPosition, const std::string& pContent);
 };

@@ -20,5 +20,6 @@ idf_component_register(
           "EPD"
           "GPIOROUTING"
           "SENSORMANAGER"
+          "QRCODE"
           
 )

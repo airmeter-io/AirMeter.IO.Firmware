@@ -48,6 +48,22 @@ void print_wakeup_reason(){
 }
 #endif
 
+MainLogicLoop *mainLoop;
+
+static void i2ctask(void *arg)
+{
+    mainLoop->Run();
+	vTaskDelete(NULL);
+}
+
+
+static void uiTask(void *arg)
+{
+    mainLoop->RunUI();
+	vTaskDelete(NULL);
+}
+
+
 time_t MainLogicLoop::ProcessEvents() {
    
     auto result =  _sensorManager->UpdateValues();
@@ -72,6 +88,7 @@ MainLogicLoop::MainLogicLoop() {
     _flashStore = new DataManagerFlashDataStore();
     _dataManager = new DataManager(_flashStore,_ramStore);
     _sensorManager = new SensorManager(*_generalSettings, *_i2c, *_dataManager);
+    _screenManager = new ScreenManager(*this, *_sensorManager);
     _voltageStr[0] = 0;
     GpioManager::Setup();
 }
@@ -102,12 +119,14 @@ void MainLogicLoop::Run() {
     SntpManager *sntp = nullptr;
     if(!wifi.IsProvisioned()) {
         printf("Provisioning...\n");
-        
+        _screenManager->ChangeScreen("CAPTIVE");
+        vTaskDelay(200 / portTICK_RATE_MS);
         captiveRedirect = new CaptiveRedirectHandler ();
         httpServer->AddUrlHandler(captiveRedirect);
    
         wifi.StartProvisioning();
         vTaskDelay(2000 / portTICK_RATE_MS);
+        printf("Provisioning started\n");
     } else {
     
         printf("Already provisioned starting WiFi...\n");
@@ -121,6 +140,8 @@ void MainLogicLoop::Run() {
             mqtt = new MqttManager(*_generalSettings,_sensorManager->GetValues());
         }
     }
+
+    
 
     auto wait = _sensorManager->UpdateValues();
     // while(true) {
@@ -213,8 +234,18 @@ void MainLogicLoop::Run() {
     if(pName == "BatVolts") {
         return _voltageStr;
     }
+
+    if(pName == "AccessPointSSID") {
+        return _generalSettings->GetDeviceName();
+    }
+
+    if(pName == "AccessPointPassword") {
+        return _generalSettings->GetApPassword();
+    }
     return "ERR";
  }
+
+
 
 std::vector<int> MainLogicLoop::ResolveTimeSeries(std::string pName, uint32_t pSecondsInPast, uint32_t pSteps) {
     std::vector<int> result(pSteps,0);
@@ -225,6 +256,7 @@ std::vector<int> MainLogicLoop::ResolveTimeSeries(std::string pName, uint32_t pS
        pName!="Humidity")
        return std::vector<int>();
     
+
     time_t curTime;
     time(&curTime);
     if(curTime % (pSecondsInPast/pSteps)) 
@@ -276,27 +308,10 @@ std::vector<int> MainLogicLoop::ResolveTimeSeries(std::string pName, uint32_t pS
 }
 
 void MainLogicLoop::RunUI() {
-    _screenManager = new ScreenManager(*this, *_sensorManager);
+    vTaskDelay(5000 / portTICK_RATE_MS);
     _screenManager->Run();
    
 }
-
-
-MainLogicLoop *mainLoop;
-
-static void i2ctask(void *arg)
-{
-    mainLoop->Run();
-	vTaskDelete(NULL);
-}
-
-
-static void uiTask(void *arg)
-{
-    mainLoop->RunUI();
-	vTaskDelete(NULL);
-}
-
 
 
 bool MountSpiffs(esp_vfs_spiffs_conf_t& pConf) {
@@ -335,12 +350,18 @@ bool MountSpiffs(esp_vfs_spiffs_conf_t& pConf) {
 }
 
 
-
+ RTC_NOINIT_ATTR uint test;
 
 //Gdepg0213BN display(io);
 
 extern "C" void app_main(void)
 {
+    if(test == 1234567) {
+        printf("warm boot?\n");
+    } else {
+        test = 1234567;
+        printf("Cold boot?\n");
+    }
 #if CONFIG_IDF_TARGET_ESP32
     esp_pm_config_esp32_t pm_config = {
 #elif CONFIG_IDF_TARGET_ESP32S2
@@ -394,12 +415,8 @@ extern "C" void app_main(void)
     
     MountSpiffs(conf);
 
-    tiny_utf8::string str = u8"Hello €100";
-    for( char32_t codepoint : str){
-      printf("%X\n", codepoint);
-    }
-
     mainLoop = new MainLogicLoop();
+   
     xTaskCreate(i2ctask, "i2ctask", 4096, NULL, 10, NULL);
     xTaskCreate(uiTask, "uiTask", 4096, NULL, 10, NULL);
 }

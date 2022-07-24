@@ -4,6 +4,7 @@
 #include "SSD1680.h"
 #include "DEPG0213BN.h"
 
+
 ScreenManager::ScreenManager(StringValueSource& pValueSource, SensorManager& pSensorManager) : 
     _valueSource(pValueSource), 
     _sensorManager(pSensorManager) {
@@ -22,6 +23,8 @@ ScreenManager::ScreenManager(StringValueSource& pValueSource, SensorManager& pSe
         _current = _default;
         free(rawJson);
     }
+     std::vector<gpio_num_t> items = {(gpio_num_t)GPIO_NUM_39};
+    _buttons = new ButtonManager(items);
 }
 
 
@@ -38,7 +41,9 @@ std::vector<DrawAction *> ScreenManager::LoadActions(Json* pParentElement, std::
             if(type == "Clear") 
                 actions.push_back(new DrawClearAction(*drawItem));
             else if (type == "Text") 
-                actions.push_back(new DrawTextAction(*drawItem, _fontManager));
+                actions.push_back(new DrawTextAction(*drawItem, _fontManager));           
+            else if (type == "QRCode") 
+                actions.push_back(new DrawQRCodeAction(*drawItem));                
             else if (type == "ChangeScreen") 
                 actions.push_back(new ChangeScreenAction(*drawItem));
             else if (type == "Calibrate") 
@@ -97,8 +102,7 @@ void ScreenManager::LoadScreens(Json& pJson) {
 
 
 void ScreenManager::Run() {
-     std::vector<gpio_num_t> items = {(gpio_num_t)GPIO_NUM_39};
-    _buttons = new ButtonManager(items);
+    
  
     EpdSpi io;
     SSD1680 *ssd1680;
@@ -128,7 +132,13 @@ void ScreenManager::Run() {
         _display->UpdateFull();
 
         printf("Done first update");
-        
+        if(_needScreenChange) {
+            printf("Changing screen");
+            _needScreenChange = false;
+            ChangeScreen(ctx, _nextScreen);
+            _display->UpdatePartial();
+        }
+
         while(true) {
             screen = GetCurrent();
             
@@ -140,7 +150,12 @@ void ScreenManager::Run() {
                 auto event = _buttons->GetQueued();
                 if(event.Gpio==0) {
                     printf("Got Refresh request");
-                    screen->ExecuteDraw(ctx);
+                    if(_needScreenChange) {
+                        printf("Changing screen");
+                        _needScreenChange = false;
+                        ChangeScreen(ctx, _nextScreen);
+                    } else
+                        screen->ExecuteDraw(ctx);
                     _display->UpdatePartial();
                 } else {
                     screen->ExecuteButton(ctx, event.Code);
@@ -173,6 +188,15 @@ void ScreenManager::ChangeScreen(DrawContext& pContext, std::string pScreen) {
     }
 
     printf("Tried to switch to %s screen and failed\n", pScreen.c_str());
+}
+
+void ScreenManager::ChangeScreen(std::string pScreen) {
+    printf("changing screen\n");
+    _needScreenChange = true;
+    _nextScreen = pScreen;
+    printf("Triggering update\n");
+    TriggerUpdate();
+    printf("Update triggered\n");
 }
 
 void ScreenManager::TriggerUpdate(DrawContext& pContext) {

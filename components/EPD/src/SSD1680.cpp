@@ -1,8 +1,10 @@
 #include "SSD1680.h"
 
 #define TAG "SSD1680"
-SSD1680::SSD1680(EpdSpi& pSpi) : _spi(pSpi), _gpios({(gpio_num_t)CONFIG_EINK_BUSY}), _group(GpioGroup(_gpios)){
+SSD1680::SSD1680(EpdSpi& pSpi) : _spi(pSpi), _gpios({(gpio_num_t)CONFIG_EINK_BUSY}), _group(GpioGroup(_gpios, false, true, RaisingEdge)){
+    
     GpioManager::RegisterGpioGroup(&_group);
+    _group.Disable();
     gpio_set_pull_mode((gpio_num_t)CONFIG_EINK_BUSY, GPIO_PULLUP_ONLY);
 }
 
@@ -11,9 +13,11 @@ SSD1680::~SSD1680() {
 }
 
 void SSD1680::ResetAll() {
+    _group.Enable();
     _spi.reset(50);
     _spi.cmd(ResetAllCommandsAndParameter);
    WaitBusy("epd_wakeup_power:ON"); 
+   _group.Disable();
 }
 
 void SSD1680::SetRamDataEntryMode(SSD1680RamDataEntryMode pMode, uint16_t pWidth, uint16_t pHeight) {
@@ -66,7 +70,7 @@ void SSD1680::SetRamPointer(uint8_t pX, uint16_t pY) {
 void SSD1680::SetSleepMode(SSD1306SleepMode pMode) {
     _spi.cmd(EnterDeepSleep); // power off display
     _spi.data(pMode);
-    WaitBusy("power_off");
+   // WaitBusy("power_off");
 }
 
 
@@ -89,9 +93,11 @@ void SSD1680::WriteToBWRam(EPDBackBuffer& pBuffer) {
 }
 
 void SSD1680::ActivateDisplayUpdateSequence(int pWaitMs) {
+    _group.Enable();
     _spi.cmd(SSD1680Cmd::ActivateDisplayUpdateSequence);
 //    ets_delay_us(pWaitMs*1000);
     WaitBusy("_Update_Full", 1200);
+    _group.Disable();
 }
 
 

@@ -5,9 +5,14 @@
 #include "WifiManager.h"
 #define TAG "WIFI"
 
+static void dnstask(void *arg)
+{
+    ((WifiPrivate *)arg)->RunCaptiveDNS();
+	vTaskDelete(NULL);
+}
 
 
-Wifi::Wifi(const std::string pSoftApName, const std::string pApPassword, WifiUIImplementation& pWifiUI) : _softApName(pSoftApName),_apPassword(pApPassword), _wifiUI(pWifiUI) {
+Wifi::Wifi(const std::string pSoftApName, const std::string pApPassword) : _softApName(pSoftApName),_apPassword(pApPassword) {
 }
 
 Wifi::~Wifi() {
@@ -18,29 +23,35 @@ bool Wifi::IsProvisioned() {
     return _wifiManager.HasStationConfiguration();
 }
 
-void Wifi::StartProvisioning() {
-    _wifiUI.DisplayAPAuthInfo(_softApName, _apPassword);
-
-    
-    _wifiManager.EnableAP(_softApName, _apPassword);
-    _wifiManager.Scan();
-    
-    
+void Wifi::RunCaptiveDNS() {
+    printf("Captive DNS running");
     CaptiveDns dns;
-    printf("Waiting\n");
-    _isProvisioning = true;
+    
     while(_isProvisioning) {
-       _wifiUI.ProcessEvents();
+      
        dns.ProcessRequest();
        esp_task_wdt_reset();
        vTaskDelay(100 / portTICK_RATE_MS);
   
     }
+
     printf("Finished waiting for provisioning\n");
     
     
     printf("Done provisioning\n");
     _wifiManager.EnableStationOnly();
+}
+
+void Wifi::StartProvisioning() {
+   
+    _wifiManager.EnableAP(_softApName, _apPassword);
+    _wifiManager.Scan();
+    
+    
+   
+    _isProvisioning = true;
+    printf("Starting captive DNS task\n");
+    xTaskCreate(dnstask, "captivedns", 4096, this, 10, NULL);
 }
 
 void Wifi::Start() {

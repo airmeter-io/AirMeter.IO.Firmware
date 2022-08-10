@@ -283,6 +283,12 @@ void Scd30Sensor::DisableABC() {
 }
 
 void Scd30Sensor::ManualCalibration(int pBaseLinePPM) {
+    uint8_t readyStatus[2] = {0,0};
+    while(!ReadCommand(Scd30I2CCommand::GET_READY_STATUS, nullptr, 0, (uint16_t *)readyStatus, sizeof(readyStatus)) || readyStatus[1]!=1)
+    {
+        ESP_LOGE(TAG, "Not ready");
+        vTaskDelay(50 / portTICK_RATE_MS);
+    }
     uint8_t paramBytes[2];
     paramBytes[0] = pBaseLinePPM >> 8;
     paramBytes[1] = pBaseLinePPM & 0xFF;

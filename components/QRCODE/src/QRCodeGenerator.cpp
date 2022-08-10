@@ -10,13 +10,15 @@ void QRCodeGenerator::Draw(EPDDrawTarget& pTarget, const Dimensions& pDimensions
     qrcode_initText(&qrcode, qrcodeData, 3, 0, pContent.c_str());
     auto dotSize = pDimensions.height/qrcode.size;
    
-    auto xOffet = (pDimensions.width - (qrcode.size*dotSize))/2;
-    auto yOffet = (pDimensions.height - (qrcode.size*dotSize))/2;
+    auto xOffet =pPosition.x+ (pDimensions.width - (qrcode.size*dotSize))/2;
+    auto yOffet =pPosition.y+ (pDimensions.height - (qrcode.size*dotSize))/2;
     pTarget.DrawFilledRectangle(pPosition.x,pPosition.y, pDimensions.width,pDimensions.height,EPDColor::White);
+    
     for (uint8_t y = 0; y < qrcode.size; y++) {
         for (uint8_t x = 0; x < qrcode.size; x++) {
             auto val = qrcode_getModule(&qrcode, x, y);
-            pTarget.DrawFilledRectangle(xOffet +x*dotSize, yOffet+y*dotSize, dotSize, dotSize, !val ?  EPDColor::Black : EPDColor::White);
+            pTarget.DrawFilledRectangle(xOffet +x*dotSize, yOffet+y*dotSize, dotSize, dotSize, val ?  EPDColor::Black : EPDColor::White);
+         
         }
     }
 }

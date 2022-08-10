@@ -34,6 +34,7 @@ class ButtonManager {
 public:
     ButtonManager(std::vector<gpio_num_t>& pGpios);
     void WaitForEvents();
+    void WaitForEvents(TickType_t pTimeout);
     void PollEvents();
     bool HasQueued();
     ButtonEvent GetQueued();

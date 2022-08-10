@@ -8,10 +8,10 @@
 #include "WebContentHandler.h"
 #include "CommandHandler.h"
 #include "SntpManager.h"
-#include "MqttManager.h"
+
 #include <dirent.h> 
 #include "PasswordGenerator.h"
-#include "BatteryManager.h"
+
 #include "DataManagerQuery.h"
 //#include <gdepg0213BN.h>
 
@@ -57,30 +57,10 @@ static void i2ctask(void *arg)
 }
 
 
-static void uiTask(void *arg)
-{
-    mainLoop->RunUI();
-	vTaskDelete(NULL);
-}
 
-
-time_t MainLogicLoop::ProcessEvents() {
-   
-    auto result =  _sensorManager->UpdateValues();
-    if(_sensorManager->GetLastSensorRead()>_lastRead && _screenManager!=nullptr) {
-        printf("Triggering update\n");
-        _lastRead = _sensorManager->GetLastSensorRead();
-        _screenManager->TriggerUpdate();
-    }
-
-    return result;
-}
-
-void MainLogicLoop::DisplayAPAuthInfo(const std::string& pSSID, const std::string& pPassword) {
-    _display->RenderAccessPointInfo(pSSID, pPassword);
-}
 
 MainLogicLoop::MainLogicLoop() {
+    GpioManager::Setup();
     _i2c = new I2C(GPIO_NUM_4, GPIO_NUM_5);
     _i2c->Scan();
     _generalSettings = new GeneralSettings();
@@ -88,13 +68,51 @@ MainLogicLoop::MainLogicLoop() {
     _flashStore = new DataManagerFlashDataStore();
     _dataManager = new DataManager(_flashStore,_ramStore);
     _sensorManager = new SensorManager(*_generalSettings, *_i2c, *_dataManager);
-    _screenManager = new ScreenManager(*this, *_sensorManager);
+    _screenManager = new ScreenManager(*this, *_sensorManager, *this);
     _voltageStr[0] = 0;
-    GpioManager::Setup();
+
+}
+
+bool MainLogicLoop::ProcessOnUIThread() {
+    bool requiresRedraw = false;
+
+    if(_waitingForProvisioning && _wifi->IsProvisioned()) {
+        _waitingForProvisioning = false;
+        _screenManager->ChangeScreen("HOME");
+    }
+
+    if(_uiProcessCount%5 == 0) {
+        auto voltage = _battery->GetBatteryVoltage();
+        auto major = (int)voltage;
+        auto minor = (int)((voltage - major)*100);
+        snprintf(_voltageStr, sizeof(_voltageStr)-1, "%d.%dV", major, minor);
+    }
+    _uiProcessCount++;
+    auto result =  _sensorManager->UpdateValues();
+    if(_sensorManager->GetLastSensorRead()>_lastRead && _screenManager!=nullptr) {
+        printf("Triggering update\n");
+        _lastRead = _sensorManager->GetLastSensorRead();
+        requiresRedraw = true;
+    }
+
+
+    if(_mqtt!=nullptr) _mqtt->Tick();
+
+    if(!_gotNtp) {
+        for(auto i = 0; i< 2; i++) {
+            if(sntp_getserver(i)!=0) {
+                ESP_LOGI(TAG,"NTP %s\n", ipaddr_ntoa(sntp_getserver(i)));
+                _gotNtp = true;
+                requiresRedraw = true;
+            }
+        }
+    }
+
+    return requiresRedraw;
 }
 
 void MainLogicLoop::Run() {
-    auto battery = new BatteryManager();
+    _battery = new BatteryManager();
     auto httpServer = new HttpServer();
     
 
@@ -103,29 +121,30 @@ void MainLogicLoop::Run() {
         _generalSettings->SetApPassword(pwGen.Generate(24));
         _generalSettings->Save();
     }
-    Wifi wifi(_generalSettings->GetDeviceName(), _generalSettings->GetApPassword(), *this);
+    _wifi = new Wifi(_generalSettings->GetDeviceName(), _generalSettings->GetApPassword());
     CommandHandler *command = nullptr;
     CaptiveRedirectHandler* captiveRedirect = nullptr;
     WebContentHandler *webContent = nullptr;
-    MqttManager* mqtt = nullptr;
+    
 
-    _display = new Oledssd1306Display(*_generalSettings, _sensorManager->GetValues(), wifi, *_i2c );
+    _display = new Oledssd1306Display(*_generalSettings, _sensorManager->GetValues(), *_wifi, *_i2c );
     httpServer->Start();
  
-    command = new CommandHandler(wifi, *_generalSettings, _sensorManager->GetValues(), *_dataManager);
+    command = new CommandHandler(*_wifi, *_generalSettings, _sensorManager->GetValues(), *_dataManager);
     webContent = new WebContentHandler();
     httpServer->AddUrlHandler(webContent);
     httpServer->AddUrlHandler(command);
     SntpManager *sntp = nullptr;
-    if(!wifi.IsProvisioned()) {
+    if(!_wifi->IsProvisioned()) {
         printf("Provisioning...\n");
         _screenManager->ChangeScreen("CAPTIVE");
         vTaskDelay(200 / portTICK_RATE_MS);
         captiveRedirect = new CaptiveRedirectHandler ();
         httpServer->AddUrlHandler(captiveRedirect);
    
-        wifi.StartProvisioning();
-        vTaskDelay(2000 / portTICK_RATE_MS);
+        _wifi->StartProvisioning();
+        _waitingForProvisioning = true;
+        vTaskDelay(5000 / portTICK_RATE_MS);
         printf("Provisioning started\n");
     } else {
     
@@ -133,81 +152,22 @@ void MainLogicLoop::Run() {
 
         sntp = new SntpManager(_generalSettings->GetNtpServers(), _generalSettings->GetEnableDhcpNtp());
         sntp->Init();
-        wifi.Start();
+        _wifi->Start();
 
         if(_generalSettings->GetEnableMqtt()) {
             printf("Starting Mqtt...\n");
-            mqtt = new MqttManager(*_generalSettings,_sensorManager->GetValues());
+            _mqtt = new MqttManager(*_generalSettings,_sensorManager->GetValues());
         }
     }
 
     
 
     auto wait = _sensorManager->UpdateValues();
-    // while(true) {
-    //     _display->RenderReadings();
-    //     vTaskDelay(2000 / portTICK_RATE_MS);
-    // }
-    
-    bool gotNtp = false;
+   
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)    
     esp_sleep_enable_wifi_wakeup();
 #endif
-    //setCpuFrequencyMhz(80);
-    uint32_t j = 0;
-    
-    while (true) {
-        _display->RenderReadings();
-
-        // if(wifi.IsConnected()) {
-        // //   printf("Slept \n");
-        //    // esp_sleep_enable_timer_wakeup(100000000 );
-        //    // esp_light_sleep_start() ;
-        // //   printf("Woken up\n");
-        //     // print_wakeup_reason();
-        
-        //     // setCpuFrequencyMhz(10);
-        //     for(auto i = 0; i < wait*10; i++) {
-          //       esp_sleep_enable_timer_wakeup(100000);
-        //         esp_sleep_enable_wifi_wakeup();
-        //         esp_light_sleep_start();
-        //         switch(esp_sleep_get_wakeup_cause()) {
-        //             case ESP_SLEEP_WAKEUP_TIMER :
-        //                 break;
-        //             case ESP_SLEEP_WAKEUP_WIFI : 
-        //                 printf("Wifi wakeup");
-        //                 break;
-        //             default: 
-        //                 break;
-        //         }
-        //          vTaskDelay(1 / portTICK_RATE_MS);
-        //     }
-        // } else 
-            vTaskDelay(5000 / portTICK_RATE_MS);
-        if(j%5 == 0) {
-            auto voltage = battery->GetBatteryVoltage();
-            auto major = (int)voltage;
-            auto minor = (int)((voltage - major)*100);
-            snprintf(_voltageStr, sizeof(_voltageStr)-1, "%d.%dV", major, minor);
-        }
-        j++;
-        wait = ProcessEvents();
-
-        if(mqtt!=nullptr) mqtt->Tick();
-
-        if(!gotNtp) {
-            for(auto i = 0; i< 2; i++) {
-                if(sntp_getserver(i)!=0) {
-                    ESP_LOGI(TAG,"NTP %s\n", ipaddr_ntoa(sntp_getserver(i)));
-                    gotNtp = true;
-                }
-            }
-        }
-        
-        
-        
-        
-    }
+   _screenManager->Run(5000 / portTICK_RATE_MS);
 
 }
 
@@ -305,12 +265,6 @@ std::vector<int> MainLogicLoop::ResolveTimeSeries(std::string pName, uint32_t pS
     free(entries);
     delete query;
     return result;
-}
-
-void MainLogicLoop::RunUI() {
-    vTaskDelay(5000 / portTICK_RATE_MS);
-    _screenManager->Run();
-   
 }
 
 
@@ -418,6 +372,5 @@ extern "C" void app_main(void)
     mainLoop = new MainLogicLoop();
    
     xTaskCreate(i2ctask, "i2ctask", 4096, NULL, 10, NULL);
-    xTaskCreate(uiTask, "uiTask", 4096, NULL, 10, NULL);
 }
 

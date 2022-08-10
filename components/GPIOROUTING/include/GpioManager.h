@@ -40,6 +40,8 @@ public:
     bool HasQueued();
     bool GetPullUp() const;
     bool GetPullDown() const;
+    void Disable();
+    void Enable();
     InitialGpioState GetInitialGpioState() const;
     InteruptType GetInteruptType() const;
     GpioEvent GetQueued();

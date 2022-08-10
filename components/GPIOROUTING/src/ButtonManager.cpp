@@ -5,8 +5,9 @@
 
 
 ButtonManager::ButtonManager(std::vector<gpio_num_t>& pGpios) {
-    _gpioGroup = new GpioGroup(pGpios, false, true, AnyEdge, NotSet);
+    _gpioGroup = new GpioGroup(pGpios, false,true, AnyEdge, NotSet);
     GpioManager::RegisterGpioGroup(_gpioGroup);
+    _gpioGroup->Enable();
     _gpioCount = pGpios.size();
     _gpioStates =  (GpioState*)calloc(pGpios.size(), sizeof(GpioState));
 
@@ -42,13 +43,17 @@ void ButtonManager::SetPressedTick(gpio_num_t pGpio, int64_t pPressed) {
         if(_gpioStates[i].Gpio == pGpio)
             _gpioStates[i].PressedTick = pPressed;
 }
-
-
 void ButtonManager::WaitForEvents() {
-    bool hasTriggered = false;
+    WaitForEvents(0);
+}
 
-    while(!hasTriggered) {
-        _gpioGroup->WaitForEvents();
+void ButtonManager::WaitForEvents(TickType_t  pWaitLength) {
+    bool hasTriggered = false;
+    auto started = xTaskGetTickCount();
+    TickType_t curTicks  = 0;
+    while(!hasTriggered && (!pWaitLength || curTicks < pWaitLength )){
+        printf("WaitLength = %d, remaining = %d\n", (int)pWaitLength, (int)(pWaitLength-curTicks));
+        _gpioGroup->WaitForEvents(pWaitLength ? pWaitLength - curTicks : 0);
         while(_gpioGroup->HasQueued()) {
             auto event = _gpioGroup->GetQueued();
             if(event.Gpio == 0)
@@ -64,6 +69,7 @@ void ButtonManager::WaitForEvents() {
             }
             auto duration = event.When - GetPressedTick(event.Gpio);
             auto wasPressed = IsPressed(event.Gpio);
+             printf("Button Level Changed %d, %d ppp\n", (int)event.Gpio,(int)event.Level);
             if( duration > 1000 && (!event.Level)!=wasPressed) {
             
                 ButtonEvent btnEvent = {
@@ -88,7 +94,10 @@ void ButtonManager::WaitForEvents() {
                 hasTriggered = true;           
             } else 
                 printf("Dropped event gpio = %d, duration = %d, level = %d\n", (int)event.Gpio, (int)duration, (int)event.Level);
-        }    
+        
+        }
+        curTicks = xTaskGetTickCount()-started;
+        printf("Curticks %d\n", (int)curTicks);    
     }
 }
 

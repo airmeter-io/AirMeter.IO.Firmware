@@ -340,12 +340,73 @@
                 },
                 {
                     "Type": "QRCode",                   
-                    "X": 0,
-                    "Y": 0,
+                    "X": 126,
+                    "Y": 2,
                     "W": 122,
                     "H": 122,                   
                     "Text": "WIFI:T:WPA;S:{AccessPointSSID};P:{AccessPointPassword};H:;"
-                }                              
+                   
+                },
+                {
+                    "Type": "Text",
+                    "Color": "Black",
+                    "Font": "Small",
+                    "X": 0,
+                    "Y": 0,
+                    "W": 120,
+                    "H": 20,
+                    "Justify": "Left",
+                    "VerticalAlign": "Middle",
+                    "Text": "{CO2Ppm}ppm"
+                },
+                {
+                    "Type": "Text",
+                    "Color": "Black",
+                    "Font": "Small",
+                    "X": 0,
+                    "Y": 20,
+                    "W": 120,
+                    "H": 20,
+                    "Justify": "Left",
+                    "VerticalAlign": "Top",
+                    "Text": "{Temp}C"
+                },
+                {
+                    "Type": "Text",
+                    "Color": "Black",
+                    "Font": "Small",
+                    "X": 0,
+                    "Y": 40,
+                    "W": 120,
+                    "H": 20,
+                    "Justify": "Left",
+                    "VerticalAlign": "Top",
+                    "Text": "{BatVolts}"
+                },
+                {
+                    "Type": "Text",
+                    "Color": "Black",
+                    "Font": "Small",
+                    "X": 0,
+                    "Y": 60,
+                    "W": 120,
+                    "H": 20,
+                    "Justify": "Left",
+                    "VerticalAlign": "Top",
+                    "Text": "{Humidity}%"
+                },
+                {
+                    "Type": "Text",
+                    "Color": "Black",
+                    "Font": "Small",
+                    "X": 0,
+                    "Y": 80,
+                    "W": 126,
+                    "H": 20,
+                    "Justify": "Left",
+                    "VerticalAlign": "Top",
+                    "Text": "{Pressure}hPa"
+                }                            
             ],
             "ButtonReleased": [
                 {

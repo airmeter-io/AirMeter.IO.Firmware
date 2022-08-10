@@ -5,9 +5,9 @@
 GeneralSettings::GeneralSettings() {
     uint8_t macAddress[6];
     esp_efuse_mac_get_default(macAddress);
-    _deviceName = "CO2Device";
+    _deviceName = "AIO";
     char hex[14];
-    snprintf(hex, sizeof(hex), "%.2X%.4X",(uint32_t)(*(uint16_t*)(macAddress)),*(uint32_t*)(macAddress+2) );
+    snprintf(hex, sizeof(hex), "%.4X",*(uint16_t*)(macAddress+4) );
     _deviceName+=hex;
 
     auto f = fopen("/spiffs/device.json", "rb");

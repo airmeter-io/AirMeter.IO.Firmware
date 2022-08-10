@@ -5,7 +5,8 @@
 #include "DEPG0213BN.h"
 
 
-ScreenManager::ScreenManager(StringValueSource& pValueSource, SensorManager& pSensorManager) : 
+ScreenManager::ScreenManager(StringValueSource& pValueSource, SensorManager& pSensorManager, ScreenManagerNotifier& pNotifier) : 
+    _notifier(pNotifier),
     _valueSource(pValueSource), 
     _sensorManager(pSensorManager) {
     auto f = fopen("/dev/ui.json", "rb");
@@ -23,8 +24,7 @@ ScreenManager::ScreenManager(StringValueSource& pValueSource, SensorManager& pSe
         _current = _default;
         free(rawJson);
     }
-     std::vector<gpio_num_t> items = {(gpio_num_t)GPIO_NUM_39};
-    _buttons = new ButtonManager(items);
+
 }
 
 
@@ -101,18 +101,19 @@ void ScreenManager::LoadScreens(Json& pJson) {
 }
 
 
-void ScreenManager::Run() {
+void ScreenManager::Run(TickType_t pNotifyPeriod) {
     
- 
+    
     EpdSpi io;
     SSD1680 *ssd1680;
     DEPG0213BN *display;
     
     io.init(4,false);
-   
+
     ssd1680 = new SSD1680(io);
     _display = new DEPG0213BN(*ssd1680);
-    
+    std::vector<gpio_num_t> items = {(gpio_num_t)GPIO_NUM_39};
+    _buttons = new ButtonManager(items);
     auto backBuffer = _display->GetBackBuffer();
     auto gfx = new EPDDrawTarget(backBuffer);
     
@@ -131,50 +132,42 @@ void ScreenManager::Run() {
         printf("Executing first update");
         _display->UpdateFull();
 
-        printf("Done first update");
-        if(_needScreenChange) {
-            printf("Changing screen");
-            _needScreenChange = false;
-            ChangeScreen(ctx, _nextScreen);
-            _display->UpdatePartial();
-        }
+       
 
         while(true) {
-            screen = GetCurrent();
+           
             
         // vTaskDelay(5000 / portTICK_RATE_MS);
             printf("Waiting for events\n");
-            _buttons->WaitForEvents();
+            _buttons->WaitForEvents(pNotifyPeriod);
             printf("Got events\n");
+            bool requiresRedraw = _notifier.ProcessOnUIThread();
+            screen = GetCurrent();
             while(_buttons->HasQueued()) {
                 auto event = _buttons->GetQueued();
                 if(event.Gpio==0) {
                     printf("Got Refresh request");
-                    if(_needScreenChange) {
-                        printf("Changing screen");
-                        _needScreenChange = false;
-                        ChangeScreen(ctx, _nextScreen);
-                    } else
-                        screen->ExecuteDraw(ctx);
+                    screen->ExecuteDraw(ctx);
                     _display->UpdatePartial();
+                    requiresRedraw = false;
                 } else {
                     screen->ExecuteButton(ctx, event.Code);
                     _display->UpdatePartial();
+                    requiresRedraw = false;
                 }
             }
+
+            if(requiresRedraw) {
+                screen->ExecuteDraw(ctx);
+                _display->UpdatePartial();
+            }
+            
             
             printf("looped\n");
         }
     }
 }
 
-
-void ScreenManager::TriggerUpdate() {
-    
-    auto now = esp_timer_get_time();  
-    GpioEvent event = { .Gpio = (gpio_num_t)0, .Level = 1, .When = now };
-    xQueueSend(_buttons->GetGpioGroup()->GetQueueHandle(), &event, NULL);
-}
 
 
 void ScreenManager::ChangeScreen(DrawContext& pContext, std::string pScreen) {
@@ -192,11 +185,14 @@ void ScreenManager::ChangeScreen(DrawContext& pContext, std::string pScreen) {
 
 void ScreenManager::ChangeScreen(std::string pScreen) {
     printf("changing screen\n");
-    _needScreenChange = true;
-    _nextScreen = pScreen;
-    printf("Triggering update\n");
-    TriggerUpdate();
-    printf("Update triggered\n");
+    for(auto screen : _screens) {
+        if(screen->GetName() == pScreen) {
+            _current = screen;
+           
+            printf("Switched to %s screen \n", pScreen.c_str());
+            return;
+        }
+    }
 }
 
 void ScreenManager::TriggerUpdate(DrawContext& pContext) {

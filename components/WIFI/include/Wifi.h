@@ -6,24 +6,24 @@
 #include "WifiManager.h"
 
 
-class WifiUIImplementation {
+class WifiPrivate {
 public:
-   virtual time_t ProcessEvents() = 0;
-   virtual void DisplayAPAuthInfo(const std::string& pSSID, const std::string& pPassword);
+   virtual void RunCaptiveDNS() = 0;
+  
 
 };
 
-class Wifi {
+class Wifi : private WifiPrivate {
   std::string _softApName;
   std::string _apPassword;
 
   bool _isProvisioning = false;
 
   WifiManager _wifiManager;
-  WifiUIImplementation& _wifiUI;
 
+  void RunCaptiveDNS() override;
 public:
-    Wifi(const std::string pSoftApName, const std::string pApPassword, WifiUIImplementation& pWifiUI);
+    Wifi(const std::string pSoftApName, const std::string pApPassword);
     ~Wifi();
     
     bool IsProvisioned();

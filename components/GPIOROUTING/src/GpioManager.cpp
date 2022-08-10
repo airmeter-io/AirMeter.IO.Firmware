@@ -9,7 +9,9 @@ void GpioManager::gpio_isr_handler(gpio_num_t pGpio) {
     auto group = _gpioMap[pGpio];
     auto now = esp_timer_get_time();  
     auto level = gpio_get_level(pGpio);
+    
     if(level != group.Level) {
+        ets_printf("GPIO fired %d, level %d\n",(int)pGpio, (int)level);
         GpioEvent event = { .Gpio = pGpio, .Level = level, .When = now };
         xQueueSendFromISR(group.Group->GetQueueHandle(), &event, NULL);
         _gpioMap[pGpio].Level = level;
@@ -29,6 +31,7 @@ void GpioManager::RegisterGpioGroup(GpioGroup* pGroup) {
     for(auto gpio : gpios ) {
         GpioInternalState state = {.Gpio = gpio, .Group  = pGroup, .Level = 0 };
         _gpioMap[gpio] = state;
+        printf("Mapping GPIO %d\n", (int)gpio);
         io_conf.pin_bit_mask =((1ULL<<gpio));
     }
 
@@ -67,6 +70,12 @@ void GpioManager::RegisterGpioGroup(GpioGroup* pGroup) {
             default:
                 break;   
         }
+        gpio_set_direction(gpio, GPIO_MODE_INPUT);
+        gpio_set_pull_mode(gpio, pGroup->GetPullUp() &&  pGroup->GetPullDown() ? GPIO_PULLUP_PULLDOWN :
+                                 pGroup->GetPullUp() ? GPIO_PULLUP_ONLY :
+                                 pGroup->GetPullDown() ?GPIO_PULLDOWN_ONLY : 
+                                 GPIO_FLOATING   );
+        gpio_intr_enable(gpio);
         
     }
      
@@ -89,7 +98,7 @@ GpioGroup::~GpioGroup() {
 
 void GpioGroup::WaitForEvents(TickType_t pTimeout) {
     GpioEvent event;
-
+    printf("Waiting with %d timeout\n", (int)pTimeout);
     xQueueReceive(_queue, &event,pTimeout); 
 
     _queuedEvents.push(event);
@@ -148,6 +157,16 @@ InteruptType GpioGroup::GetInteruptType() const {
 
 InitialGpioState GpioGroup::GetInitialGpioState() const {
     return _initialGpioState;
+}
+
+void GpioGroup::Disable() {
+    for(auto gpio : _gpios)
+        gpio_intr_disable(gpio);
+}
+
+void GpioGroup::Enable() {
+    for(auto gpio : _gpios)
+        gpio_intr_enable(gpio);
 }
 
 

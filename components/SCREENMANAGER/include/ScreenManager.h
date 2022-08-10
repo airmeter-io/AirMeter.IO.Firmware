@@ -8,8 +8,16 @@
 #include "DEPG0213BN.h"
 #include<vector>
 #include<string>
+
+class ScreenManagerNotifier {
+    public:
+        virtual bool ProcessOnUIThread() = 0;
+        
+};
+
 class ScreenManager {
     FontManager _fontManager;
+    ScreenManagerNotifier& _notifier;
     std::vector<ScreenDefinition*> _screens;
     ScreenDefinition* _default = nullptr;
     ButtonManager* _buttons;
@@ -21,8 +29,9 @@ class ScreenManager {
     DEPG0213BN* _display = nullptr;
     std::string _nextScreen = "";
     bool _needScreenChange = false;
+    bool _running = false;
 public:
-    ScreenManager(StringValueSource& pValueSource, SensorManager& pSensorManager);
+    ScreenManager(StringValueSource& pValueSource, SensorManager& pSensorManager, ScreenManagerNotifier& pNotifier);
 
     inline ScreenDefinition* GetDefault() {
         return _default;
@@ -30,8 +39,7 @@ public:
     inline ScreenDefinition* GetCurrent() {
         return _current;
     }
-    void Run();
-    void TriggerUpdate();
+    void Run(TickType_t pNotifyPeriod);
     void ChangeScreen(std::string pScreen);
     void ChangeScreen(DrawContext& pContext, std::string pScreen);
     void TriggerUpdate(DrawContext& pContext);

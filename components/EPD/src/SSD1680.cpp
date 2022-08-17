@@ -13,11 +13,11 @@ SSD1680::~SSD1680() {
 }
 
 void SSD1680::ResetAll() {
-    _group.Enable();
-    _spi.reset(50);
-    _spi.cmd(ResetAllCommandsAndParameter);
+   _group.Enable();
+   _spi.reset(50);
+   _spi.cmd(ResetAllCommandsAndParameter);
    WaitBusy("epd_wakeup_power:ON"); 
-   _group.Disable();
+    _group.Disable();
 }
 
 void SSD1680::SetRamDataEntryMode(SSD1680RamDataEntryMode pMode, uint16_t pWidth, uint16_t pHeight) {
@@ -331,7 +331,8 @@ void SSD1680::WaitBusy2(const char* message, uint16_t busy_time){
 void SSD1680::WaitBusy(const char* message){
   int64_t time_since_boot = esp_timer_get_time();
   while(true) {
-      _group.WaitForEvents();
+      _group.WaitForEvents(250/portTICK_RATE_MS);
+      if (gpio_get_level((gpio_num_t)CONFIG_EINK_BUSY) == 0) break;
       while(_group.HasQueued()) {
          auto event = _group.GetQueued();
   //        printf("Wait BusyM: %d - %d\n", (int)(event.When-time_since_boot), event.Level );

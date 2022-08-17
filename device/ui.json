@@ -364,7 +364,7 @@
                     "Color": "Black",
                     "Font": "Small",
                     "X": 0,
-                    "Y": 20,
+                    "Y": 22,
                     "W": 120,
                     "H": 20,
                     "Justify": "Left",
@@ -376,19 +376,7 @@
                     "Color": "Black",
                     "Font": "Small",
                     "X": 0,
-                    "Y": 40,
-                    "W": 120,
-                    "H": 20,
-                    "Justify": "Left",
-                    "VerticalAlign": "Top",
-                    "Text": "{BatVolts}"
-                },
-                {
-                    "Type": "Text",
-                    "Color": "Black",
-                    "Font": "Small",
-                    "X": 0,
-                    "Y": 60,
+                    "Y": 44,
                     "W": 120,
                     "H": 20,
                     "Justify": "Left",
@@ -400,13 +388,25 @@
                     "Color": "Black",
                     "Font": "Small",
                     "X": 0,
-                    "Y": 80,
+                    "Y": 66,
                     "W": 126,
                     "H": 20,
                     "Justify": "Left",
                     "VerticalAlign": "Top",
                     "Text": "{Pressure}hPa"
-                }                            
+                },
+                {
+                    "Type": "Text",
+                    "Color": "Black",
+                    "Font": "Small",
+                    "X": 0,
+                    "Y": 0,
+                    "W": 120,
+                    "H": 122,
+                    "Justify": "Left",
+                    "VerticalAlign": "Bottom",
+                    "Text": "{BatVolts}"
+                }                          
             ],
             "ButtonReleased": [
                 {

@@ -1,6 +1,6 @@
 import React from 'react';
 
-class FormTextField extends React.Component {
+class FormPasswordField extends React.Component {
     constructor(props) {
       super(props);
       this.state = { enabled: true};
@@ -53,7 +53,7 @@ class FormTextField extends React.Component {
       
       return [
         <label><strong>{this.props.Label}</strong></label>,
-        <input ref={this.textRef} class="w3-input" type="text" required={this.props.Mandatory} disabled={!this.props.Enabled} value={this.props.Value} placeholder={this.props.PlaceHolder} pattern={this.props.Pattern} />         
+        <input ref={this.textRef} class="w3-input" type="password" required={this.props.Mandatory} disabled={!this.props.Enabled} value={this.props.Value} placeholder={this.props.PlaceHolder} pattern={this.props.Pattern} />         
       ];
     }
 
@@ -64,4 +64,4 @@ class FormTextField extends React.Component {
 
 
 
-export default FormTextField;
+export default FormPasswordField;

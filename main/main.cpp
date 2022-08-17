@@ -141,9 +141,11 @@ void MainLogicLoop::Run() {
         vTaskDelay(200 / portTICK_RATE_MS);
         captiveRedirect = new CaptiveRedirectHandler ();
         httpServer->AddUrlHandler(captiveRedirect);
-   
+        printf("Started provisioning-1\n");
         _wifi->StartProvisioning();
+        
         _waitingForProvisioning = true;
+        printf("Started provisioning-2 (delay)\n");
         vTaskDelay(5000 / portTICK_RATE_MS);
         printf("Provisioning started\n");
     } else {

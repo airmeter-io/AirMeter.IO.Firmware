@@ -37,7 +37,7 @@ void HttpUrlHandler::ProcessAsJsonRequest(HttpRequest* pReq) {
     
 
     auto commandName = json.GetStringProperty("COMMAND");
-    
+    printf("Processing Command %s\n", commandName.c_str());
     for(auto command : _commands)
         if(commandName == command->GetName()) {
             command->ProcessFullResponse(json, *pReq);

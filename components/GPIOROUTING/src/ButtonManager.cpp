@@ -2,10 +2,23 @@
 
 #define TAG "BUTTONS"
 
+// void ButtonManager::button_isr_handler(gpio_num_t pGpio) {
+//     auto group = _gpioMap[pGpio];
+//     auto now = esp_timer_get_time();  
+//     auto level = gpio_get_level(pGpio);
+    
+//     if(level != group.Level) {
+//         ets_printf("GPIO fired %d, level %d\n",(int)pGpio, (int)level);
+//         GpioEvent event = { .Gpio = pGpio, .Level = level, .When = now };
+//         xQueueSendFromISR(group.Group->GetQueueHandle(), &event, NULL);
+//         _gpioMap[pGpio].Level = level;
+//     }
+
+// }
 
 
 ButtonManager::ButtonManager(std::vector<gpio_num_t>& pGpios) {
-    _gpioGroup = new GpioGroup(pGpios, false,true, AnyEdge, NotSet);
+    _gpioGroup = new GpioGroup(pGpios, false,true, FallingEdge, NotSet);
     GpioManager::RegisterGpioGroup(_gpioGroup);
     _gpioGroup->Enable();
     _gpioCount = pGpios.size();
@@ -52,7 +65,7 @@ void ButtonManager::WaitForEvents(TickType_t  pWaitLength) {
     auto started = xTaskGetTickCount();
     TickType_t curTicks  = 0;
     while(!hasTriggered && (!pWaitLength || curTicks < pWaitLength )){
-        printf("WaitLength = %d, remaining = %d\n", (int)pWaitLength, (int)(pWaitLength-curTicks));
+      
         _gpioGroup->WaitForEvents(pWaitLength ? pWaitLength - curTicks : 0);
         while(_gpioGroup->HasQueued()) {
             auto event = _gpioGroup->GetQueued();
@@ -96,8 +109,7 @@ void ButtonManager::WaitForEvents(TickType_t  pWaitLength) {
                 printf("Dropped event gpio = %d, duration = %d, level = %d\n", (int)event.Gpio, (int)duration, (int)event.Level);
         
         }
-        curTicks = xTaskGetTickCount()-started;
-        printf("Curticks %d\n", (int)curTicks);    
+        curTicks = xTaskGetTickCount()-started;  
     }
 }
 

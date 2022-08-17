@@ -187,12 +187,11 @@ SSD1680Lut DEPG0213BN::LUTPartialUpdate = {
     
 
 void DEPG0213BN::UpdateFull() {
-  printf("190\n");_ssd1680.ResetAll();
-  printf("191\n");_ssd1680.SetRamDataEntryMode(XIncreaseYIncrease, WIDTH-1, HEIGHT);
-  printf("192\n");_ssd1680.WriteToBWRam(*_backBuffer);
-  printf("193\n");_ssd1680.ActivateDisplayUpdateSequence(1200);
-  printf("194\n");_ssd1680.SetSleepMode(SSD1306SleepMode::DeepSleepMode1);
-  printf("195\n");
+  _ssd1680.ResetAll();
+  _ssd1680.SetRamDataEntryMode(XIncreaseYIncrease, WIDTH-1, HEIGHT);
+  _ssd1680.WriteToBWRam(*_backBuffer);
+  _ssd1680.ActivateDisplayUpdateSequence(1200);
+  _ssd1680.SetSleepMode(SSD1306SleepMode::DeepSleepMode1);
 }
 
 void DEPG0213BN::UpdatePartial() {

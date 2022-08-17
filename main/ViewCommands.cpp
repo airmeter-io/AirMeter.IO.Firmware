@@ -81,7 +81,7 @@ void GetHistoricalDataCommand::ProcessFullResponse(Json& pJson, HttpRequest& pRe
             auto to = pJson.GetUIntProperty("To");
             auto query = _manager.StartQuery(from,to);
             const uint NumRows = 128;
-            DataEntry rows[NumRows];
+            auto rows = (DataEntry*) calloc(NumRows, sizeof(DataEntry));
             auto read = query->ReadEntries(rows, NumRows);
 
             pReq.SetType("application/json;charset=UTF-8");
@@ -127,7 +127,9 @@ void GetHistoricalDataCommand::ProcessFullResponse(Json& pJson, HttpRequest& pRe
                     } 
                    
                 }
+              
                 read = query->ReadEntries(rows, NumRows);
+  
 
             }
 
@@ -144,7 +146,7 @@ void GetHistoricalDataCommand::ProcessFullResponse(Json& pJson, HttpRequest& pRe
             free(buf);
             pReq.FinishedChunks();
             delete query;
-           
+            free(rows);
             return;
         } 
     } 

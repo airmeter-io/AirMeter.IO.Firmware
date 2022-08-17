@@ -84,6 +84,7 @@ BME280::BME280(I2C& pI2C) : _i2c(pI2C) {
 	settings_sel |= BME280_FILTER_SEL;
 	result = bme280_set_sensor_settings(settings_sel, &_bme);
 	result = bme280_set_sensor_mode(BME280_NORMAL_MODE, &_bme);
+
 }
 
 

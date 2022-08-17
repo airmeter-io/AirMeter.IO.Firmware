@@ -3,6 +3,7 @@ import Wizard from '../popups/wizard';
 import {WizardStep} from '../popups/wizard';
 import Form from '../form/form';
 import FormTextField from '../form/textField';
+import FormPasswordField from '../form/passwordField';
 import CommandManager from '../commandManager';
 import { PopupAction } from '../popups/popup';
 import './changeNetworkWizard.css';
@@ -112,11 +113,12 @@ class ChangeNetworkWizard extends React.Component {
                     ()=>
                         <div>
                             <Form ref={this.form}>                                                            
-                                <FormTextField 
+                                <FormPasswordField 
                                     PlaceHolder="Password" 
                                     Label={"Wifi Network Password For: "+this.state.selected.WifiSSID} 
                                     Value={this.state.password}  
                                     OnSave={pValue=>this.state.password=pValue} 
+                                    type="password"
                                     Mandatory={true}
                                     Enabled={true}
                                     MandatoryMessage={"Please provide the password for "+this.state.selected.WifiSSID+" to which you are connecting."}  />                                                                

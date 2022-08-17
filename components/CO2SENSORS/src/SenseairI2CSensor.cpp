@@ -203,8 +203,6 @@ void SenseairI2CSensor::ReadMeasurementModeInfo() {
 
 bool SenseairI2CSensor::ReadRegister(uint8_t pRegAddr, uint8_t *pRegData, uint32_t pLen)
 {
- printf("Read(len=%d, %d)\n", pLen, (int)pRegAddr);
-
     esp_err_t ret = ESP_OK;
     
     

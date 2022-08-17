@@ -138,12 +138,14 @@ void ScreenManager::Run(TickType_t pNotifyPeriod) {
            
             
         // vTaskDelay(5000 / portTICK_RATE_MS);
-            printf("Waiting for events\n");
+    
             _buttons->WaitForEvents(pNotifyPeriod);
-            printf("Got events\n");
+
             bool requiresRedraw = _notifier.ProcessOnUIThread();
             screen = GetCurrent();
+            bool hadButtons = false;
             while(_buttons->HasQueued()) {
+                
                 auto event = _buttons->GetQueued();
                 if(event.Gpio==0) {
                     printf("Got Refresh request");
@@ -151,6 +153,8 @@ void ScreenManager::Run(TickType_t pNotifyPeriod) {
                     _display->UpdatePartial();
                     requiresRedraw = false;
                 } else {
+                    hadButtons = true;
+                     printf("Executing button %d\n", event.Code);
                     screen->ExecuteButton(ctx, event.Code);
                     _display->UpdatePartial();
                     requiresRedraw = false;
@@ -161,9 +165,12 @@ void ScreenManager::Run(TickType_t pNotifyPeriod) {
                 screen->ExecuteDraw(ctx);
                 _display->UpdatePartial();
             }
-            
-            
-            printf("looped\n");
+            // if(hadButtons) {
+            //     _buttons->WaitForEvents(10);
+            //     while(_buttons->HasQueued()) {
+            //         auto event = _buttons->GetQueued();
+            //     }
+            // }
         }
     }
 }

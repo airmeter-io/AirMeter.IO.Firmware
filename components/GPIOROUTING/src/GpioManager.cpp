@@ -6,12 +6,13 @@ std::vector<GpioGroup*> GpioManager::_groups;
 std::map<gpio_num_t,GpioInternalState>GpioManager::_gpioMap;
 
 void GpioManager::gpio_isr_handler(gpio_num_t pGpio) {
+    auto level = gpio_get_level(pGpio);
     auto group = _gpioMap[pGpio];
     auto now = esp_timer_get_time();  
-    auto level = gpio_get_level(pGpio);
+
     
     if(level != group.Level) {
-        ets_printf("GPIO fired %d, level %d\n",(int)pGpio, (int)level);
+      //  ets_printf("GPIO fired %d, level %d\n",(int)pGpio, (int)level);
         GpioEvent event = { .Gpio = pGpio, .Level = level, .When = now };
         xQueueSendFromISR(group.Group->GetQueueHandle(), &event, NULL);
         _gpioMap[pGpio].Level = level;
@@ -98,7 +99,7 @@ GpioGroup::~GpioGroup() {
 
 void GpioGroup::WaitForEvents(TickType_t pTimeout) {
     GpioEvent event;
-    printf("Waiting with %d timeout\n", (int)pTimeout);
+  
     xQueueReceive(_queue, &event,pTimeout); 
 
     _queuedEvents.push(event);

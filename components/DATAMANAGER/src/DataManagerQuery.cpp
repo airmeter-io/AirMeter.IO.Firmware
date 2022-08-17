@@ -18,7 +18,8 @@ uint DataManagerQuery::ProcessBuffer(DataEntry *pEntries, uint pMaxEntries) {
     auto buffer = _bucket.GetPayload();
    // auto bufferStart = buffer;
     while(_bufferIndex < _bucket.GetHeader()->DataLength && count<pMaxEntries) {
-        printf("Bufindex %u\n", _bufferIndex);
+   
+       // vTaskDelay(100/portTICK_RATE_MS); 
         auto* full = (DataPointFull *)(buffer+_bufferIndex);
         auto* compact = (DataPointCompact *)(buffer+_bufferIndex);
         auto* veryCompact = (DataPointVeryCompact *)(buffer+_bufferIndex);

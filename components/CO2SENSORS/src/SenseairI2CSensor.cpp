@@ -1,6 +1,6 @@
 #include "SenseairI2CSensor.h"
 #include "I2CDeviceSessionCommand.h"
-
+#include "I2CCompat.h"
 //
 // Borrowed from https://github.com/Niclas73/Sunrise-master/blob/master/src/sunrise_i2c.h 
 //

@@ -1,6 +1,7 @@
 #include "SCD30Sensor.h"
 #define TAG "SCD30"
 #include<string>
+#include "I2CCompat.h"
 
 Scd30Sensor::Scd30Sensor(I2CDeviceSession* pSession) : _session(pSession) {    
     RegisterValue(&_valTemperature);

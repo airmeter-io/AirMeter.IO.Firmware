@@ -209,28 +209,43 @@ bool SenseairI2CSensor::ReadRegister(uint8_t pRegAddr, uint8_t *pRegData, uint32
     for(auto attempts = 0; attempts < 5; attempts++) {
         if(attempts>0)
             vTaskDelay(500 / portTICK_RATE_MS);
-        i2c_cmd_handle_t cmd = NULL;
+
         
         esp_err_t espRc =1;
+        #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)    
         uint8_t cmdMem[I2C_LINK_RECOMMENDED_SIZE(1)] = { 0 };
-
-        cmd = i2c_cmd_link_create_static(cmdMem, I2C_LINK_RECOMMENDED_SIZE(1));
+        auto cmd = i2c_cmd_link_create_static(cmdMem, I2C_LINK_RECOMMENDED_SIZE(1));
+        #else
+        auto cmd = i2c_cmd_link_create();
+        #endif
         i2c_master_start(cmd);
         i2c_master_write_byte(cmd, 0x68 << 1 | I2C_MASTER_WRITE, 1 /* expect ack */);
         i2c_master_stop(cmd);
         ret = i2c_master_cmd_begin(I2C_NUM_0, cmd, 100/portTICK_PERIOD_MS);
+        #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)    
         i2c_cmd_link_delete_static(cmd);
+        #else
+        i2c_cmd_link_delete(cmd);
+        #endif
            
 
         vTaskDelay(5 / portTICK_RATE_MS);
 
+        #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)    
         cmd = i2c_cmd_link_create_static(cmdMem, I2C_LINK_RECOMMENDED_SIZE(1));
+        #else
+        cmd = i2c_cmd_link_create();
+        #endif
         i2c_master_start(cmd);
         i2c_master_write_byte(cmd, 0x68 << 1 | I2C_MASTER_WRITE, 1 /* expect ack */);
         i2c_master_write(cmd,&pRegAddr,1,true);
         i2c_master_stop(cmd);
         ret = i2c_master_cmd_begin(I2C_NUM_0, cmd, 100/portTICK_PERIOD_MS);
+        #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)    
         i2c_cmd_link_delete_static(cmd);
+        #else
+        i2c_cmd_link_delete(cmd);
+        #endif
 
         ret = i2c_master_read_from_device(I2C_NUM_0, 0x68, pRegData, pLen, 1000 / portTICK_RATE_MS);
 
@@ -255,29 +270,44 @@ bool SenseairI2CSensor::WriteRegister(uint8_t pRegAddr, const uint8_t *pRegData,
     for(auto attempts = 0; attempts < 5; attempts++) {
         if(attempts>0)
             vTaskDelay(500 / portTICK_RATE_MS);
-        i2c_cmd_handle_t cmd = NULL;
+
         
         esp_err_t espRc =1;
+        #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)    
         uint8_t cmdMem[I2C_LINK_RECOMMENDED_SIZE(1)] = { 0 };
-
-        cmd = i2c_cmd_link_create_static(cmdMem, I2C_LINK_RECOMMENDED_SIZE(1));
+        auto cmd = i2c_cmd_link_create_static(cmdMem, I2C_LINK_RECOMMENDED_SIZE(1));
+        #else
+        auto cmd = i2c_cmd_link_create();
+        #endif
         i2c_master_start(cmd);
         i2c_master_write_byte(cmd, 0x68 << 1 | I2C_MASTER_WRITE, 1 /* expect ack */);
         i2c_master_stop(cmd);
         ret = i2c_master_cmd_begin(I2C_NUM_0, cmd, 100/portTICK_PERIOD_MS);
+        #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)    
         i2c_cmd_link_delete_static(cmd);
+        #else
+        i2c_cmd_link_delete(cmd);
+        #endif
            
 
         vTaskDelay(5 / portTICK_RATE_MS);
 
+        #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)    
         cmd = i2c_cmd_link_create_static(cmdMem, I2C_LINK_RECOMMENDED_SIZE(1));
+        #else
+        cmd = i2c_cmd_link_create();
+        #endif
         i2c_master_start(cmd);
         i2c_master_write_byte(cmd, 0x68 << 1 | I2C_MASTER_WRITE, 1 /* expect ack */);
         i2c_master_write(cmd,&pRegAddr,1,true);
         i2c_master_write(cmd,pRegData,pLen,true);
         i2c_master_stop(cmd);
         ret = i2c_master_cmd_begin(I2C_NUM_0, cmd, 100/portTICK_PERIOD_MS);
+        #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)    
         i2c_cmd_link_delete_static(cmd);
+        #else
+        i2c_cmd_link_delete(cmd);
+        #endif
         vTaskDelay(25 / portTICK_RATE_MS);
        
         if ( ret != ESP_OK ) {

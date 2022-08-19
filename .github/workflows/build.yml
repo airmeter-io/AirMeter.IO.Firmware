@@ -19,7 +19,7 @@ jobs:
         pwd
         cp boards/esp32-idf/* .
     - name: esp-idf build
-      uses: espressif/esp-idf-ci-action@release-v4.3
+      uses: espressif/esp-idf-ci-action@release-v4.4
       with:
         path: '.'
 

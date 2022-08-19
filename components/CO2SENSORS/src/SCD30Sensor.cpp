@@ -59,8 +59,13 @@ bool Scd30Sensor::ReadCommand(Scd30I2CCommand pCommand, uint8_t* pParamData, uin
         }
 
     ESP_LOGV(TAG, "Sending buffer:");
+    #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)    
     uint8_t cmdMem[I2C_LINK_RECOMMENDED_SIZE(1)] = { 0 };
     auto cmd = i2c_cmd_link_create_static(cmdMem, I2C_LINK_RECOMMENDED_SIZE(1));
+    #else
+    auto cmd = i2c_cmd_link_create();
+    #endif
+
     printf("Sending %.4x: ", pCommand);
     for(auto i = 0; i <sizeof(buffer) ; i++)
         printf("%.2x ",buffer[i]);            
@@ -70,7 +75,12 @@ bool Scd30Sensor::ReadCommand(Scd30I2CCommand pCommand, uint8_t* pParamData, uin
     i2c_master_write(cmd,buffer,sizeof(buffer),true);
     i2c_master_stop(cmd);
     auto ret = i2c_master_cmd_begin(I2C_NUM_0, cmd, 100/portTICK_PERIOD_MS);
+
+    #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)    
     i2c_cmd_link_delete_static(cmd);
+    #else
+    i2c_cmd_link_delete(cmd);
+    #endif
     ets_delay_us(5500);
     auto numResponseWords = pNumResponseBytes % 2 ? pNumResponseBytes/2 + 1 : pNumResponseBytes/2;
     if(pResponseData && numResponseWords) {

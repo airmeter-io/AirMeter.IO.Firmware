@@ -1,7 +1,11 @@
 #include "GpioManager.h"
 
 #define TAG "GPIO"
-
+#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(4, 0, 0)    
+extern "C" {
+    #include "esp_timer.h"
+}
+#endif
 std::vector<GpioGroup*> GpioManager::_groups;
 std::map<gpio_num_t,GpioInternalState>GpioManager::_gpioMap;
 

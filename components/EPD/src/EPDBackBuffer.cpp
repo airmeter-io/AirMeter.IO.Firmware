@@ -9,12 +9,12 @@ EPDBackBuffer::~EPDBackBuffer() {
     free(_buffer);
 }
 
-void EPDBackBuffer::Fill(EPDColor pColor) {
+void EPDBackBuffer::Fill(DrawColor pColor) {
     switch(pColor) {
-        case EPDColor::Black : 
+        case DrawColor::Black : 
             memset(_buffer, 0xFF, _bufferLength);
             break;
-        case EPDColor::White :
+        case DrawColor::White :
             memset(_buffer, 0x00, _bufferLength);
             break;
     }

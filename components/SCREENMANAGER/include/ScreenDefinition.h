@@ -1,7 +1,7 @@
 #pragma once
 
 
-#include "EPDDrawTarget.h"
+#include "DrawTarget.h"
 #include "Json.h"
 #include "FontManager.h"
 #include "BitmapFont.h"
@@ -15,7 +15,7 @@
 class ScreenManager;
 
 typedef struct {
-    EPDDrawTarget& Target;
+    DrawTarget& Target;
     StringValueSource& ValueSource;
     SensorManager& Sensors;
     ScreenManager& Screens;
@@ -27,14 +27,14 @@ public:
 };
 
 class DrawClearAction : public DrawAction {
-    EPDColor _color;
+    DrawColor _color;
 public:
     DrawClearAction(Json& pJson);
     void Execute(DrawContext& pContext) override;
 };
 
 class DrawTextAction : public DrawAction {
-    EPDColor _color;
+    DrawColor _color;
     BitmapFont* _font;
     int _x;
     int _y;
@@ -51,7 +51,7 @@ public:
 
 class DrawTimeSeriesAction : public DrawAction {
     std::string _valueName;
-    EPDColor _color;
+    DrawColor _color;
     BitmapFont* _font;
     int _x;
     int _y;

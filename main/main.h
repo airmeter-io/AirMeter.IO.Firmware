@@ -38,6 +38,8 @@ class MainLogicLoop : private StringValueSource, private ScreenManagerNotifier {
     uint32_t _uiProcessCount = 0;
     bool _gotNtp = false;
     bool _waitingForProvisioning = false;
+
+    EpdSpi _io;
 public:
     MainLogicLoop();
 

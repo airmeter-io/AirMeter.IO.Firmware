@@ -1,14 +1,13 @@
 #include "ScreenManager.h"
 #include "ScreenDefinition.h"
-#include "EpdSpi.h"
-#include "SSD1680.h"
-#include "DEPG0213BN.h"
 
 
-ScreenManager::ScreenManager(StringValueSource& pValueSource, SensorManager& pSensorManager, ScreenManagerNotifier& pNotifier) : 
+
+ScreenManager::ScreenManager(DrawControl* pDrawControl, StringValueSource& pValueSource, SensorManager& pSensorManager, ScreenManagerNotifier& pNotifier) : 
     _notifier(pNotifier),
     _valueSource(pValueSource), 
-    _sensorManager(pSensorManager) {
+    _sensorManager(pSensorManager),
+    _drawControl(pDrawControl) {
     auto f = fopen("/dev/ui.json", "rb");
     if (f != NULL) {        
         fseek(f, 0, SEEK_END);
@@ -104,22 +103,16 @@ void ScreenManager::LoadScreens(Json& pJson) {
 void ScreenManager::Run(TickType_t pNotifyPeriod) {
     
     
-    EpdSpi io;
-    SSD1680 *ssd1680;
-    DEPG0213BN *display;
-    
-    io.init(4,false);
 
-    ssd1680 = new SSD1680(io);
-    _display = new DEPG0213BN(*ssd1680);
     std::vector<gpio_num_t> items = {(gpio_num_t)GPIO_NUM_39};
     _buttons = new ButtonManager(items);
-    auto backBuffer = _display->GetBackBuffer();
-    auto gfx = new EPDDrawTarget(backBuffer);
+   
     
     auto screen = GetCurrent();
     printf("screen = %x\n", (uint)screen);
-    gfx->setRotation(1);
+
+    auto gfx = _drawControl->GetDrawTarget();
+    gfx->SetRotation(1);
     if(screen) {
         DrawContext ctx = {
             .Target = *gfx,
@@ -130,7 +123,7 @@ void ScreenManager::Run(TickType_t pNotifyPeriod) {
         printf("Executing first draw\n");
         screen->ExecuteDraw(ctx);
         printf("Executing first update");
-        _display->UpdateFull();
+        _drawControl->RenderToDisplay(false);
 
        
 
@@ -150,20 +143,20 @@ void ScreenManager::Run(TickType_t pNotifyPeriod) {
                 if(event.Gpio==0) {
                     printf("Got Refresh request");
                     screen->ExecuteDraw(ctx);
-                    _display->UpdatePartial();
+                    _drawControl->RenderToDisplay(true);
                     requiresRedraw = false;
                 } else {
                     hadButtons = true;
                      printf("Executing button %d\n", event.Code);
                     screen->ExecuteButton(ctx, event.Code);
-                    _display->UpdatePartial();
+                    _drawControl->RenderToDisplay(true);
                     requiresRedraw = false;
                 }
             }
 
             if(requiresRedraw) {
                 screen->ExecuteDraw(ctx);
-                _display->UpdatePartial();
+                _drawControl->RenderToDisplay(true);
             }
             // if(hadButtons) {
             //     _buttons->WaitForEvents(10);
@@ -203,5 +196,5 @@ void ScreenManager::ChangeScreen(std::string pScreen) {
 }
 
 void ScreenManager::TriggerUpdate(DrawContext& pContext) {
-    _display->UpdatePartial();
+   _drawControl->RenderToDisplay(true);
 }

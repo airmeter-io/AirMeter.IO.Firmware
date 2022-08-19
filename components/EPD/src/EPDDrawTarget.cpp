@@ -8,20 +8,20 @@ EPDDrawTarget::~EPDDrawTarget() {
 
 }
 
-void EPDDrawTarget::setRotation(int16_t pRotation) {
+void EPDDrawTarget::SetRotation(int16_t pRotation) {
    _rotation = pRotation;
 }
 
 
 
-void EPDDrawTarget::drawPixel(int16_t x, int16_t y, EPDColor color) {
+void EPDDrawTarget::DrawPixel(int16_t x, int16_t y, DrawColor color) {
   AdjustCoOrdinatesForRotation(x,y);
   if (IsXOutOfRange(x) || IsYOutOfRange(y)) return;
   
   DrawPixelUnchecked(x,y,color);
 }
 
-void EPDDrawTarget::BltMonoBitmap(uint8_t* pData, Dimensions pBitmapSize, Position pDrawAt, Rectangle pClipRectangle, EPDColor pColor){
+void EPDDrawTarget::BltMonoBitmap(uint8_t* pData, Dimensions pBitmapSize, Position pDrawAt, Rectangle pClipRectangle, DrawColor pColor){
   auto dataOFfset = 0;
   uint8_t bits = 0;
   auto bit = 0;
@@ -34,7 +34,7 @@ void EPDDrawTarget::BltMonoBitmap(uint8_t* pData, Dimensions pBitmapSize, Positi
         }
 
         if(pDrawAt.x+xx >=pClipRectangle.pos.x && pDrawAt.x+xx < pClipRectangle.pos.x+pClipRectangle.size.width && yInRange && bits & 0x80) {
-          drawPixel(pDrawAt.x+ xx, pDrawAt.y + yy+6, pColor);    
+          DrawPixel(pDrawAt.x+ xx, pDrawAt.y + yy+6, pColor);    
         } 
         
         bits <<= 1;
@@ -44,7 +44,7 @@ void EPDDrawTarget::BltMonoBitmap(uint8_t* pData, Dimensions pBitmapSize, Positi
 
 // Taken from Adafruit GFX
 void EPDDrawTarget::DrawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
-                             EPDColor color) {
+                             DrawColor color) {
 #if defined(ESP8266)
   yield();
 #endif
@@ -74,9 +74,9 @@ void EPDDrawTarget::DrawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
 
   for (; x0 <= x1; x0++) {
     if (steep) {
-      drawPixel(y0, x0, color);
+      DrawPixel(y0, x0, color);
     } else {
-      drawPixel(x0, y0, color);
+      DrawPixel(x0, y0, color);
     }
     err -= dy;
     if (err < 0) {
@@ -88,7 +88,7 @@ void EPDDrawTarget::DrawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
 
 // Taken/adaptedfrom Adafruit GFX
 void EPDDrawTarget::DrawDottedLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
-                             EPDColor color) {
+                             DrawColor color) {
   int drawThis = 0;                              
 #if defined(ESP8266)
   yield();
@@ -120,11 +120,11 @@ void EPDDrawTarget::DrawDottedLine(int16_t x0, int16_t y0, int16_t x1, int16_t y
   for (; x0 <= x1; x0++) {
     if (steep) {
       if(drawThis%3) 
-        drawPixel(y0, x0, color);
+        DrawPixel(y0, x0, color);
       drawThis++;
     } else {
       if(drawThis%3)
-        drawPixel(x0, y0, color);
+        DrawPixel(x0, y0, color);
       drawThis++;
     }
     err -= dy;
@@ -135,7 +135,7 @@ void EPDDrawTarget::DrawDottedLine(int16_t x0, int16_t y0, int16_t x1, int16_t y
   }
 }
 
-void EPDDrawTarget::DrawFilledRectangle(int16_t pX, int16_t pY, int16_t pW, int16_t pH, EPDColor pColor) {
+void EPDDrawTarget::DrawFilledRectangle(int16_t pX, int16_t pY, int16_t pW, int16_t pH, DrawColor pColor) {
  
   AdjustCoOrdinatesForRotation(pX,pY);
   switch (_rotation)
@@ -169,3 +169,8 @@ void EPDDrawTarget::DrawFilledRectangle(int16_t pX, int16_t pY, int16_t pW, int1
         DrawPixelUnchecked(x,y,pColor);
     }
 }
+
+void EPDDrawTarget::Fill(DrawColor pColor) {
+    GetBackBuffer().Fill(pColor);
+}
+

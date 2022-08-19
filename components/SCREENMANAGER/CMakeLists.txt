@@ -16,10 +16,10 @@ idf_component_register(
           "esp_http_server"
           "ESP8266-RTOS-FONTS"
           "ESP8266-RTOS-SSD1306"
-          "BITMAPFONT"
-          "EPD"
+          "BITMAPFONT"          
           "GPIOROUTING"
           "SENSORMANAGER"
           "QRCODE"
+          "DRAWTARGET"
           
 )

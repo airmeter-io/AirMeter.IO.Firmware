@@ -37,7 +37,8 @@ idf_component_register(
              "SCREENMANAGER"
              "BATTERY"
              "SENSORMANAGER"
-             "DATAMANAGER")
+             "DATAMANAGER"
+             "DRAWTARGET")
              
 spiffs_create_partition_image(web ../webui/distgz FLASH_IN_PROJECT)
 spiffs_create_partition_image(dev ../device FLASH_IN_PROJECT)

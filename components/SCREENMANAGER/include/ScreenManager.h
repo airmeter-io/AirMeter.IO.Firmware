@@ -5,7 +5,12 @@
 #include "ScreenDefinition.h"
 #include "ButtonManager.h"
 #include "SensorManager.h"
+#include "DrawTarget.h"
+
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)    
 #include "DEPG0213BN.h"
+#endif
+
 #include<vector>
 #include<string>
 
@@ -26,12 +31,14 @@ class ScreenManager {
     void LoadScreens(Json& pJson);
     StringValueSource& _valueSource;
     SensorManager& _sensorManager;
-    DEPG0213BN* _display = nullptr;
+    DrawControl* _drawControl;
+    
     std::string _nextScreen = "";
     bool _needScreenChange = false;
     bool _running = false;
+    
 public:
-    ScreenManager(StringValueSource& pValueSource, SensorManager& pSensorManager, ScreenManagerNotifier& pNotifier);
+    ScreenManager(DrawControl* pDrawControl, StringValueSource& pValueSource, SensorManager& pSensorManager, ScreenManagerNotifier& pNotifier);
 
     inline ScreenDefinition* GetDefault() {
         return _default;

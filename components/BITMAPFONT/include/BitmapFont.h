@@ -1,24 +1,8 @@
 #pragma once
 #include "FontFileStructure.h"
 #include <tinyutf8/tinyutf8.h>
-#include "EPDBackBuffer.h"
 #include <string>
-
-
-typedef struct {
-   int32_t width;
-   int32_t height;
-} Dimensions;
-
-typedef struct {
-   int32_t x;
-   int32_t y;
-} Position;
-
-typedef struct {
-   Position pos;
-   Dimensions size;
-} Rectangle;
+#include "DrawTarget.h"
 
 
 enum DrawTextJustify {
@@ -35,11 +19,6 @@ enum DrawTextVerticalAlign {
 };
 
 
-class IFontBltTarget {
-public:
-    virtual ~IFontBltTarget()  {}
-    virtual void BltMonoBitmap(uint8_t* pData, Dimensions pBitmapSize, Position pDrawAt, Rectangle pClipRectangle, EPDColor pColor) = 0;
-};
 
 
 typedef struct {
@@ -65,9 +44,9 @@ public:
     void MeasureUtf8(const tiny_utf8::string& pText, uint32_t pWrapTextAt, Dimensions& pMeasuredSized);
     void DrawUtf8(
         const tiny_utf8::string& pText, 
-        IFontBltTarget& pTarget,
+        DrawTarget& pTarget,
         Rectangle pDrawAt, 
-        EPDColor pColor, 
+        DrawColor pColor, 
         DrawTextJustify pJustify, 
         DrawTextVerticalAlign pVerticalAlign,
         uint pLineSpacing);

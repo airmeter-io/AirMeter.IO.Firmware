@@ -1,10 +1,8 @@
 #pragma once
 
 #include "Common.h"
-enum EPDColor {
-    White,
-    Black
-};
+#include "DrawTarget.h"
+
 
 class EPDBackBuffer {
     uint8_t *_buffer;
@@ -15,7 +13,7 @@ public:
     EPDBackBuffer(uint pWidth, uint pHeight);
     ~EPDBackBuffer();
 
-    void Fill(EPDColor pColor);
+    void Fill(DrawColor pColor);
     uint8_t* GetBuffer() const;
     uint GetBufferLength() const;
     uint GetWidth() const;

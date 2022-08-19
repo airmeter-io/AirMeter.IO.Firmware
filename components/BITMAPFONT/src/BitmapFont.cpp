@@ -141,9 +141,9 @@ typedef struct {
 
 void BitmapFont::DrawUtf8(
     const tiny_utf8::string& pText, 
-    IFontBltTarget& pTarget,
+    DrawTarget& pTarget,
     Rectangle pDrawAt, 
-    EPDColor pColor, 
+    DrawColor pColor, 
     DrawTextJustify pJustify, 
     DrawTextVerticalAlign pVerticalAlign,
     uint pLineSpacing)

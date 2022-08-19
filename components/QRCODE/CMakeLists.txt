@@ -11,4 +11,4 @@ idf_component_register(
            "SSD1306"
            "esp_http_server"
            "BITMAPFONT"
-           "EPD")
+           "DRAWTARGET")

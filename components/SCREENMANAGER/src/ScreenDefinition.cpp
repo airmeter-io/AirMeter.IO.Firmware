@@ -46,29 +46,29 @@ void ScreenDefinition::ExecuteButton(DrawContext& pContext, ButtonEventCode pBut
 
 DrawClearAction::DrawClearAction(Json& pJson) {
     printf("Clear draw item\n");
-    _color = EPDColor::White;
+    _color = DrawColor::White;
     if(pJson.HasProperty("Color")) {
         auto colorProp = pJson.GetStringProperty("Color");
         if(colorProp == "White")
-            _color = EPDColor::White;
+            _color = DrawColor::White;
         if(colorProp == "Black")
-            _color = EPDColor::Black;  
+            _color = DrawColor::Black;  
     } 
         
 }
 
 void DrawClearAction::Execute(DrawContext& pContext) {
-    pContext.Target.GetBackBuffer().Fill(_color);
+    pContext.Target.Fill(_color);
 }
 
 DrawTextAction::DrawTextAction(Json& pJson, FontManager& pFontManager) {
-    _color = EPDColor::White;
+    _color = DrawColor::White;
     if(pJson.HasProperty("Color")) {
         auto colorProp = pJson.GetStringProperty("Color");
         if(colorProp == "White")
-            _color = EPDColor::White;
+            _color = DrawColor::White;
         if(colorProp == "Black")
-            _color = EPDColor::Black;  
+            _color = DrawColor::Black;  
     } 
     _font = nullptr;
 
@@ -172,9 +172,9 @@ DrawTimeSeriesAction::DrawTimeSeriesAction(Json& pJson, FontManager& pFontManage
     if(pJson.HasProperty("Color")) {
         auto colorProp = pJson.GetStringProperty("Color");
         if(colorProp == "White")
-            _color = EPDColor::White;
+            _color = DrawColor::White;
         if(colorProp == "Black")
-            _color = EPDColor::Black;  
+            _color = DrawColor::Black;  
     } 
 
     if(pJson.HasProperty("X") )

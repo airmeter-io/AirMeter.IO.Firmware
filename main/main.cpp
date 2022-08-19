@@ -8,17 +8,20 @@
 #include "WebContentHandler.h"
 #include "CommandHandler.h"
 #include "SntpManager.h"
-
 #include <dirent.h> 
 #include "PasswordGenerator.h"
-
 #include "DataManagerQuery.h"
-//#include <gdepg0213BN.h>
-
 #include "FontManager.h"
-
-
 #include <tinyutf8/tinyutf8.h>
+#include "DrawTarget.h"
+
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)    
+    #include "EpdSpi.h"
+    #include "SSD1680.h"
+    #include "DEPG0213BN.h"
+#endif
+
+
 #define TAG "CO2 Monitor"
 
 extern "C" {
@@ -33,20 +36,7 @@ extern "C" {
 }
 
 
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)    
-void print_wakeup_reason(){
-	auto wakeup_reason = esp_sleep_get_wakeup_cause();
-	switch(wakeup_reason)
-	{
-		case ESP_SLEEP_WAKEUP_EXT0  : printf("Wakeup caused by external signal using RTC_IO\n"); break;
-		case ESP_SLEEP_WAKEUP_EXT1  : printf("Wakeup caused by external signal using RTC_CNTL\n"); break;
-		case ESP_SLEEP_WAKEUP_TIMER  : printf("Wakeup caused by timer\n"); break;
-		case ESP_SLEEP_WAKEUP_TOUCHPAD  : printf("Wakeup caused by touchpad\n"); break;
-		case ESP_SLEEP_WAKEUP_ULP  : printf("Wakeup caused by ULP program\n"); break;
-		default : printf("Wakeup was not caused by deep sleep %d\n",wakeup_reason); break;
-	}
-}
-#endif
+
 
 MainLogicLoop *mainLoop;
 
@@ -68,7 +58,21 @@ MainLogicLoop::MainLogicLoop() {
     _flashStore = new DataManagerFlashDataStore();
     _dataManager = new DataManager(_flashStore,_ramStore);
     _sensorManager = new SensorManager(*_generalSettings, *_i2c, *_dataManager);
-    _screenManager = new ScreenManager(*this, *_sensorManager, *this);
+    
+
+    #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0) 
+    SSD1680 *ssd1680;
+    DEPG0213BN *display;
+    
+    _io.init(4,false);
+
+    ssd1680 = new SSD1680(_io);
+    display = new DEPG0213BN(*ssd1680);
+    _screenManager = new ScreenManager(display, *this, *_sensorManager, *this);   
+    #else
+    _screenManager = new ScreenManager(new NullDrawControl(), *this, *_sensorManager, *this);   
+    #endif
+
     _voltageStr[0] = 0;
 
 }
@@ -169,6 +173,7 @@ void MainLogicLoop::Run() {
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)    
     esp_sleep_enable_wifi_wakeup();
 #endif
+
    _screenManager->Run(5000 / portTICK_RATE_MS);
 
 }
@@ -308,7 +313,6 @@ bool MountSpiffs(esp_vfs_spiffs_conf_t& pConf) {
 
  RTC_NOINIT_ATTR uint test;
 
-//Gdepg0213BN display(io);
 
 extern "C" void app_main(void)
 {
@@ -334,9 +338,7 @@ extern "C" void app_main(void)
    // esp_pm_get_configuration(&pm_config);
     printf("Min = %d, max = %d, light=%s\n",(int)pm_config.min_freq_mhz, (int)pm_config.max_freq_mhz, pm_config.light_sleep_enable ? "yes" : "no");
     ESP_ERROR_CHECK( esp_pm_configure(&pm_config) );
-    #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)    
-    print_wakeup_reason();
-    #endif
+
     ESP_LOGI(TAG, "CO2 Monitor Firmware\n");
     ESP_LOGI(TAG, "ESPIDF Version: %s\n", esp_get_idf_version());
    

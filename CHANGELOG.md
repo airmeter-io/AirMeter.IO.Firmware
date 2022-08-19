@@ -1,6 +1,6 @@
-Beta Release 0.20 of @AirmeterIO brings full support for the Portable 2.13in ePaper device (https://airmeter.io/make/epd213), including on-device UI.
+Beta Release 0.2.0 of @AirmeterIO brings full support for the Portable 2.13in ePaper device (https://airmeter.io/make/epd213), including on-device UI.
 
-# 0.20 - Portable ePaper Device (Beta)
+# 0.2.0 - Portable ePaper Device (Beta)
 - Adds support for EPD displays with general infrastructure in place for SSD168x panels and specific support for DEPG0213BN.
 - Adds advanced power management with less < 5mA idle connected to wifi.
 - Adds support for single measurement mode and power management of Senseair Sunrise
@@ -9,5 +9,5 @@ Beta Release 0.20 of @AirmeterIO brings full support for the Portable 2.13in ePa
 - Adds a QR code initial setup procedure to quickly connect to the captive setup portal.
 
 
-# 0.11 - Early development release (Obsolete)
-# 0.10 - Early development release (Obsolete)
+# 0.1.1 - Early development release (Obsolete)
+# 0.1.0 - Early development release (Obsolete)

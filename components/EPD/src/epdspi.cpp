@@ -1,5 +1,5 @@
 /* SPI Master IO class */
-#include <epdspi.h>
+#include <EpdSpi.h>
 #include <string.h>
 #include "freertos/task.h"
 #include "esp_log.h"

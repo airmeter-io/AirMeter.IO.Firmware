@@ -72,11 +72,19 @@ void GpioManager::RegisterGpioGroup(GpioGroup* pGroup) {
                 break;   
         }
         gpio_set_direction(gpio, GPIO_MODE_INPUT);
-        gpio_set_pull_mode(gpio, pGroup->GetPullUp() &&  pGroup->GetPullDown() ? GPIO_PULLUP_PULLDOWN :
+        gpio_set_pull_mode(gpio, pGroup->GetPullUp() &&  pGroup->GetPullDown() ? 
+                                #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)    
+                                    GPIO_PULLUP_PULLDOWN :
+                                #else
+                                    GPIO_PULLUP_ONLY :
+                                #endif 
                                  pGroup->GetPullUp() ? GPIO_PULLUP_ONLY :
                                  pGroup->GetPullDown() ?GPIO_PULLDOWN_ONLY : 
                                  GPIO_FLOATING   );
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)    
         gpio_intr_enable(gpio);
+#endif 
+
         
     }
      
@@ -161,13 +169,17 @@ InitialGpioState GpioGroup::GetInitialGpioState() const {
 }
 
 void GpioGroup::Disable() {
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)    
     for(auto gpio : _gpios)
         gpio_intr_disable(gpio);
+#endif
 }
 
 void GpioGroup::Enable() {
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)    
     for(auto gpio : _gpios)
         gpio_intr_enable(gpio);
+#endif    
 }
 
 

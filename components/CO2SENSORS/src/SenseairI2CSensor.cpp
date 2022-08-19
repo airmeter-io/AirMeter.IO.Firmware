@@ -300,7 +300,7 @@ bool SenseairI2CSensor::WriteRegister(uint8_t pRegAddr, const uint8_t *pRegData,
         i2c_master_start(cmd);
         i2c_master_write_byte(cmd, 0x68 << 1 | I2C_MASTER_WRITE, 1 /* expect ack */);
         i2c_master_write(cmd,&pRegAddr,1,true);
-        i2c_master_write(cmd,pRegData,pLen,true);
+        i2c_master_write(cmd,(uint8_t *)pRegData,pLen,true);
         i2c_master_stop(cmd);
         ret = i2c_master_cmd_begin(I2C_NUM_0, cmd, 100/portTICK_PERIOD_MS);
         #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)    

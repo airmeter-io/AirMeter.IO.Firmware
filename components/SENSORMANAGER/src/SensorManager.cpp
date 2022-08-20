@@ -6,7 +6,12 @@
 #include "SenseairModBusSensor.h"
 #include "SCD30Sensor.h"
 
-
+// To be abstracted further....
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)  
+    #define SENSOR_ENABLE_GPIO GPIO_NUM_19
+#else
+    #define SENSOR_ENABLE_GPIO 10
+#endif
 
 
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)
@@ -23,7 +28,7 @@ SensorManager::SensorManager(GeneralSettings& pSettings, I2C& pI2C, DataManager&
     _settings(pSettings), 
     _i2c(pI2C), 
     _dataManager(pDataManager) {
-    ESP_ERROR_CHECK(gpio_set_direction(GPIO_NUM_19, (gpio_mode_t)GPIO_MODE_DEF_OUTPUT));
+    ESP_ERROR_CHECK(gpio_set_direction(SENSOR_ENABLE_GPIO, (gpio_mode_t)GPIO_MODE_DEF_OUTPUT));
     EnableSensorReadGPIO();
     vTaskDelay(50 / portTICK_RATE_MS);        
     pI2C.Scan();
@@ -78,11 +83,11 @@ SensorManager::~SensorManager() {
 }
 
 void SensorManager::EnableSensorReadGPIO()  {
-    ESP_ERROR_CHECK(gpio_set_level(GPIO_NUM_19,1));
+    ESP_ERROR_CHECK(gpio_set_level(SENSOR_ENABLE_GPIO,1));
 }
 
 void SensorManager::DisableSensorReadGPIO() {
-    ESP_ERROR_CHECK(gpio_set_level(GPIO_NUM_19,0));
+    ESP_ERROR_CHECK(gpio_set_level(SENSOR_ENABLE_GPIO,0));
 }
 
 

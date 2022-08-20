@@ -100,11 +100,18 @@ void ScreenManager::LoadScreens(Json& pJson) {
 }
 
 
+// To be abstracted further....
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)  
+    #define BUTTON_GPIO GPIO_NUM_39
+#else
+    #define BUTTON_GPIO 5
+#endif
+
 void ScreenManager::Run(TickType_t pNotifyPeriod) {
     
     
 
-    std::vector<gpio_num_t> items = {(gpio_num_t)GPIO_NUM_39};
+    std::vector<gpio_num_t> items = {(gpio_num_t)BUTTON_GPIO};
     _buttons = new ButtonManager(items);
    
     

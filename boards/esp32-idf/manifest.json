@@ -9,7 +9,8 @@
           { "path": "partition-table.bin", "offset": 32768 },
           { "path": "ota_data_initial.bin", "offset": 53248 },
           { "path": "main.bin", "offset": 65536 },
-          { "path": "web.bin", "offset": 2285568 }
+          { "path": "web.bin", "offset": 2285568 },
+          { "path": "dev.bin", "offset": 3104768 }
         ]
       }
     ]

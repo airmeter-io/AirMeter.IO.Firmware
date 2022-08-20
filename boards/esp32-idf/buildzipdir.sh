@@ -7,6 +7,7 @@ cp build/partition_table/partition-table.bin /tmp/build/esp32zip
 cp build/ota_data_initial.bin /tmp/build/esp32zip
 cp build/main.bin /tmp/build/esp32zip
 cp build/web.bin /tmp/build/esp32zip
+cp build/dev.bin /tmp/build/esp32zip
 cp boards/esp32-idf/flash* boards/esp32-idf/readme* /tmp/build/esp32zip
 sed s/RELEASETAG/$GITHUB_REF_NAME/ boards/esp32-idf/manifest.json  > /tmp/build/esp32zip/manifest.json
 cp LICENSE /tmp/build/esp32zip

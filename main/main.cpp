@@ -29,7 +29,6 @@ extern "C" {
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)    
     #include "soc/rtc.h"
 #endif    
-    #include "soc/rtc.h"
     #include "soc/rtc_cntl_reg.h"
     #include "soc/efuse_reg.h"
     #include "freertos/xtensa_timer.h"

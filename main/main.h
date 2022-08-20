@@ -38,8 +38,9 @@ class MainLogicLoop : private StringValueSource, private ScreenManagerNotifier {
     uint32_t _uiProcessCount = 0;
     bool _gotNtp = false;
     bool _waitingForProvisioning = false;
-
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)    
     EpdSpi _io;
+#endif
 public:
     MainLogicLoop();
 

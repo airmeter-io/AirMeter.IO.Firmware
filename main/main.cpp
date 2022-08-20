@@ -320,12 +320,8 @@ bool MountSpiffs(esp_vfs_spiffs_conf_t& pConf) {
 
 extern "C" void app_main(void)
 {
-    if(test == 1234567) {
-        printf("warm boot?\n");
-    } else {
-        test = 1234567;
-        printf("Cold boot?\n");
-    }
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)    
+
 #if CONFIG_IDF_TARGET_ESP32
     esp_pm_config_esp32_t pm_config = {
 #elif CONFIG_IDF_TARGET_ESP32S2
@@ -342,6 +338,8 @@ extern "C" void app_main(void)
    // esp_pm_get_configuration(&pm_config);
     printf("Min = %d, max = %d, light=%s\n",(int)pm_config.min_freq_mhz, (int)pm_config.max_freq_mhz, pm_config.light_sleep_enable ? "yes" : "no");
     ESP_ERROR_CHECK( esp_pm_configure(&pm_config) );
+    
+#endif
 
     ESP_LOGI(TAG, "CO2 Monitor Firmware\n");
     ESP_LOGI(TAG, "ESPIDF Version: %s\n", esp_get_idf_version());

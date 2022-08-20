@@ -8,9 +8,9 @@
 
 // To be abstracted further....
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)  
-    #define SENSOR_ENABLE_GPIO GPIO_NUM_19
+    #define SENSOR_ENABLE_GPIO (gpio_num_t)GPIO_NUM_19
 #else
-    #define SENSOR_ENABLE_GPIO 10
+    #define SENSOR_ENABLE_GPIO (gpio_num_t)10
 #endif
 
 

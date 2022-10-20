@@ -21,7 +21,7 @@ class MainLogicLoop : private StringValueSource, private ScreenManagerNotifier {
     SensorManager* _sensorManager = nullptr;
     GeneralSettings* _generalSettings = nullptr;
     ValueModel _values;
-    CO2MonitorDisplay* _display = nullptr;
+    //CO2MonitorDisplay* _display = nullptr;
     MqttManager* _mqtt = nullptr;
     DataManagerRamTemporaryStore *_ramStore = nullptr;
     DataManagerFlashDataStore *_flashStore;

@@ -1,0 +1,7 @@
+webui/src
+main
+components
+CMakeLists.txt
+Makefile
+partitions.csv
+.github

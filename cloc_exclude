@@ -1,0 +1,13 @@
+webui/src/w3.css
+components/bme280/thirdparty
+components/epd/include/epdspi.h
+components/epd/src/epdspi.cpp
+components/epd_driver
+components/esp8266-rtos-fonts
+components/esp8266-rtos-ssd1306
+components/qrcode/thirdparty
+components/softserial/include/softuart.h
+components/softserial/src/softuart.c
+components/utf8/tiny-utf8
+components/wifi/include/captivedns.h
+components/wifi/src/captivedns.cpp

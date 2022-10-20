@@ -120,6 +120,19 @@ bool MainLogicLoop::ProcessOnUIThread() {
 }
 
 void MainLogicLoop::Run() {
+    uint8_t* p1 = ( uint8_t*)0x50000666;
+    uint8_t* p2 = ( uint8_t*)0x400C0666;
+
+    if(*p1!=0x66) {
+        printf("Cold boot p1\n");
+        *p1 = 0x66;
+
+    }
+    // if(*p2!=0x77) {
+    //     printf("Cold boot p2\n");
+    //     *p2 = 0x77;
+        
+    // }
     _battery = new BatteryManager();
     auto httpServer = new HttpServer();
     
@@ -135,7 +148,7 @@ void MainLogicLoop::Run() {
     WebContentHandler *webContent = nullptr;
     
 
-    _display = new Oledssd1306Display(*_generalSettings, _sensorManager->GetValues(), *_wifi, *_i2c );
+  //  _display = new Oledssd1306Display(*_generalSettings, _sensorManager->GetValues(), *_wifi, *_i2c );
     httpServer->Start();
  
     command = new CommandHandler(*_wifi, *_generalSettings, _sensorManager->GetValues(), *_dataManager);

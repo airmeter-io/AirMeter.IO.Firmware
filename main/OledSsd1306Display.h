@@ -18,7 +18,7 @@ class Oledssd1306Display : public CO2MonitorDisplay {
     Wifi& _wifi;
     I2C& _i2c;
 
-    SsdDisplay *_ssd = nullptr;
+   // SsdDisplay *_ssd = nullptr;
 public:
     Oledssd1306Display(GeneralSettings& pSettings, ValueModel& pValues, Wifi& pWifi, I2C& pI2C);
 

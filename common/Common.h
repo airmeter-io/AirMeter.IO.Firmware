@@ -15,8 +15,6 @@ extern "C" {
     #include "freertos/task.h"
     #include <driver/gpio.h>
     #include "cJSON.h"
-    #include <fonts/fonts.h>
-    #include <ssd1306/ssd1306.h>
     #include <driver/i2c.h>
     #include <esp_err.h>
     #include <freertos/event_groups.h>

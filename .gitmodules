@@ -1,25 +1,9 @@
 [submodule "components/BME280/thirdparty/BME280_driver"]
 	path = components/BME280/thirdparty/BME280_driver
 	url = https://github.com/BoschSensortec/BME280_driver.git
-[submodule "components/ESP8266-RTOS-FONTS"]
-	path = components/ESP8266-RTOS-FONTS
-	url = https://github.com/airmeter-io/ESP8266-RTOS-FONTS.git
-[submodule "components/ESP8266-RTOS-SSD1306"]
-	path = components/ESP8266-RTOS-SSD1306
-	url = https://github.com/airmeter-io/ESP8266-RTOS-SSD1306.git
 [submodule "components/QRCODE/Thirdparty/QRCode"]
 	path = components/QRCODE/Thirdparty/QRCode
 	url = https://github.com/airmeter-io/QRCode.git
-[submodule "components/CalEPD"]
-	path = components/CalEPD
-	url = https://github.com/airmeter-io/CalEPD.git
-
-[submodule "components/Adafruit-GFX"]
-	path = components/Adafruit-GFX
-	url = https://github.com/martinberlin/Adafruit-GFX-Library-ESP-IDF.git
-[submodule "components/epd_driver"]
-	path = components/epd_driver
-	url = https://github.com/martinberlin/epdiy-rotation.git
 [submodule "components/UTF8/tiny-utf8"]
 	path = components/UTF8/tiny-utf8
 	url = https://github.com/DuffsDevice/tiny-utf8.git

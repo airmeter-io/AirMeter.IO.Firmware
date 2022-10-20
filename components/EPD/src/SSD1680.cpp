@@ -6,6 +6,8 @@ SSD1680::SSD1680(EpdSpi& pSpi) : _spi(pSpi), _gpios({(gpio_num_t)CONFIG_EINK_BUS
     GpioManager::RegisterGpioGroup(&_group);
     _group.Disable();
     gpio_set_pull_mode((gpio_num_t)CONFIG_EINK_BUSY, GPIO_PULLUP_ONLY);
+    ResetAll();
+
 }
 
 SSD1680::~SSD1680() {
@@ -91,6 +93,25 @@ void SSD1680::WriteToBWRam(EPDBackBuffer& pBuffer) {
     _spi.data(sendBuffer,dataLen);  
     free(sendBuffer);
 }
+
+void SSD1680::WriteToRedRam(EPDBackBuffer& pBuffer) {
+    _spi.cmd(SSD1680Cmd::WriteToRedRam);        // update current data
+    auto dataLen = (pBuffer.GetWidth() / 8)*pBuffer.GetHeight();
+    uint8_t *sendBuffer = (uint8_t *)malloc(dataLen);
+    for (uint16_t y = 0; y < pBuffer.GetHeight(); y++)
+    {
+        for (uint16_t x = 0; x < pBuffer.GetWidth() / 8; x++)
+        {
+            uint16_t idx = y * (pBuffer.GetWidth() / 8) + x;
+            uint8_t data = (idx < pBuffer.GetBufferLength()) ? pBuffer.GetBuffer()[idx] : 0x00;
+           // _spi.data(~data);
+            sendBuffer[idx] = ~data;
+        }
+    }
+    _spi.data(sendBuffer,dataLen);  
+    free(sendBuffer);
+}
+
 
 void SSD1680::ActivateDisplayUpdateSequence(int pWaitMs) {
     _group.Enable();

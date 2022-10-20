@@ -25,7 +25,6 @@ class BME280 {
     int _width;
     int _height;
     int _frameBufferSize;
-    ssd1306_t _dev;
     uint8_t* _frameBuffer;
 public:
     BME280(I2C& pI2C);

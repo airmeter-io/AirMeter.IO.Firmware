@@ -13,6 +13,4 @@ idf_component_register(
           "mqtt"
           "spiffs"
           "esp_http_server"
-          "ESP8266-RTOS-FONTS"
-          "ESP8266-RTOS-SSD1306"
 )

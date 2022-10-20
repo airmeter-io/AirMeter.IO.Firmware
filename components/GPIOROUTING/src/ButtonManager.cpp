@@ -2,19 +2,6 @@
 
 #define TAG "BUTTONS"
 
-// void ButtonManager::button_isr_handler(gpio_num_t pGpio) {
-//     auto group = _gpioMap[pGpio];
-//     auto now = esp_timer_get_time();  
-//     auto level = gpio_get_level(pGpio);
-    
-//     if(level != group.Level) {
-//         ets_printf("GPIO fired %d, level %d\n",(int)pGpio, (int)level);
-//         GpioEvent event = { .Gpio = pGpio, .Level = level, .When = now };
-//         xQueueSendFromISR(group.Group->GetQueueHandle(), &event, NULL);
-//         _gpioMap[pGpio].Level = level;
-//     }
-
-// }
 
 
 ButtonManager::ButtonManager(std::vector<gpio_num_t>& pGpios) {
@@ -71,6 +58,7 @@ void ButtonManager::WaitForEvents(TickType_t  pWaitLength) {
             auto event = _gpioGroup->GetQueued();
             if(event.Gpio == 0)
             {
+                printf("Got a zero gpio\n");
                 ButtonEvent btnEvent = {
                     .Gpio = event.Gpio,
                     .When = event.When,
@@ -82,7 +70,7 @@ void ButtonManager::WaitForEvents(TickType_t  pWaitLength) {
             }
             auto duration = event.When - GetPressedTick(event.Gpio);
             auto wasPressed = IsPressed(event.Gpio);
-             printf("Button Level Changed %d, %d ppp\n", (int)event.Gpio,(int)event.Level);
+           
             if( duration > 1000 && (!event.Level)!=wasPressed) {
             
                 ButtonEvent btnEvent = {
@@ -90,7 +78,7 @@ void ButtonManager::WaitForEvents(TickType_t  pWaitLength) {
                     .When = event.When,
                     .Code = ButtonEventCode::Pressed
                 };
-                printf("Button Level Changed %d, %d\n", (int)event.Gpio,(int)event.Level);
+                
                 if(!event.Level) 
                     SetPressed(event.Gpio, true);
                 else {

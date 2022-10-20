@@ -144,24 +144,15 @@ void ScreenManager::Run(TickType_t pNotifyPeriod) {
             bool requiresRedraw = _notifier.ProcessOnUIThread();
             screen = GetCurrent();
             bool hadButtons = false;
-            while(_buttons->HasQueued()) {
-                
+            while(_buttons->HasQueued()) {                
                 auto event = _buttons->GetQueued();
-                if(event.Gpio==0) {
-                    printf("Got Refresh request");
-                    screen->ExecuteDraw(ctx);
-                    _drawControl->RenderToDisplay(true);
-                    requiresRedraw = false;
-                } else {
-                    hadButtons = true;
-                     printf("Executing button %d\n", event.Code);
-                    screen->ExecuteButton(ctx, event.Code);
-                    _drawControl->RenderToDisplay(true);
-                    requiresRedraw = false;
-                }
+                hadButtons = true;
+                screen->ExecuteButton(ctx, event.Code);
+                requiresRedraw = true;                
             }
 
             if(requiresRedraw) {
+                screen = GetCurrent();
                 screen->ExecuteDraw(ctx);
                 _drawControl->RenderToDisplay(true);
             }

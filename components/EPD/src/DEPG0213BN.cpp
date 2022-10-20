@@ -193,10 +193,11 @@ void DEPG0213BN::RenderToDisplay(bool pFastUpdate) {
         _ssd1680.SendLUT(LUTPartialUpdate);
         _ssd1680.SendEndLUT(SSD1680LutEndOption::Normal);
     
-        _ssd1680.EnablePingPong();
+      //  _ssd1680.EnablePingPong();
         _ssd1680.SetBorderWaveForm(0x80);
         _ssd1680.WriteToBWRam(*_backBuffer);
-        _ssd1680.SetDisplayUpdateSequence(SSD1680DisplayUpdateSequence::ClockOnAnalogOnMode2AnalogOffOSCOff);
+        _ssd1680.WriteToRedRam(*_backBuffer);
+        _ssd1680.SetDisplayUpdateSequence(SSD1680DisplayUpdateSequence::ClockOnAnalogOnLoadTempMode2AnalogOffOSCOff);
         _ssd1680.ActivateDisplayUpdateSequence2(300);
         vTaskDelay(300 / portTICK_RATE_MS);
         _ssd1680.SetSleepMode(SSD1306SleepMode::DeepSleepMode1);
@@ -204,6 +205,8 @@ void DEPG0213BN::RenderToDisplay(bool pFastUpdate) {
         _ssd1680.ResetAll();
         _ssd1680.SetRamDataEntryMode(XIncreaseYIncrease, WIDTH-1, HEIGHT);
         _ssd1680.WriteToBWRam(*_backBuffer);
+         _ssd1680.WriteToRedRam(*_backBuffer);
+          _ssd1680.SetDisplayUpdateSequence(SSD1680DisplayUpdateSequence::ClockOnAnalogOnLoadTempMode1AnalogOffOSCOff);
         _ssd1680.ActivateDisplayUpdateSequence(1200);
         _ssd1680.SetSleepMode(SSD1306SleepMode::DeepSleepMode1);
     }

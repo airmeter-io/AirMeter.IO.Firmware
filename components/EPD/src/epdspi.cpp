@@ -49,13 +49,15 @@ void EpdSpi::init(uint8_t frequency=4,bool debug=false){
         frequency = 50;
         multiplier = 1;
     }
+
+    printf("CS: %d\n", (int)CONFIG_EINK_SPI_CS);
     //Config Frequency and SS GPIO
     spi_device_interface_config_t devcfg={
         .mode=0,  //SPI mode 0
         .clock_speed_hz=frequency*multiplier*1000,  // DEBUG: 50000 - No debug usually 4 Mhz
         .input_delay_ns=0,
         .spics_io_num=CONFIG_EINK_SPI_CS,
-        .flags = (SPI_DEVICE_HALFDUPLEX | SPI_DEVICE_3WIRE),
+        .flags = (SPI_DEVICE_HALFDUPLEX /*| SPI_DEVICE_3WIRE*/),
         .queue_size=5
     };
     // DISABLED Callbacks pre_cb/post_cb. SPI does not seem to behave the same
@@ -69,13 +71,13 @@ void EpdSpi::init(uint8_t frequency=4,bool debug=false){
     ret=spi_bus_add_device(EPD_HOST, &devcfg, &spi);
     ESP_ERROR_CHECK(ret);
     
-    if (debug_enabled) {
+    //if (debug_enabled) {
       printf("EpdSpi::init() Debug enabled. SPI master at frequency:%d  MOSI:%d CLK:%d CS:%d DC:%d RST:%d BUSY:%d DMA_CH: %d\n",
       frequency*multiplier*1000, CONFIG_EINK_SPI_MOSI, CONFIG_EINK_SPI_CLK, CONFIG_EINK_SPI_CS,
       CONFIG_EINK_DC,CONFIG_EINK_RST,CONFIG_EINK_BUSY, DMA_CHAN);
-        } else {
-           printf("EpdSPI started at frequency: %d000\n", frequency*multiplier);
-        }
+      //  } else {
+     //      printf("EpdSPI started at frequency: %d000\n", frequency*multiplier);
+      //  }
     }
 
 /* Send a command to the LCD. Uses spi_device_polling_transmit, which waits
@@ -123,6 +125,46 @@ void EpdSpi::data(uint8_t data)
     ret=spi_device_transmit(spi, &t);
     
     assert(ret==ESP_OK);
+}
+
+void EpdSpi::testRead() {
+
+    uint8_t cmd = 0x2d;
+    esp_err_t ret;
+    spi_transaction_t t;
+    memset(&t, 0, sizeof(t));       //Zero out the transaction
+    t.length=8;                     //Command is 8 bits
+    t.tx_buffer=&cmd;               //The data is the cmd itself
+    t.user=(void*)0;                //D/C needs to be set to 0
+    ret=spi_device_transmit(spi, &t);  //Transmit!
+    printf("Before assert 1\n");
+    assert(ret==ESP_OK);            //Should have had no issues.
+
+while(true) {
+    
+      if (gpio_get_level((gpio_num_t)CONFIG_EINK_BUSY) == 0) break;
+    
+  }
+    memset(&t, 0, sizeof(t));
+    uint8_t buf[100];
+    memset(buf, 0, sizeof(buf));
+    t.rxlength=8*11;
+    t.rx_buffer = buf;
+   //t.flags = SPI_TRANS_USE_RXDATA;
+    t.user = (void*)1;
+
+    ret = spi_device_transmit(spi, &t);
+    printf("Before assert 2\n");
+    if(ret==ESP_OK) printf("Success\n");
+    else printf("Failed %d\n", ret);
+    assert( ret == ESP_OK );
+    printf("Hmmm.. ");
+    // for(auto i =0; i < sizeof(t.rx_data); i++)
+    //     printf("%d ", (int)t.rx_data[i]);
+    for(auto i =0; i < sizeof(buf); i++)
+        printf("%d ", (int)buf[i]);
+    
+    printf("\n");
 }
 
 

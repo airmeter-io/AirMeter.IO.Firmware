@@ -12,7 +12,5 @@ idf_component_register(
           "spiffs"
           "esp_adc_cal"
           "esp_http_server"
-          "ESP8266-RTOS-FONTS"
-          "ESP8266-RTOS-SSD1306"
           "UTF8"
 )

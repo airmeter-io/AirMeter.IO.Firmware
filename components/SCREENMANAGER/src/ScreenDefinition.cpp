@@ -19,15 +19,9 @@ void ScreenDefinition::AddButton(ButtonEventCode pButtonEventCode,std::vector<Dr
 }
 
 void ScreenDefinition::ExecuteDraw(DrawContext& pContext) {
- //   printf("Executing drae actions\n");
-  //  printf("no draw %d\n",(int)_draw.size());
     for(auto draw : _draw){
-    //    printf("1\n");
         draw->Execute(pContext);
-       // printf("2\n");
     }
-
-    //printf("Done executing\n");
 }
 
 void ScreenDefinition::ExecuteButton(DrawContext& pContext, ButtonEventCode pButtonEventCode) {
@@ -36,16 +30,14 @@ void ScreenDefinition::ExecuteButton(DrawContext& pContext, ButtonEventCode pBut
         return;
     }
 
-    printf("Executing button actions %d\n",(int)pButtonEventCode);
+    
     for(auto action : _buttonActions[pButtonEventCode]){
-        printf("Action\n");
         action->Execute(pContext);
     }
 }
 
 
 DrawClearAction::DrawClearAction(Json& pJson) {
-    printf("Clear draw item\n");
     _color = DrawColor::White;
     if(pJson.HasProperty("Color")) {
         auto colorProp = pJson.GetStringProperty("Color");
@@ -102,7 +94,6 @@ DrawTextAction::DrawTextAction(Json& pJson, FontManager& pFontManager) {
     if(pJson.HasProperty("Justify")) {
         
         auto justify = pJson.GetStringProperty("Justify");
-        printf("Screen has justify %s\n",justify.c_str());
         if(justify == "Left") _justify = DrawTextJustify::Left;
         else if(justify == "Right") _justify = DrawTextJustify::Right;
         else if(justify == "Center") _justify = DrawTextJustify::Center;
@@ -209,9 +200,7 @@ DrawTimeSeriesAction::DrawTimeSeriesAction(Json& pJson, FontManager& pFontManage
 }
 
 void DrawTimeSeriesAction::Execute(DrawContext& pContext) {
-    printf("Getting time series\n");
     auto values = pContext.ValueSource.ResolveTimeSeries(_valueName, _mins*60, _steps);
-    printf("Got time series\n");
     
     auto min = 400;
     auto max = 1000;
@@ -259,7 +248,6 @@ void DrawTimeSeriesAction::Execute(DrawContext& pContext) {
         availableH-= maxXHeight - 2;
         x+= (maxYWidth + 2);
         perBar = availableW / _steps;
-        printf("Max font widthY %d, %s\n", (int)maxYWidth, minYText.c_str());
         _font->DrawUtf8(maxYText,pContext.Target, {.pos {. x = _x+(int)offsetW, .y = _y},.size { .width = maxYWidth, .height =maxYDim.height}},_color, DrawTextJustify::Right,DrawTextVerticalAlign::Top,2);
         _font->DrawUtf8(midYText,pContext.Target, {.pos {. x = _x+(int)offsetW, .y = _y+(availableH/2)-midYDim.height},.size { .width = maxYWidth, .height =midYDim.height}},_color, DrawTextJustify::Right,DrawTextVerticalAlign::Bottom,2);
         _font->DrawUtf8(minYText,pContext.Target, {.pos {. x = _x+(int)offsetW, .y = _y+availableH-minYDim.height},.size { .width = maxYWidth, .height =minYDim.height}},_color, DrawTextJustify::Right,DrawTextVerticalAlign::Bottom,2);

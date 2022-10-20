@@ -37,6 +37,7 @@ enum SSD1680Cmd : uint8_t {
   ActivateDisplayUpdateSequence = 0x20,
   DisplayUpdateSequence = 0x22,
   WriteToBWRam = 0x24,
+  WriteToRedRam = 0x26,
   DefineDataEntrySequence = 0x11,
   SetRamXAddressRange = 0x44,
   SetRamYAddressRange = 0x45,
@@ -90,6 +91,7 @@ public:
     void SetRamDataEntryMode(SSD1680RamDataEntryMode pMode, uint16_t pWidth, uint16_t pHeight);
     void SetSleepMode(SSD1306SleepMode pMode);
     void WriteToBWRam(EPDBackBuffer& pBuffer);
+    void WriteToRedRam(EPDBackBuffer& pBuffer);
     void ActivateDisplayUpdateSequence(int pWaitMs);
     void ActivateDisplayUpdateSequence2(int pWaitMs);
     void SetDisplayUpdateSequence(SSD1680DisplayUpdateSequence pSequence);

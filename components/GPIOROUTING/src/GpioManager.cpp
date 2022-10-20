@@ -11,12 +11,17 @@ std::map<gpio_num_t,GpioInternalState>GpioManager::_gpioMap;
 
 void GpioManager::gpio_isr_handler(gpio_num_t pGpio) {
     auto level = gpio_get_level(pGpio);
+
+    if(_gpioMap.count(pGpio) == 0) {
+        ets_printf("GPIO fired %d, level %d but no handler available\n",(int)pGpio, (int)level);
+        return;
+    }
+
     auto group = _gpioMap[pGpio];
     auto now = esp_timer_get_time();  
 
     
     if(level != group.Level) {
-      //  ets_printf("GPIO fired %d, level %d\n",(int)pGpio, (int)level);
         GpioEvent event = { .Gpio = pGpio, .Level = level, .When = now };
         xQueueSendFromISR(group.Group->GetQueueHandle(), &event, NULL);
         _gpioMap[pGpio].Level = level;
@@ -112,14 +117,13 @@ GpioGroup::~GpioGroup() {
 void GpioGroup::WaitForEvents(TickType_t pTimeout) {
     GpioEvent event;
   
-    xQueueReceive(_queue, &event,pTimeout); 
-
-    _queuedEvents.push(event);
-    _last = event.When;
-    while(xQueueReceive(_queue, &event, 0)) {
-        
+    if(xQueueReceive(_queue, &event,pTimeout)) {
         _queuedEvents.push(event);
-        _last = event.When;        
+        _last = event.When;   
+        while(xQueueReceive(_queue, &event, 0)) {
+            _queuedEvents.push(event);
+            _last = event.When;    
+        }
     }
 }
 
@@ -130,8 +134,7 @@ void GpioGroup::WaitForEvents() {
 void GpioGroup::PollEvents() {
     GpioEvent event;
 
-    while(xQueueReceive(_queue, &event, 0)) {
-        
+    while(xQueueReceive(_queue, &event, 0)) {     
         _queuedEvents.push(event);
         _last = event.When;        
     }

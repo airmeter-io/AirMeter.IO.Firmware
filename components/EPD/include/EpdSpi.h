@@ -17,6 +17,7 @@ class EpdSpi
     
     void reset(uint8_t millis) ;
     void init(uint8_t frequency, bool debug) ;
+    void testRead();
   private:
     bool debug_enabled = true;
 };

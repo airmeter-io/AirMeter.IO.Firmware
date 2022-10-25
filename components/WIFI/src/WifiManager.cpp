@@ -166,7 +166,7 @@ void WifiManager::ProcessWifiStationStopEvent(){
 }
 
 void WifiManager::ProcessWifiStationConnectedEvent(wifi_event_sta_connected_t* pEvent){
-    ESP_LOGI(TAG, "Wifi Station Connected to: %s", (char*)pEvent->ssid);
+    printf("Wifi Station Connected to: %s", (char*)pEvent->ssid);
     _ssid = (char*)pEvent->ssid;
     _channel = pEvent->channel;
     _isStaConnected = true;
@@ -197,7 +197,7 @@ void WifiManager::ProcessAccessPointStopEvent(){
 }
 
 void WifiManager::ProcessWifiAccessPointStationConnectedEvent(wifi_event_ap_staconnected_t* pEvent) {
-    ESP_LOGI(TAG, "Wifi AP Station Connected %.2X:%.2X:%.2X:%.2X:%.2X:%.2X (AID: %d)", 
+    printf("Wifi AP Station Connected %.2X:%.2X:%.2X:%.2X:%.2X:%.2X (AID: %d)", 
         (int)pEvent->mac[0], (int)pEvent->mac[1], (int)pEvent->mac[2], (int)pEvent->mac[3], (int)pEvent->mac[4], (int)pEvent->mac[5],
         (int)pEvent->aid);
 }
@@ -254,6 +254,7 @@ WifiManager::WifiManager() {
     ESP_ERROR_CHECK(esp_base_mac_addr_set(mac));
     esp_netif_init();
     //ESP_ERROR_CHECK(esp_event_loop_create_default());
+    _initConfig  = WIFI_INIT_CONFIG_DEFAULT();
     esp_wifi_init(&_initConfig);
     esp_wifi_set_ps(WIFI_PS_MAX_MODEM);
     ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &WifiManageEventHandler, this));
@@ -304,8 +305,19 @@ void WifiManager::SetFlashMode() {
 bool WifiManager::EnableAP(const std::string& pApName, const std::string& pPassword, uint8_t pMaxConnections) {
     if(_isApStarted) return false;
     
+    auto *ap = esp_netif_create_default_wifi_ap();
+    esp_netif_dhcps_stop(ap);  
+
+    esp_netif_ip_info_t ip_info;
+    IP4_ADDR(&ip_info.ip, 192, 168, 4, 4);
+    IP4_ADDR(&ip_info.gw, 192, 168, 4, 1);
+    IP4_ADDR(&ip_info.netmask, 255, 255, 255, 0);
+    ESP_ERROR_CHECK(esp_netif_set_ip_info(ap, &ip_info));
+    ESP_ERROR_CHECK(esp_netif_dhcps_start(ap));
+
     wifi_config_t config;
     memset(&config, 0, sizeof(config));
+
     config.ap.max_connection = pMaxConnections;
     strlcpy((char *)config.ap.ssid, pApName.c_str(), sizeof(config.ap.ssid));
     config.ap.ssid_len = pApName.length();
@@ -317,6 +329,8 @@ bool WifiManager::EnableAP(const std::string& pApName, const std::string& pPassw
     } else 
         config.ap.authmode = WIFI_AUTH_OPEN;
 
+
+    
     auto err = esp_wifi_set_mode(WIFI_MODE_APSTA);
     if(err != ESP_OK) {
         ESP_LOGE(TAG, "Failed to enable AP mode: %d", err);

@@ -93,7 +93,7 @@ The project is built for the ESP32 platform using the latest v4.3 ESP32 IDF SDK.
 
 ## Windows Environment Setup
 
-Espressif provide a Windows package which ensures all the required components are installed. This is the easist way to setup a Windows build environment, the install can be found at [https://dl.espressif.com/dl/esp-idf/?idf=4.4](https://dl.espressif.com/dl/esp-idf/?idf=4.4). Install the v4.3 sdk.
+Espressif provide a Windows package which ensures all the required components are installed. This is the easist way to setup a Windows build environment, the install can be found at [https://dl.espressif.com/dl/esp-idf/?idf=4.4](https://dl.espressif.com/dl/esp-idf/?idf=4.4). Install the v5.0 sdk.
 
 More indepth instructions and alternative manual installation methods can be found at [https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/windows-setup.html](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/windows-setup.html).
 

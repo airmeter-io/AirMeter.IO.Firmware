@@ -159,8 +159,8 @@ static void  captdnsRecv(int sockFd,struct sockaddr_in *premote_addr, char *pusr
 	DnsHeader *hdr=(DnsHeader*)p;
 	DnsHeader *rhdr=(DnsHeader*)&reply[0];
 	p+=sizeof(DnsHeader);
-   // printf("DNS packet: id 0x%X flags 0x%X rcode 0x%X qcnt %d ancnt %d nscount %d arcount %d len %d\n", 
-   // 		my_ntohs(&hdr->id), hdr->flags, hdr->rcode, my_ntohs(&hdr->qdcount), my_ntohs(&hdr->ancount), my_ntohs(&hdr->nscount), my_ntohs(&hdr->arcount), length);
+    printf("DNS packet: id 0x%X flags 0x%X rcode 0x%X qcnt %d ancnt %d nscount %d arcount %d len %d\n", 
+    		my_ntohs(&hdr->id), hdr->flags, hdr->rcode, my_ntohs(&hdr->qdcount), my_ntohs(&hdr->ancount), my_ntohs(&hdr->nscount), my_ntohs(&hdr->arcount), length);
 	//Some sanity checks:
 	if (length>DNS_LEN ||								//Packet is longer than DNS implementation allows
 	    length<sizeof(DnsHeader) ||						//Packet is too short

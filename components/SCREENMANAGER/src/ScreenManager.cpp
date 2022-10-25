@@ -137,16 +137,15 @@ void ScreenManager::Run(TickType_t pNotifyPeriod) {
         while(true) {
            
             
-        // vTaskDelay(5000 / portTICK_RATE_MS);
+        // vTaskDelay(5000 / portTICK_PERIOD_MS);
     
             _buttons->WaitForEvents(pNotifyPeriod);
 
             bool requiresRedraw = _notifier.ProcessOnUIThread();
             screen = GetCurrent();
-            bool hadButtons = false;
+           
             while(_buttons->HasQueued()) {                
                 auto event = _buttons->GetQueued();
-                hadButtons = true;
                 screen->ExecuteButton(ctx, event.Code);
                 requiresRedraw = true;                
             }

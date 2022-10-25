@@ -1,7 +1,7 @@
 #include "GpioManager.h"
 
 #define TAG "GPIO"
-#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(4, 0, 0)    
+#if ESP_IDF_VERSION > ESP_IDF_VERSION_VAL(4, 0, 0)    
 extern "C" {
     #include "esp_timer.h"
 }
@@ -154,7 +154,7 @@ std::vector<gpio_num_t> GpioGroup::GetGPIOs() {
     return _gpios;
 }
 
-xQueueHandle GpioGroup::GetQueueHandle() const {
+QueueHandle_t GpioGroup::GetQueueHandle() const {
     return _queue;
 }
 

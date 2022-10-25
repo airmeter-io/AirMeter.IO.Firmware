@@ -11,4 +11,6 @@ idf_component_register(
            "SSD1306"
            "esp_http_server"
            "BITMAPFONT"
-           "DRAWTARGET")
+           "DRAWTARGET"
+           "driver"
+           "esp_wifi")

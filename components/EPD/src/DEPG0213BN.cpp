@@ -199,7 +199,7 @@ void DEPG0213BN::RenderToDisplay(bool pFastUpdate) {
         _ssd1680.WriteToRedRam(*_backBuffer);
         _ssd1680.SetDisplayUpdateSequence(SSD1680DisplayUpdateSequence::ClockOnAnalogOnLoadTempMode2AnalogOffOSCOff);
         _ssd1680.ActivateDisplayUpdateSequence2(300);
-        vTaskDelay(300 / portTICK_RATE_MS);
+        vTaskDelay(300 / portTICK_PERIOD_MS);
         _ssd1680.SetSleepMode(SSD1306SleepMode::DeepSleepMode1);
     } else {
         _ssd1680.ResetAll();

@@ -65,8 +65,8 @@ SenseairI2CSensor::~SenseairI2CSensor() {
 
 bool SenseairI2CSensor::RefreshValues() {
     uint8_t ppmBytes[0xf];
-    uint8_t errorStatus[2];
-    vTaskDelay(50 / portTICK_RATE_MS);      
+  
+    vTaskDelay(50 / portTICK_PERIOD_MS);      
 
     if(_valSingleMeasurementMode.value.b) {
         if(_hasDataRestore) 
@@ -74,7 +74,7 @@ bool SenseairI2CSensor::RefreshValues() {
         else 
             WriteRegister((uint8_t)SENSEAIR_I2C_RERISTERS::START_SINGLE_MEASUREMENT, _sensorStateData, 1);
             
-        vTaskDelay(2450 / portTICK_RATE_MS);      
+        vTaskDelay(2450 / portTICK_PERIOD_MS);      
         if(ReadRegister((uint8_t )SENSEAIR_I2C_RERISTERS::CO2_FILTERED_COMPENSATED,ppmBytes, sizeof(ppmBytes))) {
                 _ppm = ppmBytes[0]*256 + ppmBytes[1];
                 ushort tempRaw = ppmBytes[2]*256 + ppmBytes[3];
@@ -138,7 +138,7 @@ void SenseairI2CSensor::ManualCalibration(int pBaseLinePPM) {
     else 
         WriteRegister((uint8_t)SENSEAIR_I2C_RERISTERS::START_SINGLE_MEASUREMENT, _sensorStateData, 1);
         
-    vTaskDelay(2450 / portTICK_RATE_MS);      
+    vTaskDelay(2450 / portTICK_PERIOD_MS);      
 
 
     uint8_t calibrationStatus = 0;
@@ -208,10 +208,10 @@ bool SenseairI2CSensor::ReadRegister(uint8_t pRegAddr, uint8_t *pRegData, uint32
     
     for(auto attempts = 0; attempts < 5; attempts++) {
         if(attempts>0)
-            vTaskDelay(500 / portTICK_RATE_MS);
+            vTaskDelay(500 / portTICK_PERIOD_MS);
 
         
-        esp_err_t espRc =1;
+       
         #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)    
         uint8_t cmdMem[I2C_LINK_RECOMMENDED_SIZE(1)] = { 0 };
         auto cmd = i2c_cmd_link_create_static(cmdMem, I2C_LINK_RECOMMENDED_SIZE(1));
@@ -229,7 +229,7 @@ bool SenseairI2CSensor::ReadRegister(uint8_t pRegAddr, uint8_t *pRegData, uint32
         #endif
            
 
-        vTaskDelay(5 / portTICK_RATE_MS);
+        vTaskDelay(5 / portTICK_PERIOD_MS);
 
         #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)    
         cmd = i2c_cmd_link_create_static(cmdMem, I2C_LINK_RECOMMENDED_SIZE(1));
@@ -247,7 +247,7 @@ bool SenseairI2CSensor::ReadRegister(uint8_t pRegAddr, uint8_t *pRegData, uint32
         i2c_cmd_link_delete(cmd);
         #endif
 
-        ret = i2c_master_read_from_device(I2C_NUM_0, 0x68, pRegData, pLen, 1000 / portTICK_RATE_MS);
+        ret = i2c_master_read_from_device(I2C_NUM_0, 0x68, pRegData, pLen, 1000 / portTICK_PERIOD_MS);
 
         if ( ret != ESP_OK ) {
             ESP_LOGE(TAG, "Fail to read device ( port = %d, addr = %02x, err=%d )", I2C_NUM_0, pRegAddr, ret);      
@@ -262,17 +262,14 @@ bool SenseairI2CSensor::ReadRegister(uint8_t pRegAddr, uint8_t *pRegData, uint32
 
 bool SenseairI2CSensor::WriteRegister(uint8_t pRegAddr, const uint8_t *pRegData, uint32_t pLen)
 {
-    printf("Write(len=%d, %d)\n", pLen, (int)pRegAddr);
-
     esp_err_t ret = ESP_OK;
     
     
     for(auto attempts = 0; attempts < 5; attempts++) {
         if(attempts>0)
-            vTaskDelay(500 / portTICK_RATE_MS);
+            vTaskDelay(500 / portTICK_PERIOD_MS);
 
         
-        esp_err_t espRc =1;
         #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)    
         uint8_t cmdMem[I2C_LINK_RECOMMENDED_SIZE(1)] = { 0 };
         auto cmd = i2c_cmd_link_create_static(cmdMem, I2C_LINK_RECOMMENDED_SIZE(1));
@@ -290,7 +287,7 @@ bool SenseairI2CSensor::WriteRegister(uint8_t pRegAddr, const uint8_t *pRegData,
         #endif
            
 
-        vTaskDelay(5 / portTICK_RATE_MS);
+        vTaskDelay(5 / portTICK_PERIOD_MS);
 
         #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)    
         cmd = i2c_cmd_link_create_static(cmdMem, I2C_LINK_RECOMMENDED_SIZE(1));
@@ -308,7 +305,7 @@ bool SenseairI2CSensor::WriteRegister(uint8_t pRegAddr, const uint8_t *pRegData,
         #else
         i2c_cmd_link_delete(cmd);
         #endif
-        vTaskDelay(25 / portTICK_RATE_MS);
+        vTaskDelay(25 / portTICK_PERIOD_MS);
        
         if ( ret != ESP_OK ) {
             ESP_LOGE(TAG, "Fail to write device ( port = %d, addr = %02x, err=%d )", I2C_NUM_0, pRegAddr, ret);      

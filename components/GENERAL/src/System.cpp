@@ -1,5 +1,10 @@
 #include "System.h"
 
+
+extern "C" {
+    #include "esp_chip_info.h"
+}
+
 void System::Restart() {
     esp_restart();
 }

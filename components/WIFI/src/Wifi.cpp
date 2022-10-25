@@ -31,7 +31,7 @@ void Wifi::RunCaptiveDNS() {
       
        dns.ProcessRequest();
        esp_task_wdt_reset();
-       vTaskDelay(100 / portTICK_RATE_MS);
+       vTaskDelay(100 / portTICK_PERIOD_MS);
   
     }
 

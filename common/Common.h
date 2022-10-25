@@ -8,7 +8,7 @@ extern "C" {
     #include <assert.h>
     #include "esp_system.h"
     #include "esp_log.h"
-    #include "esp_vfs_dev.h"
+    //#include "esp_vfs_dev.h"
     #include "freertos/FreeRTOS.h"
    // #include "esp_libc.h"
     #include "esp_task.h"    
@@ -20,8 +20,7 @@ extern "C" {
     #include <freertos/event_groups.h>
     #include "nvs.h"
     #include "nvs_flash.h"
-    #include "esp_netif.h"
-    #include "esp_wifi.h"
+   
     #include <esp_http_server.h>
     #include "freertos/FreeRTOS.h"
     #include "freertos/queue.h"
@@ -40,4 +39,6 @@ extern "C" {
     #include "esp_task_wdt.h"
     #include "driver/gpio.h"
     #include "esp_partition.h"    
+
+    #include "esp32/rom/ets_sys.h"
 }

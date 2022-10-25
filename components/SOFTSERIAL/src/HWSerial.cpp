@@ -10,7 +10,7 @@ HWSerial::HWSerial(uart_port_t pUartNum) : _uartPort(pUartNum) {
         .stop_bits = UART_STOP_BITS_1,
         .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
         .rx_flow_ctrl_thresh = 2,
-        .use_ref_tick = UART_SCLK_APB,
+        .source_clk = UART_SCLK_APB,
     };
     ESP_ERROR_CHECK(uart_param_config(pUartNum, &uart_config));
     const int uartBufferSize = (1024 * 2);

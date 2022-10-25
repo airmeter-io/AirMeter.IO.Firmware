@@ -13,4 +13,6 @@ idf_component_register(
           "esp_http_server"
           "UTF8"
           "DRAWTARGET"
+          "driver"
+          "esp_wifi"
 )

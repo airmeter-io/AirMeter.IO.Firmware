@@ -1,6 +1,10 @@
 #include "SSD1680.h"
 
 #define TAG "SSD1680"
+
+extern "C" {
+    #include "esp_timer.h"
+}
 SSD1680::SSD1680(EpdSpi& pSpi) : _spi(pSpi), _gpios({(gpio_num_t)CONFIG_EINK_BUSY}), _group(GpioGroup(_gpios, false, true, RaisingEdge)){
     
     GpioManager::RegisterGpioGroup(&_group);
@@ -252,8 +256,7 @@ void SSD1680::WaitBusy(const char* message, uint16_t busy_time){
   _group.PollEvents();
  //  printf("WB\n");
   while(_group.HasQueued()) {
-      auto event = _group.GetQueued();
-     // printf("Wait Busy: %d - %d\n", (int)(event.When-time_since_boot), event.Level );
+      _group.GetQueued();
   }
   // On high is busy
   if (gpio_get_level((gpio_num_t)CONFIG_EINK_BUSY) == 1) {
@@ -261,15 +264,14 @@ void SSD1680::WaitBusy(const char* message, uint16_t busy_time){
   while (1){
     _group.PollEvents();
     while(_group.HasQueued()) {
-        auto event = _group.GetQueued();
-     //   printf("Wait Busy: %d - %d\n", (int)(event.When-time_since_boot), event.Level );
+        _group.GetQueued();
     }
     if (gpio_get_level((gpio_num_t)CONFIG_EINK_BUSY) == 0) {
    //      printf("Is now 0\n");
         break;
 
     } 
-    vTaskDelay(1);//portTICK_RATE_MS);
+    vTaskDelay(1);//portTICK_PERIOD_MS);
 
     if (esp_timer_get_time()-time_since_boot>7000000)
     {
@@ -279,17 +281,17 @@ void SSD1680::WaitBusy(const char* message, uint16_t busy_time){
   }
   } else {
   //  printf("Was 0\n");
-    vTaskDelay(busy_time/portTICK_RATE_MS); 
+    vTaskDelay(busy_time/portTICK_PERIOD_MS); 
     _group.PollEvents();
     while(_group.HasQueued()) {
-        auto event = _group.GetQueued();
-     //   printf("Wait Busy: %d - %d\n", (int)(event.When-time_since_boot), event.Level );
+       _group.GetQueued();
+   
     }
   }
   _group.PollEvents();
   while(_group.HasQueued()) {
-      auto event = _group.GetQueued();
-    //  printf("Wait Busy: %d - %d\n", (int)(event.When-time_since_boot), event.Level );
+       _group.GetQueued();
+   
   }
 }
 
@@ -323,7 +325,7 @@ void SSD1680::WaitBusy2(const char* message, uint16_t busy_time){
 
     } 
     if(esp_timer_get_time()-time_since_boot>300000)
-        vTaskDelay(1);//portTICK_RATE_MS);
+        vTaskDelay(1);//portTICK_PERIOD_MS);
     else    
         vTaskDelay(1);
 
@@ -335,7 +337,7 @@ void SSD1680::WaitBusy2(const char* message, uint16_t busy_time){
   }
   } else {
 //    printf("Was 0\n");
-    vTaskDelay(busy_time/portTICK_RATE_MS); 
+    vTaskDelay(busy_time/portTICK_PERIOD_MS); 
     _group.PollEvents();
     while(_group.HasQueued()) {
         auto event = _group.GetQueued();
@@ -352,13 +354,13 @@ void SSD1680::WaitBusy2(const char* message, uint16_t busy_time){
 void SSD1680::WaitBusy(const char* message){
   int64_t time_since_boot = esp_timer_get_time();
   while(true) {
-      _group.WaitForEvents(250/portTICK_RATE_MS);
+      _group.WaitForEvents(250/portTICK_PERIOD_MS);
       if (gpio_get_level((gpio_num_t)CONFIG_EINK_BUSY) == 0) break;
       while(_group.HasQueued()) {
          auto event = _group.GetQueued();
   //        printf("Wait BusyM: %d - %d\n", (int)(event.When-time_since_boot), event.Level );
          if(event.Level == 0 && event.When - time_since_boot>0) {
-             vTaskDelay(1000/portTICK_RATE_MS); 
+             vTaskDelay(1000/portTICK_PERIOD_MS); 
             return;
          }
       }
@@ -374,7 +376,7 @@ void SSD1680::WaitBusy(const char* message){
 //     }
 //     // On low is not busy anymore
 //     if (gpio_get_level((gpio_num_t)CONFIG_EINK_BUSY) == 0) break;
-//     vTaskDelay(1);///portTICK_RATE_MS);
+//     vTaskDelay(1);///portTICK_PERIOD_MS);
 //     if (esp_timer_get_time()-time_since_boot>7000000)
 //     {
    

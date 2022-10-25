@@ -19,5 +19,7 @@ idf_component_register(
           "SENSORMANAGER"
           "QRCODE"
           "DRAWTARGET"
+          "driver"
+          "esp_wifi"
           
 )

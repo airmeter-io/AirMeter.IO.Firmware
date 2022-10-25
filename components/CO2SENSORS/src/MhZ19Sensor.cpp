@@ -267,7 +267,7 @@ void MhZ19Sensor::ReadDetectionRange() {
 
    while(!ExecuteCommand(command,response)) {
       response.Print("Failed to read detection range");
-      vTaskDelay(500 / portTICK_RATE_MS);
+      vTaskDelay(500 / portTICK_PERIOD_MS);
    }
    response.Print("Read Detection Range");
    _maxPPM = response.Buffer[4]*256 + response.Buffer[5];

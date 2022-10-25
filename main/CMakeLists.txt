@@ -12,6 +12,8 @@ idf_component_register(
     INCLUDE_DIRS "."
                  "../common"
     REQUIRES "json"
+            "driver"
+            "esp_wifi"
              "nvs_flash"
              "HTTPSERVER"
              "BME280"

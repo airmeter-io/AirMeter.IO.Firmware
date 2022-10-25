@@ -11,4 +11,6 @@ idf_component_register(
           "spiffs"
           "esp_http_server"
           "HTTPSERVER"
+          "driver"
+          "esp_wifi"
 )

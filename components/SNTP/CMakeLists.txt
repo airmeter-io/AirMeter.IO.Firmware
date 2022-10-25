@@ -6,4 +6,6 @@ idf_component_register(
            "nvs_flash"
            "mqtt"
            "spiffs"
-           "esp_http_server")
+           "esp_http_server"
+           "driver"
+           "esp_wifi")

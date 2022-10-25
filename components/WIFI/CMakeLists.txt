@@ -11,4 +11,6 @@ idf_component_register(
           "HTTPSERVER"
           "SSD1306"
           "esp_http_server"
+          "driver"
+          "esp_wifi"
 )

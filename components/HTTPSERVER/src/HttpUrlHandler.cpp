@@ -3,6 +3,13 @@
 
 #define TAG "HttpUrlHandler"
 
+extern "C" {
+    #include <stdio.h>
+    #include <assert.h>
+    #include "esp_log.h"
+    #include <esp_http_server.h>
+}
+
 esp_err_t handler(httpd_req_t *pReq) {
     auto handler = (HttpUrlHandler*)pReq->user_ctx;
     HttpRequest req(pReq);

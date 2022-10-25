@@ -30,7 +30,7 @@ SensorManager::SensorManager(GeneralSettings& pSettings, I2C& pI2C, DataManager&
     _dataManager(pDataManager) {
     ESP_ERROR_CHECK(gpio_set_direction(SENSOR_ENABLE_GPIO, (gpio_mode_t)GPIO_MODE_DEF_OUTPUT));
     EnableSensorReadGPIO();
-    vTaskDelay(50 / portTICK_RATE_MS);        
+    vTaskDelay(50 / portTICK_PERIOD_MS);        
     pI2C.Scan();
     auto count = _i2c.GetNumDevices();
     printf("Searching for I2C CO2 Sensor from %d devices: ", count);

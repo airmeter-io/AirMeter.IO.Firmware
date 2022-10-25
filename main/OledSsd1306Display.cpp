@@ -1,5 +1,5 @@
 #include "OledSsd1306Display.h"
-#include "Logo.h"
+
 
 #define DISPLAY_WIDTH 128
 #define DISPLAY_HEIGHT 64

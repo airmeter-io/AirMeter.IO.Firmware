@@ -23,8 +23,7 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
 
 Mqtt::Mqtt(const std::string& pServerAddress) {
     memset(&_clientConfig, 0, sizeof(_clientConfig));
-    _clientConfig.uri = pServerAddress.c_str();
-    _clientConfig.user_context = this;
+    _clientConfig.broker.address.uri = pServerAddress.c_str();
     _client = esp_mqtt_client_init(&_clientConfig);
     esp_mqtt_client_register_event(_client, (esp_mqtt_event_id_t)ESP_EVENT_ANY_ID, mqtt_event_handler, this);
     esp_mqtt_client_start(_client);

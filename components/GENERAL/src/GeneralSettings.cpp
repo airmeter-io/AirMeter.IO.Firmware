@@ -2,6 +2,11 @@
 #include "Json.h"
 #include <string>
 #include <stdio.h>
+
+extern "C" {
+    #include "esp_mac.h"
+}
+
 GeneralSettings::GeneralSettings() {
     uint8_t macAddress[6];
     esp_efuse_mac_get_default(macAddress);

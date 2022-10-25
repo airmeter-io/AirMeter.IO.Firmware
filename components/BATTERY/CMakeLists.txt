@@ -10,7 +10,9 @@ idf_component_register(
           "HTTPSERVER"
           "mqtt"
           "spiffs"
-          "esp_adc_cal"
+          "esp_adc"
           "esp_http_server"
           "UTF8"
+          "driver"
+          "esp_wifi"
 )

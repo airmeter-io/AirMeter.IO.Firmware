@@ -1,11 +1,14 @@
 #pragma once
+
+#include <string>
+
 extern "C" {
     #include <stdio.h>
     #include <assert.h>
     #include "esp_log.h"
     #include <esp_http_server.h>
+
 }
-#include <string>
 
 class HttpRequest {  
     httpd_req_t *_req;

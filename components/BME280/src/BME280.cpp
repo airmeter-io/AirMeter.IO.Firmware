@@ -14,7 +14,7 @@ int8_t user_i2c_read(uint8_t reg_addr, uint8_t *reg_data, uint32_t len, void *in
     i2c_master_write_byte(cmd, ((BME280 *)intf_ptr)->GetDeviceId() << 1 | I2C_MASTER_WRITE, true);
     i2c_master_write_byte(cmd, reg_addr, true);
     i2c_master_stop(cmd);
-    ret = i2c_master_cmd_begin(((BME280 *)intf_ptr)->GetI2C().GetI2CPort(), cmd, 1000 / portTICK_RATE_MS);
+    ret = i2c_master_cmd_begin(((BME280 *)intf_ptr)->GetI2C().GetI2CPort(), cmd, 1000 / portTICK_PERIOD_MS);
     if(ret!=0) printf("I2C ReadPreWrite: %s: %d\n",ret<0 ? "ERROR" : "WARNING", ret);
     i2c_cmd_link_delete(cmd);
 
@@ -27,7 +27,7 @@ int8_t user_i2c_read(uint8_t reg_addr, uint8_t *reg_data, uint32_t len, void *in
     i2c_master_write_byte(cmd, ((BME280 *)intf_ptr)->GetDeviceId() << 1 | I2C_MASTER_READ, true);
     i2c_master_read(cmd, reg_data, len, I2C_MASTER_LAST_NACK);
     i2c_master_stop(cmd);
-    ret = i2c_master_cmd_begin(((BME280 *)intf_ptr)->GetI2C().GetI2CPort(), cmd, 1000 / portTICK_RATE_MS);
+    ret = i2c_master_cmd_begin(((BME280 *)intf_ptr)->GetI2C().GetI2CPort(), cmd, 1000 / portTICK_PERIOD_MS);
     if(ret!=0) printf("I2C Read: %s: %d\n",ret<0 ? "ERROR" : "WARNING", ret);
     i2c_cmd_link_delete(cmd);
     
@@ -43,7 +43,7 @@ int8_t user_i2c_write(uint8_t reg_addr, const uint8_t *reg_data, uint32_t len, v
     i2c_master_write_byte(cmd, reg_addr, true);
     i2c_master_write(cmd, (uint8_t *)reg_data, len, true);
     i2c_master_stop(cmd);
-    auto result = i2c_master_cmd_begin(((BME280 *)intf_ptr)->GetI2C().GetI2CPort(), cmd, 1000 / portTICK_RATE_MS);
+    auto result = i2c_master_cmd_begin(((BME280 *)intf_ptr)->GetI2C().GetI2CPort(), cmd, 1000 / portTICK_PERIOD_MS);
     i2c_cmd_link_delete(cmd);
     if(result!=0) printf("I2C Write: %s: %d\n",result<0 ? "ERROR" : "WARNING", result);
 	return 0;
@@ -57,8 +57,6 @@ I2C& BME280::GetI2C() const {
 
 BME280::BME280(I2C& pI2C) : _i2c(pI2C) {
     
-	int8_t rslt = BME280_OK;
-
     _bme.chip_id = BME280_I2C_ADDR_PRIM;
 	_bme.intf = BME280_I2C_INTF;
 	_bme.read = user_i2c_read;
@@ -126,13 +124,13 @@ char *BME280SensorValues::GetPressureStr(int pDecimialDigits) {
 char *BME280SensorValues::GetTemperatureStr() {
     int32_t value = temperature * DEC_PLACE_MULTIPLIER;
 
-    snprintf(_temperatureStr, sizeof(_temperatureStr), "%d.%d",  value / DEC_PLACE_MULTIPLIER, abs(value) % DEC_PLACE_MULTIPLIER);
+    snprintf(_temperatureStr, sizeof(_temperatureStr), "%d.%d",  (int)(value / DEC_PLACE_MULTIPLIER), (int)(abs(value) % DEC_PLACE_MULTIPLIER));
     return _temperatureStr;
 }
 
 char *BME280SensorValues::GetHumidityStr() {
     int32_t value = humidity * DEC_PLACE_MULTIPLIER;
 
-    snprintf(_humidityStr, sizeof(_humidityStr), "%d.%d",  value / DEC_PLACE_MULTIPLIER, abs(value) % DEC_PLACE_MULTIPLIER);
+    snprintf(_humidityStr, sizeof(_humidityStr), "%d.%d",  (int)(value / DEC_PLACE_MULTIPLIER), (int)(abs(value) % DEC_PLACE_MULTIPLIER));
     return _humidityStr;
 }

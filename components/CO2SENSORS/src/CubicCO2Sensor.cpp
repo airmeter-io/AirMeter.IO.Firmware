@@ -113,14 +113,14 @@ CubicCO2ErrorCode CubicCO2Sensor::ExecuteCommand(CubicCO2Buffer& pInput, CubicCO
       if(len != pOutput.GetPacketLength()) {
          pOutput.Print("Invalid Packet Length",len);
          pOutput.Clear();
-         vTaskDelay(500 / portTICK_RATE_MS);
+         vTaskDelay(500 / portTICK_PERIOD_MS);
          continue;
       }
 
       if(pOutput.GetChecksum()!=pOutput.CalcChecksum()) {
          pOutput.Print("Invalid Checksum",len);
          pOutput.Clear();
-         vTaskDelay(500 / portTICK_RATE_MS);
+         vTaskDelay(500 / portTICK_PERIOD_MS);
          continue;
       }
 

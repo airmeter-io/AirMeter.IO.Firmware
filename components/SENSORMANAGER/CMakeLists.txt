@@ -18,4 +18,6 @@ idf_component_register(
           "VALUES"
           "BME280"
           "DATAMANAGER"
+          "driver"
+          "esp_wifi"
 )

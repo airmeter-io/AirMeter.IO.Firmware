@@ -5,6 +5,10 @@
 #include<queue>
 #include<map>
 
+extern "C" {
+    #include "freertos/FreeRTOS.h"
+}
+
 typedef struct {
     gpio_num_t Gpio;
     int Level;
@@ -23,7 +27,7 @@ enum InteruptType { AnyEdge, RaisingEdge, FallingEdge };
 enum InitialGpioState { Low, High, NotSet };
 
 class GpioGroup {
-    xQueueHandle _queue;
+    QueueHandle_t _queue;
     int64_t _last = 0;
     std::queue<GpioEvent> _queuedEvents;
     std::vector<gpio_num_t> _gpios;
@@ -46,7 +50,7 @@ public:
     InteruptType GetInteruptType() const;
     GpioEvent GetQueued();
     std::vector<gpio_num_t> GetGPIOs();
-    xQueueHandle GetQueueHandle() const;    
+    QueueHandle_t GetQueueHandle() const;    
 };
 
 class GpioManager 

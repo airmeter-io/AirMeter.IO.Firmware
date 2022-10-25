@@ -96,7 +96,7 @@ bool MainLogicLoop::ProcessOnUIThread() {
         snprintf(_voltageStr, sizeof(_voltageStr)-1, "%d.%dV", major, minor);
     }
     _uiProcessCount++;
-    auto result =  _sensorManager->UpdateValues();
+    _sensorManager->UpdateValues();
     if(_sensorManager->GetLastSensorRead()>_lastRead && _screenManager!=nullptr) {
         printf("Triggering update\n");
         _lastRead = _sensorManager->GetLastSensorRead();
@@ -120,19 +120,7 @@ bool MainLogicLoop::ProcessOnUIThread() {
 }
 
 void MainLogicLoop::Run() {
-    uint8_t* p1 = ( uint8_t*)0x50000666;
-    uint8_t* p2 = ( uint8_t*)0x400C0666;
-
-    if(*p1!=0x66) {
-        printf("Cold boot p1\n");
-        *p1 = 0x66;
-
-    }
-    // if(*p2!=0x77) {
-    //     printf("Cold boot p2\n");
-    //     *p2 = 0x77;
-        
-    // }
+    
     _battery = new BatteryManager();
     auto httpServer = new HttpServer();
     
@@ -159,7 +147,7 @@ void MainLogicLoop::Run() {
     if(!_wifi->IsProvisioned()) {
         printf("Provisioning...\n");
         _screenManager->ChangeScreen("CAPTIVE");
-        vTaskDelay(200 / portTICK_RATE_MS);
+        vTaskDelay(200 / portTICK_PERIOD_MS);
         captiveRedirect = new CaptiveRedirectHandler ();
         httpServer->AddUrlHandler(captiveRedirect);
         printf("Started provisioning-1\n");
@@ -167,7 +155,7 @@ void MainLogicLoop::Run() {
         
         _waitingForProvisioning = true;
         printf("Started provisioning-2 (delay)\n");
-        vTaskDelay(5000 / portTICK_RATE_MS);
+        vTaskDelay(5000 / portTICK_PERIOD_MS);
         printf("Provisioning started\n");
     } else {
     
@@ -185,13 +173,13 @@ void MainLogicLoop::Run() {
 
     
 
-    auto wait = _sensorManager->UpdateValues();
+    _sensorManager->UpdateValues();
    
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)    
     esp_sleep_enable_wifi_wakeup();
 #endif
 
-   _screenManager->Run(5000 / portTICK_RATE_MS);
+   _screenManager->Run(5000 / portTICK_PERIOD_MS);
 
 }
 

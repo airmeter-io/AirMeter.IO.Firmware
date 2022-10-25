@@ -1,5 +1,8 @@
 #include "CaptiveDNS.h"
 
+extern "C" {
+	#include "esp_netif.h"
+}
 #define DNS_LEN 512
 
 typedef struct __attribute__ ((packed)) {
@@ -198,11 +201,9 @@ static void  captdnsRecv(int sockFd,struct sockaddr_in *premote_addr, char *pusr
 			setn16(&rf->rdlength, 4); //IPv4 addr is 4 bytes;
 			//Grab the current IP of the softap interface
             
-            tcpip_adapter_ip_info_t info;
-            //tcpip_adapter_get_ip_info(TCPIP_ADAPTER_IF_ETH, &info);
-            tcpip_adapter_get_ip_info(TCPIP_ADAPTER_IF_AP, &info);
-			//struct ip_info info;
-			//wifi_get_ip_info(SOFTAP_IF, &info);
+    
+			esp_netif_ip_info_t info;
+			ESP_ERROR_CHECK(esp_netif_get_ip_info(esp_netif_get_handle_from_ifkey("WIFI_AP_DEF"), &info));
 			*rend++=ip4_addr1(&info.ip);
 			*rend++=ip4_addr2(&info.ip);
 			*rend++=ip4_addr3(&info.ip);
@@ -269,15 +270,15 @@ CaptiveDns::CaptiveDns() {
 		_sockFd=socket(AF_INET, SOCK_DGRAM, 0);
 		if (_sockFd==-1) {
 			printf("Failed to create socket for captive dns!\n");
-			vTaskDelay(1000/portTICK_RATE_MS);
+			vTaskDelay(1000/portTICK_PERIOD_MS);
 		}
 	} while (_sockFd==-1);
 
 	do {
 		ret=bind(_sockFd, (struct sockaddr *)&sockAddr, sizeof(sockAddr));
 		if (ret!=0) {
-			printf("Failed to bind captive dns socket %d!\n", ret);
-			vTaskDelay(1000/portTICK_RATE_MS);
+			printf("Failed to bind captive dns socket %d!\n", (int)ret);
+			vTaskDelay(1000/portTICK_PERIOD_MS);
 		}
 	} while (ret!=0);
 }

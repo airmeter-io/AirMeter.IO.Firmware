@@ -1,15 +1,11 @@
 #pragma once
 
-extern "C" {
-    #include <stdio.h>
-    #include <assert.h>
-    #include "esp_log.h"
-    #include <esp_http_server.h>
-}
+
 #include <vector>
 #include "HttpRequest.h"
 
 #include "Json.h"
+
 
 class HttpJsonCommand  {
     public:

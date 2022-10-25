@@ -11,4 +11,7 @@ idf_component_register(
            "mqtt"
            "spiffs"
            "GENERAL"
-           "esp_http_server")
+           "esp_http_server"
+           "driver"
+           "esp_wifi"
+           "esp_netif")

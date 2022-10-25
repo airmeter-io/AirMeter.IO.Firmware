@@ -2,6 +2,11 @@
 
 #define TAG "WifiManager"
 
+
+extern "C" {
+    #include "esp_mac.h"
+}
+
 static void WifiManageEventHandler(void* pArg, esp_event_base_t pEventBase, int32_t pEventId, void* pEventData)
 {
     if (pEventBase == WIFI_EVENT) 
@@ -75,8 +80,12 @@ void WifiManager::ProcessWifiEvent(wifi_event_t pEventId, void *pEvent) {
             break;
 
         case WIFI_EVENT_MAX :      
-            break;                        
-#endif             
+            break;         
+                       
+#endif  
+        default:
+            break;
+
     }
 }
 
@@ -227,6 +236,10 @@ std::string WifiManager::GetAuthModeText(wifi_auth_mode_t pAuthMode) {
         case WIFI_AUTH_WAPI_PSK :      
             return "WAPI_PSK";
 #endif 
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+        case WIFI_AUTH_OWE :      
+            return "OWE";
+#endif 
         case WIFI_AUTH_MAX:
             break;                  
     }
@@ -239,7 +252,7 @@ WifiManager::WifiManager() {
 
     ESP_ERROR_CHECK(esp_efuse_mac_get_default(mac));
     ESP_ERROR_CHECK(esp_base_mac_addr_set(mac));
-    tcpip_adapter_init();
+    esp_netif_init();
     //ESP_ERROR_CHECK(esp_event_loop_create_default());
     esp_wifi_init(&_initConfig);
     esp_wifi_set_ps(WIFI_PS_MAX_MODEM);

@@ -88,7 +88,7 @@ bool Scd30Sensor::ReadCommand(Scd30I2CCommand pCommand, uint8_t* pParamData, uin
         uint8_t inBuf[3*numResponseWords];
         uint8_t *ptr = inBuf;
         memset(inBuf, 0, sizeof(inBuf));
-        ret = i2c_master_read_from_device(I2C_NUM_0, 0x61, inBuf, sizeof(inBuf), 1000 / portTICK_RATE_MS);        
+        ret = i2c_master_read_from_device(I2C_NUM_0, 0x61, inBuf, sizeof(inBuf), 1000 / portTICK_PERIOD_MS);        
         if(ret!= ESP_OK) {
             printf("Error reading %d\n", (int)ret);
             return false;
@@ -122,23 +122,23 @@ bool Scd30Sensor::RefreshValues() {
     while(!ReadCommand(Scd30I2CCommand::GET_READY_STATUS, nullptr, 0, (uint16_t *)readyStatus, sizeof(readyStatus)) || readyStatus[1]!=1)
     {
         ESP_LOGE(TAG, "Not ready");
-        vTaskDelay(50 / portTICK_RATE_MS);
+        vTaskDelay(50 / portTICK_PERIOD_MS);
     }
 
     while(!ReadCommand(Scd30I2CCommand::READ_MEASUREMENT, nullptr, 0, (uint16_t *)valueData, sizeof(valueData)))
     {
         ESP_LOGE(TAG, "Failed to read measurement from SCD30");
-        vTaskDelay(50 / portTICK_RATE_MS);
+        vTaskDelay(50 / portTICK_PERIOD_MS);
     }
     uint32_t co2Raw =(uint32_t)((valueData[0] << 24) | (valueData[1] << 16) | (valueData[2] << 8) | valueData[3]  );
     uint32_t tempRaw =(uint32_t)((valueData[4] << 24) | (valueData[5] << 16) | (valueData[6] << 8) | valueData[7]  );
     uint32_t rhRaw =(uint32_t)((valueData[8] << 24) | (valueData[9] << 16) | (valueData[10] << 8) | valueData[11]  );
-    float co2 = *((float *)(&co2Raw));
-    float temp = *((float *)(&tempRaw));
-    float rh = *((float *)(&rhRaw));
-    _ppm = co2;
-    _valTemperature.value.d = temp;
-    _valHumidity.value.d = rh;
+    float* co2 = ((float *)(&co2Raw));
+    float* temp =((float *)(&tempRaw));
+    float* rh = ((float *)(&rhRaw));
+    _ppm = *co2;
+    _valTemperature.value.d = *temp;
+    _valHumidity.value.d = *rh;
     return true;
 }
 
@@ -161,7 +161,7 @@ void Scd30Sensor::ReadSoftwareVersion() {
     uint8_t fwVersion[2] = {0,0};
     while(!ReadCommand(Scd30I2CCommand::READ_FIRMWARE_REV, nullptr, 0, &fwVersion, 1))
     {
-        vTaskDelay(500 / portTICK_RATE_MS);
+        vTaskDelay(500 / portTICK_PERIOD_MS);
         ESP_LOGV(TAG, "Failed to read software version from SCD30");
         //return;
     }
@@ -173,7 +173,7 @@ void Scd30Sensor::ReadMeasurementInterval() {
     uint8_t intervalBytes[2] = {0,0};
     while(!ReadCommand(Scd30I2CCommand::SET_MEASUREMENT_INTERVAL, nullptr, 0, &intervalBytes, 1))
     {
-        vTaskDelay(500 / portTICK_RATE_MS);
+        vTaskDelay(500 / portTICK_PERIOD_MS);
         ESP_LOGV(TAG, "Failed to read measurement interval from SCD30");
         return;
     }
@@ -183,7 +183,7 @@ void Scd30Sensor::ReadMeasurementInterval() {
         SetMeasurementInterval(2);
         while(!ReadCommand(Scd30I2CCommand::SET_MEASUREMENT_INTERVAL, nullptr, 0, &intervalBytes, 1))
         {
-            vTaskDelay(500 / portTICK_RATE_MS);
+            vTaskDelay(500 / portTICK_PERIOD_MS);
             ESP_LOGV(TAG, "Failed to read measurement interval from SCD30");
             return;
         }
@@ -197,7 +197,7 @@ void Scd30Sensor::ReadABCStatus() {
     uint8_t bytes[2] = {0,0};
     while(!ReadCommand(Scd30I2CCommand::GET_OR_SET_ABC, nullptr, 0, &bytes, 1))
     {
-        vTaskDelay(500 / portTICK_RATE_MS);
+        vTaskDelay(500 / portTICK_PERIOD_MS);
         ESP_LOGV(TAG, "Failed to read ABC status from SCD30");
        // return;
     }
@@ -209,7 +209,7 @@ void Scd30Sensor::ReadTemperatureOffset() {
     uint8_t bytes[2] = {0,0};
     while(!ReadCommand(Scd30I2CCommand::SET_TEMP_OFFSET, nullptr, 0, &bytes, 1))
     {
-        vTaskDelay(500 / portTICK_RATE_MS);
+        vTaskDelay(500 / portTICK_PERIOD_MS);
         ESP_LOGV(TAG, "Failed to temperature offset from SCD30");
         return;
     }
@@ -220,7 +220,7 @@ void Scd30Sensor::ReadAltitude() {
     uint8_t bytes[2] = {0,0};
     while(!ReadCommand(Scd30I2CCommand::ALTITUDE_COMPENSATION, nullptr, 0, &bytes, 1))
     {
-        vTaskDelay(500 / portTICK_RATE_MS);
+        vTaskDelay(500 / portTICK_PERIOD_MS);
         ESP_LOGV(TAG, "Failed to read altitude from SCD30");
         return;
     }
@@ -287,7 +287,7 @@ void Scd30Sensor::DisableABC() {
     uint8_t paramBytes[2]  = {0,0};
     while(!ReadCommand(Scd30I2CCommand::GET_OR_SET_ABC, paramBytes, sizeof(paramBytes), nullptr, 0))
     {
-        vTaskDelay(500 / portTICK_RATE_MS);
+        vTaskDelay(500 / portTICK_PERIOD_MS);
         ESP_LOGV(TAG, "Failed to disable ABC on SCD30");
     }
     ReadABCStatus();  
@@ -298,7 +298,7 @@ void Scd30Sensor::ManualCalibration(int pBaseLinePPM) {
     while(!ReadCommand(Scd30I2CCommand::GET_READY_STATUS, nullptr, 0, (uint16_t *)readyStatus, sizeof(readyStatus)) || readyStatus[1]!=1)
     {
         ESP_LOGE(TAG, "Not ready");
-        vTaskDelay(50 / portTICK_RATE_MS);
+        vTaskDelay(50 / portTICK_PERIOD_MS);
     }
     uint8_t paramBytes[2];
     paramBytes[0] = pBaseLinePPM >> 8;
@@ -306,7 +306,7 @@ void Scd30Sensor::ManualCalibration(int pBaseLinePPM) {
 
     while(!ReadCommand(Scd30I2CCommand::SET_EXTERNAL_REF_VALUE, paramBytes, sizeof(paramBytes), nullptr, 0))
     {
-        vTaskDelay(500 / portTICK_RATE_MS);
+        vTaskDelay(500 / portTICK_PERIOD_MS);
         ESP_LOGV(TAG, "Failed to set FRC value on SCD30");
     }
 }
@@ -315,7 +315,7 @@ void Scd30Sensor::EnableABC(int pBaseLinePPM, int pNumberOfDaysPerCycle) {
     uint8_t paramBytes[2]  = {0,1};
     while(!ReadCommand(Scd30I2CCommand::GET_OR_SET_ABC, paramBytes, sizeof(paramBytes), nullptr, 0))
     {
-        vTaskDelay(500 / portTICK_RATE_MS);
+        vTaskDelay(500 / portTICK_PERIOD_MS);
         ESP_LOGV(TAG, "Failed to enable ABC on SCD30");
     }
     ReadABCStatus();  
@@ -327,7 +327,7 @@ void Scd30Sensor::SetMeasurementInterval(uint16_t pIntervalSeconds) {
     paramBytes[1] = pIntervalSeconds & 0xFF;
     while(!ReadCommand(Scd30I2CCommand::SET_MEASUREMENT_INTERVAL, paramBytes, sizeof(paramBytes), nullptr, 0))
     {
-        vTaskDelay(500 / portTICK_RATE_MS);
+        vTaskDelay(500 / portTICK_PERIOD_MS);
         ESP_LOGV(TAG, "Failed toset measurement interval on SCD30");
     }
     //ReadMeasurementInterval();

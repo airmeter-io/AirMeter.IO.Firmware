@@ -3,6 +3,10 @@
 
 #define TAG "I2CDeviceSession"
 
+
+extern "C" {
+    #include "hal/i2c_types.h"
+}
 I2CDeviceSession::I2CDeviceSession(i2c_port_t pPort, uint8_t pDeviceId) : _port(pPort), _deviceId(pDeviceId) {
 
 }
@@ -49,7 +53,7 @@ bool I2CDeviceSession::RunCommand(I2CDeviceSessionCommand* pCommands, uint pNumC
                 }
                 break;
             case I2CDeviceSessionCommandType::WriteBytes :   
-                result = i2c_master_write(cmd, pCommands[i].Data.MultipleBytes.Bytes, pCommands[i].Data.MultipleBytes.Len, I2C_MASTER_LAST_NACK);
+                result = i2c_master_write(cmd, pCommands[i].Data.MultipleBytes.Bytes, pCommands[i].Data.MultipleBytes.Len, true);
                 if(result) {
                     ESP_LOGE(TAGI2C, "StartReadCommand.i2c_master_write ( port = %d, dev = %02x, err=%d)", _port,  _deviceId, result);
                 }

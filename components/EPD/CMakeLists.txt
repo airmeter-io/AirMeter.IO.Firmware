@@ -9,11 +9,13 @@ idf_component_register(
   REQUIRES "json"
           "nvs_flash"
           "I2C"
+          "esp_timer"
           "HTTPSERVER"
           "mqtt"
           "spiffs"
           "esp_http_server"
           "GPIOROUTING"
           "BITMAPFONT"
-          
+          "driver"
+          "esp_wifi"
 )

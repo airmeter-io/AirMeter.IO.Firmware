@@ -3,4 +3,5 @@ idf_component_register(
     INCLUDE_DIRS "include"
                  "../../common"
     REQUIRES "json"
-             "I2C")
+             "I2C"
+             "driver")

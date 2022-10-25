@@ -10,4 +10,7 @@ idf_component_register(
            "mqtt"
            "spiffs"
            "esp_http_server"
-           "hal" "esp_hw_support")
+           "hal" 
+           "esp_hw_support"
+           "driver"
+           "esp_wifi")

@@ -47,7 +47,7 @@ DataManagerFlashDataStore::DataManagerFlashDataStore() {
 
 
     }
-    printf("Readings partition found %u bytes\n", _partition->size);
+    printf("Readings partition found %u bytes\n", (unsigned int)_partition->size);
     ScanBuckets();
 }
 

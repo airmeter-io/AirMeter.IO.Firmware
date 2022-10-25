@@ -3,6 +3,12 @@
 #include<vector>
 #include <string>
 
+
+extern "C" {
+   // #include "esp_netif.h"
+    #include "esp_wifi.h"
+}
+
 class WifiManagerInternal {
     public:
        virtual void ProcessWifiEvent(wifi_event_t pEvent, void *pEventData);

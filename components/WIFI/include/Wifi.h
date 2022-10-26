@@ -20,7 +20,7 @@ class Wifi : private WifiPrivate {
   bool _isProvisioning = false;
 
   WifiManager _wifiManager;
-
+  
   void RunCaptiveDNS() override;
 public:
     Wifi(const std::string pSoftApName, const std::string pApPassword);

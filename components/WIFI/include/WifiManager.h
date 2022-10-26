@@ -22,6 +22,7 @@ class WifiManager : private WifiManagerInternal {
     wifi_config_t _wifiConfig;
     wifi_init_config_t _initConfig = WIFI_INIT_CONFIG_DEFAULT();
     const std::string _softApName;
+    esp_netif_t *_staIf;
     std::string _apPassword;
     std::string _ipAddress;
     std::string _netmask;

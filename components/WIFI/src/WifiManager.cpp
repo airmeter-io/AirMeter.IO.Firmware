@@ -253,6 +253,7 @@ WifiManager::WifiManager() {
     ESP_ERROR_CHECK(esp_efuse_mac_get_default(mac));
     ESP_ERROR_CHECK(esp_base_mac_addr_set(mac));
     esp_netif_init();
+    _staIf  = esp_netif_create_default_wifi_sta();
     //ESP_ERROR_CHECK(esp_event_loop_create_default());
     _initConfig  = WIFI_INIT_CONFIG_DEFAULT();
     esp_wifi_init(&_initConfig);
@@ -355,6 +356,7 @@ bool WifiManager::EnableStationOnly() {
         ESP_LOGE(TAG, "Failed to enable STA mode: %d", err);
         return false;
     }
+   
 
     ESP_ERROR_CHECK(esp_wifi_start());
 

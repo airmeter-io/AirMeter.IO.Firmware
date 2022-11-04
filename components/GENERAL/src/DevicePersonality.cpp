@@ -65,10 +65,10 @@ DevicePersonality* DevicePersonality::Load() {
                 uartConfig.UartNum = uartProp->GetIntProperty("uartNum");
             if(uartProp->HasObjectProperty("gpio")) {
                 auto gpioProp = uartProp->GetObjectProperty("gpio");
-                if(gpioProp->HasProperty("RxGpio") && gpioProp->HasProperty("TxGpio")) {
+                if(gpioProp->HasProperty("rx") && gpioProp->HasProperty("tx")) {
                     uartConfig.OverrideGpio = true;
                     auto rxGpio =  gpioProp->GetIntProperty("rx");
-                    auto txGpio =  gpioProp->GetIntProperty("rx");
+                    auto txGpio =  gpioProp->GetIntProperty("tx");
                     if(rxGpio && txGpio && rxGpio < (int)GPIO_NUM_MAX && txGpio < (int)GPIO_NUM_MAX) {
                         uartConfig.RxGpio = (gpio_num_t)rxGpio;
                         uartConfig.TxGpio = (gpio_num_t)txGpio;
@@ -81,6 +81,12 @@ DevicePersonality* DevicePersonality::Load() {
         free(rawJson);
     }
 
+    printf("Profile: %s\n",profile.c_str());
+    printf("Build Version: %s\n",buildVersion.c_str());
+    printf("Build Asset: %s\n",buildAsset.c_str());
+    printf("Uart Enabled: %s\n",uartConfig.Enabled? "true" : "false");
+    printf("Override GPIO: %s\n",uartConfig.OverrideGpio? "true" : "false");
+    printf("TX/RX: %d/%d\n",(int)uartConfig.TxGpio, (int)uartConfig.RxGpio);
     return new DevicePersonality(
             profile,
             buildVersion,

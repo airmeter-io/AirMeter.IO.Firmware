@@ -57,11 +57,12 @@ MainLogicLoop::MainLogicLoop() {
     GpioManager::Setup();
     _i2c = new I2C(GPIO_NUM_4, GPIO_NUM_5);
     _i2c->Scan();
+    _devicePersonality = DevicePersonality::Load();
     _generalSettings = new GeneralSettings();
     _ramStore = new DataManagerRamTemporaryStore();
     _flashStore = new DataManagerFlashDataStore();
     _dataManager = new DataManager(_flashStore,_ramStore);
-    _sensorManager = new SensorManager(*_generalSettings, *_i2c, *_dataManager);
+    _sensorManager = new SensorManager(*_devicePersonality, *_generalSettings, *_i2c, *_dataManager);
     
 
     #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0) 

@@ -13,4 +13,5 @@ idf_component_register(
            "hal" 
            "esp_hw_support"
            "driver"
-           "esp_wifi")
+           "esp_wifi"
+           "GENERAL")

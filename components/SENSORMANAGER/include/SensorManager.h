@@ -5,6 +5,7 @@
 #include "ValueModel.h"
 #include "BME280.h"
 #include "GeneralSettings.h"
+#include "DevicePersonality.h"
 #include "I2C.h"
 #include "PinSerial.h"
 #include "DataManager.h"
@@ -15,6 +16,7 @@ class SensorManager : private ISensorManager {
     BME280* _bme;
     ValueModel _values;
     GeneralSettings& _settings;
+    DevicePersonality& _devicePersonality;
     I2C& _i2c;    
     DataManager _dataManager;
     
@@ -22,7 +24,7 @@ class SensorManager : private ISensorManager {
     void EnableSensorReadGPIO() override;
     void DisableSensorReadGPIO() override;
 public:
-    SensorManager(GeneralSettings& pSettings, I2C& pI2C, DataManager& pDataManager);
+    SensorManager(DevicePersonality& pDevicePersonality,GeneralSettings& pSettings, I2C& pI2C, DataManager& pDataManager);
     ~SensorManager();
     ValueModel& GetValues();
     time_t UpdateValues();

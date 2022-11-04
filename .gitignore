@@ -6,3 +6,4 @@
 /webui/node_modules
 /sdkconfig
 /sdkconfig.defaults
+/dependencies.lock

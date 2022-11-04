@@ -1,0 +1,20 @@
+{
+    "profile": "epd213",
+    "buildVersion": "From Source",
+    "buildAsset": "From Source",
+    "uart": {
+        "enabled": false,
+        "uartNum": 2,
+        "gpio": {
+            "tx": "17",
+            "rx": "16"
+        }
+    },
+    "display": {
+        "enabled": true,
+        "driver": "ssd1680",
+        "config": {
+            "panel": "DEPG0213BN"
+        }
+    }
+}

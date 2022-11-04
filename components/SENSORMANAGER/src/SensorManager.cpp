@@ -16,16 +16,30 @@
 
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)
 #include "HWSerial.h"
-#define SerialESP32 new HWSerial(CONFIG_CO2_UART_NUM)
-#define Serial SerialESP32
+
+PinSerial* CreateSerial(const UartConfig& pConfig) {
+    return new HWSerial(pConfig);
+}
+
 #else 
 #include "SoftSerial.h"
-#define SerialESP8266 new SoftSerial(GPIO_NUM_15, GPIO_NUM_13);
-#define Serial SerialESP8266
+
+PinSerial* CreateSerial(const UartConfig& pConfig) {
+    auto tx = GPIO_NUM_15;
+    auto rx = GPIO_NUM_13;
+    if(pConfig.OverrideGpio)
+    {
+        tx = pConfig.TxGpio;
+        rx = pConfig.RxGpio;
+    }
+    return new SoftSerial(tx, rx);
+}
+
 #endif
 
-SensorManager::SensorManager(GeneralSettings& pSettings, I2C& pI2C, DataManager& pDataManager) : 
+SensorManager::SensorManager(DevicePersonality& pDevicePersonality,GeneralSettings& pSettings, I2C& pI2C, DataManager& pDataManager) : 
     _settings(pSettings), 
+    _devicePersonality(pDevicePersonality),
     _i2c(pI2C), 
     _dataManager(pDataManager) {
     ESP_ERROR_CHECK(gpio_set_direction(SENSOR_ENABLE_GPIO, (gpio_mode_t)GPIO_MODE_DEF_OUTPUT));
@@ -50,22 +64,22 @@ SensorManager::SensorManager(GeneralSettings& pSettings, I2C& pI2C, DataManager&
         printf("%.2x ", device);
     }
     printf("\n");
-
-    if(!_co2Sensor) {
+    auto uartConfig = pDevicePersonality.GetUartConfig();
+    if(!_co2Sensor && uartConfig.Enabled) {
         
         switch(_settings.GetCO2SensorType()) {
             case CO2SensorType::None :
                 break;
             case CO2SensorType::MHZ19 :
-                _serial = Serial;
+                _serial = CreateSerial(uartConfig);
                 _co2Sensor = new MhZ19Sensor(_serial);
                 break;
             case CO2SensorType::Cubic :
-                _serial = Serial;
+                _serial = CreateSerial(uartConfig);
                 _co2Sensor = new CubicCO2Sensor(_serial);
                 break;
             case CO2SensorType::SenseAirModBus:
-                _serial = Serial;
+                _serial = CreateSerial(uartConfig);
                 _co2Sensor = new SenseairModBusSensor(_serial);
                 break;
             default:
@@ -115,8 +129,6 @@ time_t SensorManager::UpdateValues() {
         auto temp = (int16_t)(_values.Bme280.temperature*100);
         auto humidity = (uint16_t)(_values.Bme280.humidity*100);
         auto pressure = (uint)(_values.Bme280.pressure)- 80000;
-       
-        //auto pressure = (uint16_t)((_values.Bme280.pressure-800)*100);
 
         DataEntry entry = {
             .TimeStamp = curTime,

@@ -219,7 +219,7 @@ void SSD1680::WaitBusy(const char* message, uint16_t busy_time){
 //         printf("Is 1\n");
 //         while(esp_timer_get_time()-time_since_boot<7000000) {
             
-//             _group.PollEvents();
+//              _group.WaitForEvents(1000/portTICK_PERIOD_MS);
 //             while(_group.HasQueued()) {
 //                 auto event = _group.GetQueued();
 //                 printf("Wait Busy: %s %d - %d\n",message, (int)(event.When-time_since_boot), event.Level );

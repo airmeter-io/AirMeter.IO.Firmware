@@ -15,11 +15,13 @@
 #include "ScreenManager.h"
 #include "MqttManager.h"
 #include "BatteryManager.h"
+#include "DevicePersonality.h"
 
 class MainLogicLoop : private StringValueSource, private ScreenManagerNotifier {
     
     SensorManager* _sensorManager = nullptr;
     GeneralSettings* _generalSettings = nullptr;
+    DevicePersonality* _devicePersonality = nullptr;
     ValueModel _values;
     //CO2MonitorDisplay* _display = nullptr;
     MqttManager* _mqtt = nullptr;

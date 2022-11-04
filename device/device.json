@@ -3,7 +3,7 @@
     "buildVersion": "From Source",
     "buildAsset": "From Source",
     "uart": {
-        "enabled": false,
+        "enabled": "false",
         "uartNum": 2,
         "gpio": {
             "tx": "17",
@@ -11,7 +11,7 @@
         }
     },
     "display": {
-        "enabled": true,
+        "enabled": "true",
         "driver": "ssd1680",
         "config": {
             "panel": "DEPG0213BN"

@@ -141,11 +141,11 @@ CubicCO2ErrorCode CubicCO2Sensor::ExecuteCommand(CubicCO2Buffer& pInput, CubicCO
 bool CubicCO2Sensor::RefreshValues() {
    CubicCO2Buffer command(CubicCO2Command::ReadValues,1);
    CubicCO2Buffer response;
-
+   command.Print("Refresh Sending");
    auto error = ExecuteCommand(command,response);
    if(error) 
       return false;
-
+   response.Print("Refresh Response");
    auto flags = response.Buffer[5];
    _valDrift.value.b = flags & (1<<6);
    _valLightAging.value.b = flags & (1<<5);

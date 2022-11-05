@@ -24,7 +24,6 @@ HWSerial::~HWSerial() {
 }
 
 int HWSerial::Read(void *pBuf, int pLen) {
-    printf("Serial reading\n");
     auto result = uart_read_bytes(_uartConfig.UartNum, pBuf, (uint32_t)pLen, 0);
     printf("serial read %d bytes\n", result);
     return result;
@@ -35,7 +34,6 @@ bool HWSerial::Write(void *pBuf, int pLen) {
 }
 
 int HWSerial::Read(void *pBuf, int pLen, int pTimeout) {
-    printf("Serial reading (t)\n");
     auto result = uart_read_bytes(_uartConfig.UartNum, pBuf, (uint32_t)pLen, (TickType_t)pTimeout);
     printf("serial read %d bytes (t)\n", result);
     return result;

@@ -145,6 +145,7 @@ bool CubicCO2Sensor::RefreshValues() {
    auto error = ExecuteCommand(command,response);
    if(error) 
       return false;
+      
    response.Print("Refresh Response");
    auto flags = response.Buffer[5];
    _valDrift.value.b = flags & (1<<6);

@@ -180,8 +180,8 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           repository: "airmeter-io/WebFlashTool"
-  	      directory: webflashtool
-
+  	      directory: "webflashtool"
+          
       - uses: ncipollo/release-action@v1
         with:
           artifacts: "esp32-binaries/*.zip, esp8266-binaries/*.zip"

@@ -2,7 +2,7 @@ idf_component_register(
   SRCS "src/SSD1680.cpp"
     "src/EPDBackBuffer.cpp"
     "src/EPDDrawTarget.cpp"
-    "src/DEPG0213BN.cpp"
+    "src/DriverSSD1680.cpp"
     "src/epdspi.cpp"
   INCLUDE_DIRS "include"
               "../../common"

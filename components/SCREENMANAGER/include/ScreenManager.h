@@ -6,9 +6,10 @@
 #include "ButtonManager.h"
 #include "SensorManager.h"
 #include "DrawTarget.h"
+#include "DevicePersonality.h"
 
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)    
-#include "DEPG0213BN.h"
+#include "DriverSSD1680.h"
 #endif
 
 #include<vector>
@@ -27,18 +28,19 @@ class ScreenManager {
     ScreenDefinition* _default = nullptr;
     ButtonManager* _buttons;
     ScreenDefinition* _current;
-    std::vector<DrawAction *> LoadActions(Json* pParentElement, std::string pElementName);
-    void LoadScreens(Json& pJson);
+    DevicePersonality& _devicePersonality;
     StringValueSource& _valueSource;
     SensorManager& _sensorManager;
     DrawControl* _drawControl;
-    
+
     std::string _nextScreen = "";
     bool _needScreenChange = false;
     bool _running = false;
-    
+
+    std::vector<DrawAction *> LoadActions(Json* pParentElement, std::string pElementName);
+    void LoadScreens(Json& pJson);    
 public:
-    ScreenManager(DrawControl* pDrawControl, StringValueSource& pValueSource, SensorManager& pSensorManager, ScreenManagerNotifier& pNotifier);
+    ScreenManager(DevicePersonality& pDevicePersonality,DrawControl* pDrawControl, StringValueSource& pValueSource, SensorManager& pSensorManager, ScreenManagerNotifier& pNotifier);
 
     inline ScreenDefinition* GetDefault() {
         return _default;

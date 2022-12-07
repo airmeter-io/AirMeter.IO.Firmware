@@ -7,7 +7,7 @@
 #include "EPDDrawTarget.h"
 #include "BitmapFont.h"
 #include<string>
-class DEPG0213BN : public DrawControl {
+class DriverSSD1680 : public DrawControl {
     const uint WIDTH = 128;
     const uint HEIGHT = 250;
     EPDBackBuffer* _backBuffer = new EPDBackBuffer(WIDTH, HEIGHT);
@@ -16,8 +16,8 @@ class DEPG0213BN : public DrawControl {
     EPDDrawTarget *_gfx;
    // BitmapFont _font;
 public:
-    DEPG0213BN(SSD1680& pSsd1680);
-    ~DEPG0213BN();
+    DriverSSD1680(SSD1680& pSsd1680);
+    ~DriverSSD1680();
 
     inline EPDBackBuffer& GetBackBuffer() {
         return *_backBuffer;

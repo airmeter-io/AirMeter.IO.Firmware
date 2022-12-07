@@ -16,5 +16,11 @@
         "config": {
             "panel": "DEPG0213BN"
         }
-    }
+    },
+    "buttons": [
+        {
+            "name": "button1",
+            "gpio": 39
+        }
+    ]
 }

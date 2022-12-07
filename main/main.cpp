@@ -18,7 +18,7 @@
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)    
     #include "EpdSpi.h"
     #include "SSD1680.h"
-    #include "DEPG0213BN.h"
+    #include "DriverSSD1680.h"
 #endif
 
 
@@ -67,15 +67,15 @@ MainLogicLoop::MainLogicLoop() {
 
     #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0) 
     SSD1680 *ssd1680;
-    DEPG0213BN *display;
+    DriverSSD1680 *display;
     
     _io.init(4,false);
 
     ssd1680 = new SSD1680(_io);
-    display = new DEPG0213BN(*ssd1680);
-    _screenManager = new ScreenManager(display, *this, *_sensorManager, *this);   
+    display = new DriverSSD1680(*ssd1680);
+    _screenManager = new ScreenManager(*_devicePersonality, display, *this, *_sensorManager, *this);   
     #else
-    _screenManager = new ScreenManager(new NullDrawControl(), *this, *_sensorManager, *this);   
+    _screenManager = new ScreenManager(*_devicePersonality, new NullDrawControl(), *this, *_sensorManager, *this);   
     #endif
 
     _voltageStr[0] = 0;

@@ -3,8 +3,9 @@
 
 
 
-ScreenManager::ScreenManager(DrawControl* pDrawControl, StringValueSource& pValueSource, SensorManager& pSensorManager, ScreenManagerNotifier& pNotifier) : 
+ScreenManager::ScreenManager(DevicePersonality& pDevicePersonality,DrawControl* pDrawControl, StringValueSource& pValueSource, SensorManager& pSensorManager, ScreenManagerNotifier& pNotifier) :     
     _notifier(pNotifier),
+    _devicePersonality(pDevicePersonality),
     _valueSource(pValueSource), 
     _sensorManager(pSensorManager),
     _drawControl(pDrawControl) {

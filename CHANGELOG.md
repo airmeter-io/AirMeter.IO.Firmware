@@ -1,4 +1,7 @@
-Beta Release 0.2.0 of @AirmeterIO brings full support for the Portable 2.13in ePaper device (https://airmeter.io/make/epd213), including on-device UI.
+Beta Release 0.2.1 of @AirmeterIO brings full support for the Portable 2.13in ePaper device (https://airmeter.io/make/epd213), including on-device UI.
+# 0.2.1 - Portable ePaper Device (Beta + fixes)
+- More stability in EPD updates.
+- Buttons function better due to fix in GPIO handling. 
 
 # 0.2.0 - Portable ePaper Device (Beta)
 - Adds support for EPD displays with general infrastructure in place for SSD168x panels and specific support for DEPG0213BN.

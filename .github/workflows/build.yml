@@ -19,9 +19,11 @@ jobs:
         pwd
         cp boards/esp32-idf/* .
     - name: esp-idf build
-      uses: espressif/esp-idf-ci-action@release/v5.0
+      uses: espressif/esp-idf-ci-action@v1
       with:
         path: '.'
+        esp_idf_version: v5.0
+        target: esp32
 
     - name: Build Artifacts
       run: |

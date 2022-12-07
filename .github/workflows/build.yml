@@ -179,7 +179,7 @@ jobs:
         uses: actions-js/push@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          repository: airmeter-io/WebFlashTool
+          repository: "airmeter-io/WebFlashTool"
   	      directory: webflashtool
 
       - uses: ncipollo/release-action@v1

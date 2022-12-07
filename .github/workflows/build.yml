@@ -168,25 +168,16 @@ jobs:
         uses: actions/checkout@v3
         with:
           repository: airmeter-io/WebFlashTool
-          path: webflashtool
+          path: WebFlashTool
 
       - name: Copy binary release to WebFlashTool working folder.
         shell: bash
         run: |
           cp esp32-binaries/*.zip webflashtool/public
-
-      - name: Commit & Push changes
-        uses: actions-js/push@master
+      - uses: stefanzweifel/git-auto-commit-action@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          repository: "airmeter-io/WebFlashTool"
-  	      directory: "webflashtool"
-          
-      - uses: ncipollo/release-action@v1
-        with:
-          artifacts: "esp32-binaries/*.zip, esp8266-binaries/*.zip"
-          bodyFile: "CHANGELOG.md"
-          token: ${{ secrets.GITHUB_TOKEN }}
+          commit_message: Added new release
+          repository: WebFlashTool
 
       - name: Extract branch name
         shell: bash

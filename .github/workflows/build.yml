@@ -201,7 +201,7 @@ jobs:
       - name: Copy binary release to WebFlashTool working folder.
         shell: bash
         run: |
-          cp esp32-binaries/*.zip webflashtool/public
+          cp esp32-binaries/*.zip WebFlashTool/public
       - uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: Added new release

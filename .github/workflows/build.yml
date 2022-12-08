@@ -46,16 +46,11 @@ jobs:
         cd ../AirMeter.IO.Firmware
         idf.py build
         cd..
+
+    - name: Disable ESP-IDF Wifi Provisioning
+      run: |
+        rm esp-idf/components/wifi_provisioning/CMakeLists.txt
         
-
-
-    # - name: esp-idf build
-    #   uses: espressif/esp-idf-ci-action@v1
-    #   with:
-    #     path: '.'
-    #     esp_idf_version: v5.0
-    #     target: esp32
-
     - name: Build Artifacts
       run: |
         cd AirMeter.IO.Firmware

@@ -48,8 +48,7 @@ jobs:
         . ./export.sh
         cd ../AirMeter.IO.Firmware
         idf.py build
-        cd ..  
-        
+        cd ..       
     - name: Build Artifacts
       run: |
         cd AirMeter.IO.Firmware

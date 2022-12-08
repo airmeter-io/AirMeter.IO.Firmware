@@ -206,6 +206,7 @@ jobs:
         with:
           commit_message: Added new release
           repository: WebFlashTool
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
       - name: Extract branch name
         shell: bash

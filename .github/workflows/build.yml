@@ -40,7 +40,7 @@ jobs:
 
     - name: Installing ESP-IDF
       run: |
-        cd esp-idf
+        ls
         sh export.sh
         cd ../AirMeter.IO.Firmware
         idf.py build

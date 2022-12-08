@@ -37,7 +37,7 @@ jobs:
         ./install.sh
         cd ..
 
-  - name: Disable ESP-IDF Wifi Provisioning
+    - name: Disable ESP-IDF Wifi Provisioning
       run: |
         rm esp-idf/components/wifi_provisioning/CMakeLists.txt
 

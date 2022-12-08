@@ -37,19 +37,18 @@ jobs:
         ./install.sh
         cd ..
 
+  - name: Disable ESP-IDF Wifi Provisioning
+      run: |
+        rm esp-idf/components/wifi_provisioning/CMakeLists.txt
 
-    - name: Installing ESP-IDF
+    - name: Build Airmeter.io Firmware
       run: |
         ls
         cd esp-idf
         . ./export.sh
         cd ../AirMeter.IO.Firmware
         idf.py build
-        cd..
-
-    - name: Disable ESP-IDF Wifi Provisioning
-      run: |
-        rm esp-idf/components/wifi_provisioning/CMakeLists.txt
+        cd ..  
         
     - name: Build Artifacts
       run: |

@@ -207,19 +207,24 @@ jobs:
         with:
           commit_message: Added new release
           repository: WebFlashTool
-          
+      
+      - uses: ncipollo/release-action@v1
+        with:
+          artifacts: "esp32-binaries/*.zip, esp8266-binaries/*.zip"
+          bodyFile: "CHANGELOG.md"
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Extract branch name
         shell: bash
         run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/tags/})"
         id: extract_branch        
-#      - uses: julb/action-post-twitter-status@v1
-#        with:
-#          message: "AirMeter ${{ steps.extract_branch.outputs.branch }} is now available for download: https://github.com/airmeter-io/AirMeter.io.Firmware/releases/tag/${{ steps.extract_branch.outputs.branch }}"
-#          twitter_app_consumer_api_key: ${{ secrets.TWITTER_CONSUMER_API_KEY }}
-#          twitter_app_consumer_api_secret_key: ${{ secrets.TWITTER_CONSUMER_API_SECRET }}
-#          twitter_app_access_token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
-#          twitter_app_access_token_secret: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
+      - uses: julb/action-post-twitter-status@v1
+        with:
+          message: "AirMeter ${{ steps.extract_branch.outputs.branch }} is now available for download: https://github.com/airmeter-io/AirMeter.io.Firmware/releases/tag/${{ steps.extract_branch.outputs.branch }}"
+          twitter_app_consumer_api_key: ${{ secrets.TWITTER_CONSUMER_API_KEY }}
+          twitter_app_consumer_api_secret_key: ${{ secrets.TWITTER_CONSUMER_API_SECRET }}
+          twitter_app_access_token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
+          twitter_app_access_token_secret: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
 
 
 

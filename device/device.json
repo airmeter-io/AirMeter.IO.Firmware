@@ -12,7 +12,7 @@
     },
     "display": {
         "enabled": "true",
-        "driver": "ssd1680",
+        "driver": "ssd16xx",
         "config": {
             "panel": "DEPG0213BN"
         }

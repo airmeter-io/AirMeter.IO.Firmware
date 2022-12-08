@@ -42,7 +42,7 @@ jobs:
       run: |
         ls
         cd esp-idf
-        ./export.sh
+        . ./export.sh
         cd ../AirMeter.IO.Firmware
         idf.py build
         cd..

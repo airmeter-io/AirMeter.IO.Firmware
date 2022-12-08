@@ -197,6 +197,7 @@ jobs:
         with:
           repository: airmeter-io/WebFlashTool
           path: WebFlashTool
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
       - name: Copy binary release to WebFlashTool working folder.
         shell: bash
@@ -206,7 +207,7 @@ jobs:
         with:
           commit_message: Added new release
           repository: WebFlashTool
-          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          
 
       - name: Extract branch name
         shell: bash

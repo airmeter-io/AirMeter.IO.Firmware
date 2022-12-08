@@ -9,27 +9,59 @@ jobs:
     steps:
     - name: Install zip
       run: sudo apt-get install -y zip
-    - name: Checkout repo
-      uses: actions/checkout@v2
+
+    - name: Checkout ESP-IDF
+      uses: actions/checkout@v3
       with:
+        repository: espressif/esp-idf
+        path: esp-idf
         submodules: 'recursive'
+        ref: 'release/v5.0'
+
+    - name: Checkout repo
+      uses: actions/checkout@v3
+      with:
+        repository: airmeter-io/AirMeter.IO.Firmware
+        path: AirMeter.IO.Firmware
+        submodules: 'recursive'
+        ref: ${{ github.ref_name }}
+
     - name: Copy SDK Config
       run: |
-        echo ${{ secrets.TWITTER_CONSUMER_API_KEY }}
         pwd
-        cp boards/esp32-idf/* .
-    - name: esp-idf build
-      uses: espressif/esp-idf-ci-action@v1
-      with:
-        path: '.'
-        esp_idf_version: v5.0
-        target: esp32
+        cp AirMeter.IO.Firmware/boards/esp32-idf/* AirMeter.IO.Firmware/
+
+    - name: Installing ESP-IDF
+      run: |
+        cd esp-idf
+        sh install.sh
+        cd ..
+
+
+    - name: Installing ESP-IDF
+      run: |
+        cd esp-idf
+        sh export.sh
+        cd ../AirMeter.IO.Firmware
+        idf.py build
+        cd..
+        
+
+
+    # - name: esp-idf build
+    #   uses: espressif/esp-idf-ci-action@v1
+    #   with:
+    #     path: '.'
+    #     esp_idf_version: v5.0
+    #     target: esp32
 
     - name: Build Artifacts
       run: |
+        cd AirMeter.IO.Firmware
         export
         chmod a+x boards/esp32-idf/buildzipdir.sh
         boards/esp32-idf/buildzipdir.sh
+        cd ..
 
     - name: Store Artifacts
       uses: actions/upload-artifact@v2

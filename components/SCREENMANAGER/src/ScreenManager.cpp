@@ -3,12 +3,14 @@
 
 
 
+
 ScreenManager::ScreenManager(DevicePersonality& pDevicePersonality,DrawControl* pDrawControl, StringValueSource& pValueSource, SensorManager& pSensorManager, ScreenManagerNotifier& pNotifier) :     
     _notifier(pNotifier),
     _devicePersonality(pDevicePersonality),
     _valueSource(pValueSource), 
     _sensorManager(pSensorManager),
     _drawControl(pDrawControl) {
+    _powerLock = new PowerLock(MaxConfigured, "ScreenManager");
     auto f = fopen("/dev/ui.json", "rb");
     if (f != NULL) {        
         fseek(f, 0, SEEK_END);
@@ -129,7 +131,9 @@ void ScreenManager::Run(TickType_t pNotifyPeriod) {
             .Screens = *this
         };
         printf("Executing first draw\n");
+        _powerLock->Aquire();
         screen->ExecuteDraw(ctx);
+        _powerLock->Release();
         printf("Executing first update");
         _drawControl->RenderToDisplay(false);
 
@@ -141,21 +145,37 @@ void ScreenManager::Run(TickType_t pNotifyPeriod) {
         // vTaskDelay(5000 / portTICK_PERIOD_MS);
     
             _buttons->WaitForEvents(pNotifyPeriod);
-
+            printf("Got events\n");
             bool requiresRedraw = _notifier.ProcessOnUIThread();
+            if(requiresRedraw) printf("Done processing UI thread needs redraw\n");
+            else printf("Done processing UI no redraw\n");
             screen = GetCurrent();
            
             while(_buttons->HasQueued()) {                
                 auto event = _buttons->GetQueued();
+                printf("Popped Button Event_%d: Level=%d, Timestamp=%d\n ", event.Gpio, (int)event.Code, (int)event.When);    
+                printf("Executing button %d\n", (int)event.Code);
+                 esp_task_wdt_reset();
                 screen->ExecuteButton(ctx, event.Code);
+                 esp_task_wdt_reset();
+                printf("Done executing button");
                 requiresRedraw = true;                
             }
 
             if(requiresRedraw) {
+                _powerLock->Aquire();
+                _buttons->GetGpioGroup()->Disable();
+
                 screen = GetCurrent();
                 screen->ExecuteDraw(ctx);
+                _powerLock->Release();
                 _drawControl->RenderToDisplay(true);
+                printf("Redrawn\n");
+                _buttons->GetGpioGroup()->Enable();
+                
             }
+            printf("Looping\n");
+            esp_task_wdt_reset();
             // if(hadButtons) {
             //     _buttons->WaitForEvents(10);
             //     while(_buttons->HasQueued()) {

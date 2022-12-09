@@ -13,7 +13,9 @@ enum SSD1680RamDataEntryMode : uint8_t {
 };
 
 typedef struct {
-    uint8_t Data[153];
+    bool Enable;
+    uint16_t DataLength;
+    uint8_t *Data;
     int GateDrivingVoltage;
     struct {
         int Vsh1;
@@ -77,7 +79,7 @@ class SSD1680 {
     EpdSpi& _spi;  
     std::vector<gpio_num_t> _gpios;
     GpioGroup _group;
-    void SetRamArea(uint8_t pXStart, uint8_t pXEnd, uint16_t pYStart, uint16_t pYEnd);
+    void SetRamArea(uint8_t pXStart, uint8_t pXEnd, uint16_t pYStart, uint16_t pYEnd, uint16_t pXOffset);
     void SetRamPointer(uint8_t pX, uint16_t pY);
     void WaitBusy(const char* message, uint16_t busy_time);
     void WaitBusy2(const char* message, uint16_t busy_time);
@@ -88,14 +90,14 @@ public:
     ~SSD1680();
 
     void ResetAll();
-    void SetRamDataEntryMode(SSD1680RamDataEntryMode pMode, uint16_t pWidth, uint16_t pHeight);
+    void SetRamDataEntryMode(SSD1680RamDataEntryMode pMode, uint16_t pWidth, uint16_t pHeight, uint16_t pXOffset);
     void SetSleepMode(SSD1306SleepMode pMode);
     void WriteToBWRam(EPDBackBuffer& pBuffer);
     void WriteToRedRam(EPDBackBuffer& pBuffer);
     void ActivateDisplayUpdateSequence(int pWaitMs);
     void ActivateDisplayUpdateSequence2(int pWaitMs);
     void SetDisplayUpdateSequence(SSD1680DisplayUpdateSequence pSequence);
-    void SendLUT(SSD1680Lut& pLut);
+    void SendLUT(const SSD1680Lut& pLut);
     void SendEndLUT(SSD1680LutEndOption pOption);
     void SetGateDrivingVoltage(SSD1680Lut& pLut);
     void SetSourceDrivingVoltage(SSD1680Lut& pLut);

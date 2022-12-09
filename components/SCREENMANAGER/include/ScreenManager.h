@@ -7,9 +7,10 @@
 #include "SensorManager.h"
 #include "DrawTarget.h"
 #include "DevicePersonality.h"
+#include "PowerLock.h"
 
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)    
-#include "DriverSSD1680.h"
+#include "DrawControlSSD16xx.h"
 #endif
 
 #include<vector>
@@ -32,6 +33,7 @@ class ScreenManager {
     StringValueSource& _valueSource;
     SensorManager& _sensorManager;
     DrawControl* _drawControl;
+    PowerLock* _powerLock;
 
     std::string _nextScreen = "";
     bool _needScreenChange = false;

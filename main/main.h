@@ -16,6 +16,8 @@
 #include "MqttManager.h"
 #include "BatteryManager.h"
 #include "DevicePersonality.h"
+#include "ScreenDrivers.h"
+
 
 class MainLogicLoop : private StringValueSource, private ScreenManagerNotifier {
     
@@ -31,6 +33,7 @@ class MainLogicLoop : private StringValueSource, private ScreenManagerNotifier {
     ScreenManager *_screenManager = nullptr;
     BatteryManager *_battery = nullptr;
     Wifi* _wifi = nullptr;
+    ScreenDrivers  *_screenDrivers = nullptr;
     char _voltageStr[10];
     I2C* _i2c;
     std::string ResolveValue(std::string pName) override;
@@ -40,9 +43,7 @@ class MainLogicLoop : private StringValueSource, private ScreenManagerNotifier {
     uint32_t _uiProcessCount = 0;
     bool _gotNtp = false;
     bool _waitingForProvisioning = false;
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)    
-    EpdSpi _io;
-#endif
+
 public:
     MainLogicLoop();
 

@@ -22,7 +22,6 @@ public:
 class DrawControlSSD16xx : public DrawControl {
     EPDBackBuffer* _backBuffer;
     SSD1680 &_ssd1680;
-    static SSD1680Lut LUTPartialUpdate;
     EPDDrawTarget *_gfx;
     const SSD16xxConfiguration _config;
    // BitmapFont _font;

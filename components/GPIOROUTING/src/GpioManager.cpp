@@ -7,7 +7,7 @@ extern "C" {
 }
 #endif
 std::vector<GpioGroup*> GpioManager::_groups;
-std::map<gpio_num_t,GpioInternalState>GpioManager::_gpioMap;
+std::map<gpio_num_t,GpioInternalState> GpioManager::_gpioMap;
 
 void GpioManager::gpio_isr_handler(gpio_num_t pGpio) {
     auto level = gpio_get_level(pGpio);
@@ -20,8 +20,18 @@ void GpioManager::gpio_isr_handler(gpio_num_t pGpio) {
     auto group = _gpioMap[pGpio];
     auto now = esp_timer_get_time();  
 
+  
     
-    if(level != group.Level) {
+    if(level != group.Level) {   
+        auto interuptType = group.Group->GetInteruptType();
+        if(interuptType == LowLevel || interuptType == HighLevel) {
+            if(level) 
+                gpio_wakeup_enable(pGpio, GPIO_INTR_LOW_LEVEL);
+            else 
+                gpio_wakeup_enable(pGpio, GPIO_INTR_HIGH_LEVEL);
+        }
+            
+
         GpioEvent event = { .Gpio = pGpio, .Level = level, .When = now };
         xQueueSendFromISR(group.Group->GetQueueHandle(), &event, NULL);
         _gpioMap[pGpio].Level = level;
@@ -29,8 +39,8 @@ void GpioManager::gpio_isr_handler(gpio_num_t pGpio) {
 
 }
 
-#define GPIO_INPUT_IO_0    (gpio_num_t)GPIO_NUM_13
-#define GPIO_INPUT_PIN_SEL  ((1ULL<<GPIO_INPUT_IO_0))
+
+
 void GpioManager::Setup() {    
     gpio_install_isr_service(0);
 }
@@ -45,19 +55,8 @@ void GpioManager::RegisterGpioGroup(GpioGroup* pGroup) {
         io_conf.pin_bit_mask =((1ULL<<gpio));
     }
 
-    gpio_int_type_t intrType  = GPIO_INTR_ANYEDGE;
-    switch(pGroup->GetInteruptType()) {
-        case FallingEdge :
-            intrType = GPIO_INTR_NEGEDGE;    
-            printf("Configuring falling edge\n");
-            break;
-        case RaisingEdge : 
-            intrType = GPIO_INTR_POSEDGE;    
-            break;
-        case AnyEdge : 
-            intrType = GPIO_INTR_ANYEDGE;    
-            break;
-    }
+    gpio_int_type_t intrType  = pGroup->GetIDFInteruptType();
+   
     io_conf.intr_type = intrType;
     io_conf.mode = GPIO_MODE_INPUT;
     io_conf.pull_up_en = pGroup->GetPullUp() ? GPIO_PULLUP_ENABLE : GPIO_PULLUP_DISABLE;
@@ -177,16 +176,41 @@ InitialGpioState GpioGroup::GetInitialGpioState() const {
 
 void GpioGroup::Disable() {
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)    
-    for(auto gpio : _gpios)
+    for(auto gpio : _gpios) {
         gpio_intr_disable(gpio);
+         if(_interuptType == LowLevel || _interuptType == HighLevel) 
+            gpio_wakeup_disable(gpio);
+    }
 #endif
 }
 
 void GpioGroup::Enable() {
+  
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)    
-    for(auto gpio : _gpios)
+    for(auto gpio : _gpios) {        
         gpio_intr_enable(gpio);
+        if(_interuptType == LowLevel || _interuptType == HighLevel) 
+            gpio_wakeup_enable(gpio, GetIDFInteruptType());
+    }
 #endif    
+}
+
+
+gpio_int_type_t GpioGroup::GetIDFInteruptType() const {
+    switch(_interuptType) {
+        case FallingEdge :
+            return  GPIO_INTR_NEGEDGE;                            
+        case RaisingEdge : 
+            return GPIO_INTR_POSEDGE;                
+        case AnyEdge : 
+            return GPIO_INTR_ANYEDGE;    
+        case LowLevel :
+            return GPIO_INTR_LOW_LEVEL;    
+        case HighLevel : 
+            return GPIO_INTR_HIGH_LEVEL;    
+        default :
+            return GPIO_INTR_ANYEDGE; 
+    }
 }
 
 

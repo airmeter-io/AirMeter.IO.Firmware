@@ -4,6 +4,7 @@ idf_component_register(
   SRCS "src/FontManager.cpp"
        "src/ScreenDefinition.cpp"
        "src/ScreenManager.cpp"
+       "src/ScreenDrivers.cpp"
        "src/StringWithValues.cpp"
   INCLUDE_DIRS "include"
               "../../common"
@@ -19,6 +20,7 @@ idf_component_register(
           "SENSORMANAGER"
           "QRCODE"
           "DRAWTARGET"
+          "POWERMANAGE"
           "driver"
           "esp_wifi"
           

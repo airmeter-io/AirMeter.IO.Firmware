@@ -2,7 +2,8 @@ idf_component_register(
   SRCS "src/SSD1680.cpp"
     "src/EPDBackBuffer.cpp"
     "src/EPDDrawTarget.cpp"
-    "src/DriverSSD1680.cpp"
+    "src/DrawControlSSD16xx.cpp"
+    "src/DriverSSD16xx.cpp"    
     "src/epdspi.cpp"
   INCLUDE_DIRS "include"
               "../../common"
@@ -16,6 +17,7 @@ idf_component_register(
           "esp_http_server"
           "GPIOROUTING"
           "BITMAPFONT"
+          "SCREENMANAGER"
           "driver"
           "esp_wifi"
 )

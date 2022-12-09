@@ -23,7 +23,7 @@ typedef struct {
     int Level;
 } GpioInternalState;
 
-enum InteruptType { AnyEdge, RaisingEdge, FallingEdge };
+enum InteruptType { AnyEdge, RaisingEdge, FallingEdge, LowLevel, HighLevel };
 enum InitialGpioState { Low, High, NotSet };
 
 class GpioGroup {
@@ -35,6 +35,7 @@ class GpioGroup {
     bool _pullDown;
     InteruptType _interuptType;
     InitialGpioState _initialGpioState;
+    
 public:
     GpioGroup(std::vector<gpio_num_t>& pGpios, bool pPullUp = true, bool pPullDown = false, InteruptType pInteruptType = AnyEdge, InitialGpioState pInitialGpioState = Low);
     ~GpioGroup();
@@ -48,6 +49,7 @@ public:
     void Enable();
     InitialGpioState GetInitialGpioState() const;
     InteruptType GetInteruptType() const;
+    gpio_int_type_t GetIDFInteruptType() const;
     GpioEvent GetQueued();
     std::vector<gpio_num_t> GetGPIOs();
     QueueHandle_t GetQueueHandle() const;    

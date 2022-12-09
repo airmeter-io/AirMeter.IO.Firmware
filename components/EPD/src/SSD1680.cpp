@@ -26,36 +26,36 @@ void SSD1680::ResetAll() {
     _group.Disable();
 }
 
-void SSD1680::SetRamDataEntryMode(SSD1680RamDataEntryMode pMode, uint16_t pWidth, uint16_t pHeight) {
+void SSD1680::SetRamDataEntryMode(SSD1680RamDataEntryMode pMode, uint16_t pWidth, uint16_t pHeight, uint16_t pXOffset) {
 
     _spi.cmd(DefineDataEntrySequence);
     _spi.data(pMode);
     switch (pMode)
     {
         case XDecreaseYDescrease: // x decrease, y decrease
-            SetRamArea(pWidth / 8, 0, pHeight, 0);  // X-source area,Y-gate area
+            SetRamArea(pWidth / 8, 0, pHeight, 0, pXOffset);  // X-source area,Y-gate area
             SetRamPointer(pWidth / 8, pHeight); // set ram
             break;
         case XIncreaseYDecrease: // x increase, y decrease : as in demo code
-            SetRamArea(0, pWidth / 8, pHeight, 0);  // X-source area,Y-gate area
+            SetRamArea(0, pWidth / 8, pHeight, 0, pXOffset);  // X-source area,Y-gate area
             SetRamPointer(0, pHeight); // set ram
             break;
         case XDecreaseYIncrease: // x decrease, y increase
-            SetRamArea(pWidth / 8, 0,0, pHeight);  // X-source area,Y-gate area
+            SetRamArea(pWidth / 8, 0,0, pHeight, pXOffset);  // X-source area,Y-gate area
             SetRamPointer(pWidth / 8, 0); // set ram
             break;
         case XIncreaseYIncrease: // x increase, y increase : normal mode
-            SetRamArea(0, pWidth / 8, 0, pHeight);  // X-source area,Y-gate area
+            SetRamArea(0, pWidth / 8, 0, pHeight, pXOffset);  // X-source area,Y-gate area
             SetRamPointer(0, 0); // set ram
             break;
     }
 }
 
 
-void SSD1680::SetRamArea(uint8_t pXStart, uint8_t pXEnd, uint16_t pYStart, uint16_t pYEnd) {
+void SSD1680::SetRamArea(uint8_t pXStart, uint8_t pXEnd, uint16_t pYStart, uint16_t pYEnd, uint16_t pXOffset) {
     _spi.cmd(SetRamXAddressRange);
-    _spi.data(pXStart+1);
-    _spi.data(pXEnd+1);
+    _spi.data(pXStart+pXOffset);
+    _spi.data(pXEnd+pXOffset);
     _spi.cmd(SetRamYAddressRange);
     _spi.data(pYStart % 255);
     _spi.data(pYStart / 255);
@@ -137,12 +137,12 @@ void SSD1680::SetDisplayUpdateSequence(SSD1680DisplayUpdateSequence pSequence) {
     _spi.data(pSequence);
 }
 
-void SSD1680::SendLUT(SSD1680Lut& pLut) {
+void SSD1680::SendLUT(const SSD1680Lut& pLut) {
   //  uint8_t buffer[sizeof(pLut.Data)+1];
   //  buffer[0] = SSD1680Cmd::SendLUT;
  //   memcpy(buffer+1, pLut.Data, sizeof(pLut.Data));
     _spi.cmd(SSD1680Cmd::SendLUT);
-    _spi.data(pLut.Data,sizeof(pLut.Data));
+    _spi.data(pLut.Data,pLut.DataLength);
 }
 
 void SSD1680::SendEndLUT(SSD1680LutEndOption pOption) {

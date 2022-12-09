@@ -76,12 +76,12 @@ uint DataManagerQuery::ProcessBuffer(DataEntry *pEntries, uint pMaxEntries) {
         }
      
         if(_from>_dataEntry.TimeStamp && _to>_dataEntry.TimeStamp ) {
-            printf("Skipping Happend in past timestamp %u\n", (uint)_dataEntry.TimeStamp);
+          //  printf("Skipping Happend in past timestamp %u\n", (uint)_dataEntry.TimeStamp);
              
             continue;
         }
         if(_from<_dataEntry.TimeStamp && _to<_dataEntry.TimeStamp ){
-            printf("Skipping Happend in future timestamp %u\n", (uint)_dataEntry.TimeStamp);
+         //   printf("Skipping Happend in future timestamp %u\n", (uint)_dataEntry.TimeStamp);
             break;            
         }
             

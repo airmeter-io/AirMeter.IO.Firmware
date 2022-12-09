@@ -5,7 +5,7 @@
 
 
 ButtonManager::ButtonManager(std::vector<gpio_num_t>& pGpios) {
-    _gpioGroup = new GpioGroup(pGpios, false,true, FallingEdge, NotSet);
+    _gpioGroup = new GpioGroup(pGpios, false,true, LowLevel, NotSet);
     GpioManager::RegisterGpioGroup(_gpioGroup);
     _gpioGroup->Enable();
     _gpioCount = pGpios.size();
@@ -14,6 +14,7 @@ ButtonManager::ButtonManager(std::vector<gpio_num_t>& pGpios) {
     auto curGpio = _gpioStates;
     for(auto gpio : pGpios) {
         *curGpio= { .Gpio = gpio, .IsPressed = false, .PressedTick = 0 };
+      
         curGpio++;
     }
 }
@@ -53,6 +54,7 @@ void ButtonManager::WaitForEvents(TickType_t  pWaitLength) {
     TickType_t curTicks  = 0;
     while(!hasTriggered && (!pWaitLength || curTicks < pWaitLength )){
       
+        printf("Waiting for button GPIO events\n");
         _gpioGroup->WaitForEvents(pWaitLength ? pWaitLength - curTicks : 0);
         while(_gpioGroup->HasQueued()) {
             auto event = _gpioGroup->GetQueued();
@@ -67,18 +69,20 @@ void ButtonManager::WaitForEvents(TickType_t  pWaitLength) {
                 _queuedEvents.push(btnEvent);   
                 hasTriggered = true;      
                 continue;
+            } else {
+                printf("Button GPIO_%d: Level=%d, Timestamp=%d\n ", event.Gpio, event.Level, (int)event.When);
             }
             auto duration = event.When - GetPressedTick(event.Gpio);
             auto wasPressed = IsPressed(event.Gpio);
            
-            if( duration > 1000 && (!event.Level)!=wasPressed) {
+            if( /*duration > 1000 &&*/ (!event.Level)!=wasPressed) {
             
                 ButtonEvent btnEvent = {
                     .Gpio = event.Gpio,
                     .When = event.When,
                     .Code = ButtonEventCode::Pressed
                 };
-                
+                SetPressedTick(event.Gpio, event.When); 
                 if(!event.Level) 
                     SetPressed(event.Gpio, true);
                 else {
@@ -88,11 +92,14 @@ void ButtonManager::WaitForEvents(TickType_t  pWaitLength) {
                     else if (duration < 4000000) 
                         btnEvent.Code = ButtonEventCode::LongReleased;
                     else 
-                        btnEvent.Code = ButtonEventCode::VeryLongReleased;                
+                        btnEvent.Code = ButtonEventCode::VeryLongReleased;  
+
+                    _queuedEvents.push(btnEvent); 
+                    printf("Pushed Button Event_%d: Level=%d, Timestamp=%d\n ", btnEvent.Gpio, (int)btnEvent.Code, (int)btnEvent.When);    
+                    hasTriggered = true;                         
                 }
-                SetPressedTick(event.Gpio, event.When); 
-                _queuedEvents.push(btnEvent);           
-                hasTriggered = true;           
+               
+              
             } else 
                 printf("Dropped event gpio = %d, duration = %d, level = %d\n", (int)event.Gpio, (int)duration, (int)event.Level);
         

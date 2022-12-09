@@ -14,15 +14,7 @@
 #include "FontManager.h"
 #include <tinyutf8/tinyutf8.h>
 #include "DrawTarget.h"
-
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)    
-    #include "EpdSpi.h"
-    #include "SSD1680.h"
-    #include "DriverSSD1680.h"
-#endif
-
-
-#define TAG "CO2 Monitor"
+#include "PowerManagement.h"
 
 extern "C" {
     #include "esp_sleep.h"
@@ -39,8 +31,7 @@ extern "C" {
     
 }
 
-
-
+#define TAG "CO2 Monitor"
 
 MainLogicLoop *mainLoop;
 
@@ -49,9 +40,6 @@ static void i2ctask(void *arg)
     mainLoop->Run();
 	vTaskDelete(NULL);
 }
-
-
-
 
 MainLogicLoop::MainLogicLoop() {
     GpioManager::Setup();
@@ -63,21 +51,19 @@ MainLogicLoop::MainLogicLoop() {
     _flashStore = new DataManagerFlashDataStore();
     _dataManager = new DataManager(_flashStore,_ramStore);
     _sensorManager = new SensorManager(*_devicePersonality, *_generalSettings, *_i2c, *_dataManager);
-    
+    _screenDrivers = new ScreenDrivers();
 
-    #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0) 
-    SSD1680 *ssd1680;
-    DriverSSD1680 *display;
-    
-    _io.init(4,false);
 
-    ssd1680 = new SSD1680(_io);
-    display = new DriverSSD1680(*ssd1680);
+    DrawControl *display;
+    auto displayConfig = _devicePersonality->GetDisplayConfig();
+    if(displayConfig.Enabled) {
+        printf("Loading display driver {%s}\n", displayConfig.Driver.c_str());
+        display = _screenDrivers->LoadDriver(displayConfig.Driver, displayConfig.DriverConfig);
+
+    } else 
+        display = new NullDrawControl();
     _screenManager = new ScreenManager(*_devicePersonality, display, *this, *_sensorManager, *this);   
-    #else
-    _screenManager = new ScreenManager(*_devicePersonality, new NullDrawControl(), *this, *_sensorManager, *this);   
-    #endif
-
+    
     _voltageStr[0] = 0;
 
 }
@@ -244,7 +230,6 @@ std::vector<int> MainLogicLoop::ResolveTimeSeries(std::string pName, uint32_t pS
     auto read = query->ReadEntries(entries, maxEntries);
     auto perStep = (pSecondsInPast*multiplier)/pSteps;
     while(read>0) {
-        
         for(auto i = 0; i < read; i++)
         {
             auto step = ((entries[i].TimeStamp-startTime)*multiplier)/perStep;
@@ -264,7 +249,9 @@ std::vector<int> MainLogicLoop::ResolveTimeSeries(std::string pName, uint32_t pS
             
             resultCounts[step]++;
         }
+        esp_task_wdt_reset();
         read = query->ReadEntries(entries, maxEntries);
+        esp_task_wdt_reset();
     }
     int last = 0;
     for(auto i = 0; i< pSteps; i++) {
@@ -322,27 +309,7 @@ bool MountSpiffs(esp_vfs_spiffs_conf_t& pConf) {
 
 extern "C" void app_main(void)
 {
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)    
-
-#if CONFIG_IDF_TARGET_ESP32
-    esp_pm_config_esp32_t pm_config = {
-#elif CONFIG_IDF_TARGET_ESP32S2
-    esp_pm_config_esp32s2_t pm_config = {
-#elif CONFIG_IDF_TARGET_ESP32C3
-    esp_pm_config_esp32c3_t pm_config = {
-#elif CONFIG_IDF_TARGET_ESP32S3
-    esp_pm_config_esp32s3_t pm_config = {
-#endif
-        .max_freq_mhz = 160,
-        .min_freq_mhz = 40,
-        .light_sleep_enable = true
-    };
-   // esp_pm_get_configuration(&pm_config);
-    printf("Min = %d, max = %d, light=%s\n",(int)pm_config.min_freq_mhz, (int)pm_config.max_freq_mhz, pm_config.light_sleep_enable ? "yes" : "no");
-    ESP_ERROR_CHECK( esp_pm_configure(&pm_config) );
-    
-#endif
-
+    PowerManagement::Enable();
     ESP_LOGI(TAG, "CO2 Monitor Firmware\n");
     ESP_LOGI(TAG, "ESPIDF Version: %s\n", esp_get_idf_version());
    

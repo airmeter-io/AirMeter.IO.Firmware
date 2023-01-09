@@ -122,7 +122,7 @@ bool Scd30Sensor::RefreshValues() {
     while(!ReadCommand(Scd30I2CCommand::GET_READY_STATUS, nullptr, 0, (uint16_t *)readyStatus, sizeof(readyStatus)) || readyStatus[1]!=1)
     {
         ESP_LOGE(TAG, "Not ready");
-        vTaskDelay(50 / portTICK_PERIOD_MS);
+        vTaskDelay(200 / portTICK_PERIOD_MS);
     }
 
     while(!ReadCommand(Scd30I2CCommand::READ_MEASUREMENT, nullptr, 0, (uint16_t *)valueData, sizeof(valueData)))

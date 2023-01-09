@@ -5,12 +5,36 @@
 #include<map>
 
 
-enum ValueType { Bool, Int, Fixed, Double, String};
+enum ValueMeasurement {
+    // General 
+    Generic = 0,
+    StaticString = 1,
+    DynamicString = 2,
+
+    // Device Measurement
+    BatteryVoltage = 100,
+    ExternalPowerVoltage = 101,
+
+    // Wifi Measurements
+    WifiConnected = 200,
+    WifiSignalStength = 201,
+    WifiChannel = 202,
+
+    // Atmospheric Measurements
+    AtmosphericCO2 = 1001,
+    AtmosphericCO2Unfiltered,
+    AtmosphericTemperature,
+    AtmosphericHumidity,
+    AtmosphericPressure,
+    AtmosphericPM25,
+    AtmosphericVOC
+};
+
+enum ValueDataType { Bool, Int, Fixed, Double, String};
 enum ValueUnit { None, Centigrade, Percent, hPa, PPM };
 class Value {
 public:
-    ValueType type;
-    ValueUnit unit;
+   
     union {
         bool b;
         int i;
@@ -25,28 +49,48 @@ public:
     int priority;
 };
 
+class ValuesSource;
 
 class ValueSource {
-    std::string& _name;
+    const ValuesSource& _valuesSource;
+    const std::string _name;
+    ValueMeasurement _measurement;
+    ValueDataType _dataType;
+    ValueUnit _unit;
+    
 public:
-    ValueSource(const std::string& pName);
+    ValueSource(const ValuesSource& pValuesSource, const std::string& pName, ValueMeasurement pMeasurement, ValueDataType pDataType, ValueUnit pUnit);
 
-    std::string& GetName() const;
-}
+    const ValuesSource& GetValuesSource() const;
+    const std::string& GetName() const;
+    ValueMeasurement GetMeasurement() const;
+    ValueDataType GetDataType() const;
+    ValueUnit GetUnit() const;
+
+    virtual Value& GetValue()  = 0;
+};
 
 
-class ValueContainer {
-    std::map<ValueSource*, Value*> _values
+class ValuesSource {
 public:
+    virtual const std::string& GetName() const = 0;
+    virtual const std::vector<ValueSource*>& GetValueSources() const = 0;
+};
 
-}
+class ValueSourceByNameHolder {
+public:
+    std::vector<ValueSource*> Sources;
+    ValueSource* DefaultSource;
+};
 
-class ValueController {  
-    std::vector<ValueSource*> _sources;
-
+class ValueController {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+    std::vector<ValuesSource*> _sources;
+    std::map<const std::string, ValueSourceByNameHolder*> _sourcesByName;
 public:
     ValueController();
     ~ValueController();
-    void RegisterSource(ValueSource* pSource);
-    void RegisterValue(ValueSource *pValueSource, Value  *pValue)
+    void RegisterSource(ValuesSource* pSource);
+    const std::vector<ValueSource*>& Find(const std::string& pName);
+    ValueSource* GetDefault(const std::string& pName);
+    void SetDefault(ValueSource* pValueSource);
 };

@@ -5,7 +5,7 @@
 
 
 ButtonManager::ButtonManager(std::vector<gpio_num_t>& pGpios) {
-    _gpioGroup = new GpioGroup(pGpios, false,true, LowLevel, NotSet);
+    _gpioGroup = new GpioGroup(pGpios, true,false, LowLevel, NotSet);
     GpioManager::RegisterGpioGroup(_gpioGroup);
     _gpioGroup->Enable();
     _gpioCount = pGpios.size();
@@ -53,8 +53,6 @@ void ButtonManager::WaitForEvents(TickType_t  pWaitLength) {
     auto started = xTaskGetTickCount();
     TickType_t curTicks  = 0;
     while(!hasTriggered && (!pWaitLength || curTicks < pWaitLength )){
-      
-        printf("Waiting for button GPIO events\n");
         _gpioGroup->WaitForEvents(pWaitLength ? pWaitLength - curTicks : 0);
         while(_gpioGroup->HasQueued()) {
             auto event = _gpioGroup->GetQueued();
@@ -87,15 +85,15 @@ void ButtonManager::WaitForEvents(TickType_t  pWaitLength) {
                     SetPressed(event.Gpio, true);
                 else {
                     SetPressed(event.Gpio, false);
-                    if(duration < 500000) 
+                    if(duration < 1000000) 
                         btnEvent.Code = ButtonEventCode::Released;
-                    else if (duration < 4000000) 
+                    else if (duration < 8000000) 
                         btnEvent.Code = ButtonEventCode::LongReleased;
                     else 
                         btnEvent.Code = ButtonEventCode::VeryLongReleased;  
 
                     _queuedEvents.push(btnEvent); 
-                    printf("Pushed Button Event_%d: Level=%d, Timestamp=%d\n ", btnEvent.Gpio, (int)btnEvent.Code, (int)btnEvent.When);    
+                    printf("Pushed Button Event_%d: Code=%d, Timestamp=%d\n ", btnEvent.Gpio, (int)btnEvent.Code, (int)btnEvent.When);    
                     hasTriggered = true;                         
                 }
                

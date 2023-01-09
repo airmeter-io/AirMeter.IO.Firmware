@@ -11,4 +11,5 @@ idf_component_register(
           "driver"
           "esp_wifi"
           "esp_timer"
+          "POWERMANAGE"
 )

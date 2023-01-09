@@ -21,6 +21,7 @@ typedef struct {
     gpio_num_t Gpio;
     GpioGroup* Group;
     int Level;
+    bool HasLock;
 } GpioInternalState;
 
 enum InteruptType { AnyEdge, RaisingEdge, FallingEdge, LowLevel, HighLevel };

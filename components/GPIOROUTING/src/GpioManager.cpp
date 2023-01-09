@@ -1,4 +1,5 @@
 #include "GpioManager.h"
+#include "PowerLock.h"
 
 #define TAG "GPIO"
 #if ESP_IDF_VERSION > ESP_IDF_VERSION_VAL(4, 0, 0)    
@@ -8,27 +9,55 @@ extern "C" {
 #endif
 std::vector<GpioGroup*> GpioManager::_groups;
 std::map<gpio_num_t,GpioInternalState> GpioManager::_gpioMap;
-
+PowerLock* powerLock;
 void GpioManager::gpio_isr_handler(gpio_num_t pGpio) {
+    powerLock->Aquire();
     auto level = gpio_get_level(pGpio);
 
     if(_gpioMap.count(pGpio) == 0) {
         ets_printf("GPIO fired %d, level %d but no handler available\n",(int)pGpio, (int)level);
         return;
     }
-
+    ets_printf("G%d \n",(int)level);
     auto group = _gpioMap[pGpio];
+     auto interuptType = group.Group->GetInteruptType();
     auto now = esp_timer_get_time();  
-
+    switch(interuptType) {
+        case LowLevel :
+            if(level == 0 && !group.HasLock) {
+                powerLock->Aquire();
+                group.HasLock = true;
+            } else if(group.HasLock) {
+                powerLock->Release();
+                group.HasLock = false;
+            }
+            break;
+        case HighLevel :
+            if(level == 1 && !group.HasLock) {
+                powerLock->Aquire();
+                group.HasLock = true;
+            } else if(group.HasLock) {
+                powerLock->Release();
+                group.HasLock = false;
+            }
+            break;
+        default: break;
+    }
+   
   
-    
-    if(level != group.Level) {   
-        auto interuptType = group.Group->GetInteruptType();
+ 
+    if(level != gpio_get_level(pGpio)) {  
+       ets_printf("GPIO level changed whilst in isr fired %d, level %d \n",(int)gpio_get_level(pGpio), (int)level); 
+       level = gpio_get_level(pGpio);
         if(interuptType == LowLevel || interuptType == HighLevel) {
-            if(level) 
+            if(level) {
+                gpio_set_intr_type(pGpio, GPIO_INTR_LOW_LEVEL);
                 gpio_wakeup_enable(pGpio, GPIO_INTR_LOW_LEVEL);
-            else 
+            }
+            else {
+                gpio_set_intr_type(pGpio, GPIO_INTR_HIGH_LEVEL);
                 gpio_wakeup_enable(pGpio, GPIO_INTR_HIGH_LEVEL);
+            }
         }
             
 
@@ -37,19 +66,40 @@ void GpioManager::gpio_isr_handler(gpio_num_t pGpio) {
         _gpioMap[pGpio].Level = level;
     }
 
+    if(level != group.Level) {   
+       
+        if(interuptType == LowLevel || interuptType == HighLevel) {
+            if(level) {
+                gpio_set_intr_type(pGpio, GPIO_INTR_LOW_LEVEL);
+                gpio_wakeup_enable(pGpio, GPIO_INTR_LOW_LEVEL);
+            }
+            else {
+                gpio_set_intr_type(pGpio, GPIO_INTR_HIGH_LEVEL);
+                gpio_wakeup_enable(pGpio, GPIO_INTR_HIGH_LEVEL);
+            }
+        }
+            
+
+        GpioEvent event = { .Gpio = pGpio, .Level = level, .When = now };
+        xQueueSendFromISR(group.Group->GetQueueHandle(), &event, NULL);
+        _gpioMap[pGpio].Level = level;
+    }
+    powerLock->Release();
+
 }
 
 
 
 void GpioManager::Setup() {    
     gpio_install_isr_service(0);
+    powerLock = new PowerLock(MaxPossible, "GPIO");
 }
 void GpioManager::RegisterGpioGroup(GpioGroup* pGroup) {
     _groups.push_back(pGroup);
     gpio_config_t io_conf;
     auto gpios = pGroup->GetGPIOs();
     for(auto gpio : gpios ) {
-        GpioInternalState state = {.Gpio = gpio, .Group  = pGroup, .Level = 0 };
+        GpioInternalState state = {.Gpio = gpio, .Group  = pGroup, .Level = 0, .HasLock = false };
         _gpioMap[gpio] = state;
         printf("Mapping GPIO %d\n", (int)gpio);
         io_conf.pin_bit_mask =((1ULL<<gpio));

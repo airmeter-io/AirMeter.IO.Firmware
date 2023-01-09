@@ -15,6 +15,7 @@
 #include <tinyutf8/tinyutf8.h>
 #include "DrawTarget.h"
 #include "PowerManagement.h"
+#include "PowerLock.h"
 
 extern "C" {
     #include "esp_sleep.h"
@@ -310,6 +311,8 @@ bool MountSpiffs(esp_vfs_spiffs_conf_t& pConf) {
 extern "C" void app_main(void)
 {
     PowerManagement::Enable();
+    PowerLock lock(PowerLockType::MaxConfigured, "AppMain");
+    lock.Aquire();
     ESP_LOGI(TAG, "CO2 Monitor Firmware\n");
     ESP_LOGI(TAG, "ESPIDF Version: %s\n", esp_get_idf_version());
    
@@ -347,5 +350,6 @@ extern "C" void app_main(void)
     mainLoop = new MainLogicLoop();
    
     xTaskCreate(i2ctask, "i2ctask", 4096, NULL, 10, NULL);
+    lock.Release();
 }
 

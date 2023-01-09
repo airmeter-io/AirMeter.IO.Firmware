@@ -140,20 +140,15 @@ void ScreenManager::Run(TickType_t pNotifyPeriod) {
        
 
         while(true) {
-           
-            
-        // vTaskDelay(5000 / portTICK_PERIOD_MS);
-    
             _buttons->WaitForEvents(pNotifyPeriod);
-            printf("Got events\n");
+        
             bool requiresRedraw = _notifier.ProcessOnUIThread();
-            if(requiresRedraw) printf("Done processing UI thread needs redraw\n");
-            else printf("Done processing UI no redraw\n");
+            _powerLock->Aquire();           
             screen = GetCurrent();
            
             while(_buttons->HasQueued()) {                
                 auto event = _buttons->GetQueued();
-                printf("Popped Button Event_%d: Level=%d, Timestamp=%d\n ", event.Gpio, (int)event.Code, (int)event.When);    
+                printf("Popped Button Event_%d: Code=%d, Timestamp=%d\n ", event.Gpio, (int)event.Code, (int)event.When);    
                 printf("Executing button %d\n", (int)event.Code);
                  esp_task_wdt_reset();
                 screen->ExecuteButton(ctx, event.Code);
@@ -163,25 +158,21 @@ void ScreenManager::Run(TickType_t pNotifyPeriod) {
             }
 
             if(requiresRedraw) {
-                _powerLock->Aquire();
+                
                 _buttons->GetGpioGroup()->Disable();
 
                 screen = GetCurrent();
                 screen->ExecuteDraw(ctx);
                 _powerLock->Release();
                 _drawControl->RenderToDisplay(true);
-                printf("Redrawn\n");
+                _powerLock->Aquire();
+                //printf("Redrawn\n");
                 _buttons->GetGpioGroup()->Enable();
                 
             }
-            printf("Looping\n");
+            _powerLock->Release();
+        //    printf("Looping\n");
             esp_task_wdt_reset();
-            // if(hadButtons) {
-            //     _buttons->WaitForEvents(10);
-            //     while(_buttons->HasQueued()) {
-            //         auto event = _buttons->GetQueued();
-            //     }
-            // }
         }
     }
 }

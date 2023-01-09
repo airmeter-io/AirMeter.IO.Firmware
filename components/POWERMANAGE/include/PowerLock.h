@@ -3,6 +3,7 @@
 
 extern "C" {
     #include "esp_pm.h"
+    #include "esp_err.h"
 }
 
 #include<string>
@@ -19,7 +20,9 @@ class PowerLock {
         PowerLock(PowerLockType pType, std::string pName);
         ~PowerLock();
         inline bool Aquire() {
-            return esp_pm_lock_acquire(_handle) == ESP_OK;
+            auto ret = esp_pm_lock_acquire(_handle);
+            ESP_ERROR_CHECK(ret);
+            return ret == ESP_OK;
         }
 
         inline bool Release() {

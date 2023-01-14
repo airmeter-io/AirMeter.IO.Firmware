@@ -39,49 +39,35 @@ enum MHZ19Command {
 
 class MhZ19Sensor : public CO2Sensor {
     PinSerial* _serial;
-    int _ppm;
-    int _maxPPM;
-    bool _isHeatingUp = false;
-    bool _hasError = false;
+
+
     char _rxBuf[32];
-    bool _isAbcEnabled = false;
 
     char CalcChecksum(char *pPacket);
-    std::string _serialNo  = "-";
-    std::string _softVer  = "-";
-    std::string _deviceName = "Winsen MH-Zxx Family CO2 Sensor";
+
     void ReadSoftwareVersion();
     void ReadDetectionRange();
     void ReadTemperatureAdjustment();
     void ReadABCStatus();
     void ReadIDString();
     bool ExecuteCommand(MHZ19Buffer& pCommand, MHZ19Buffer& pResponse);
-    CO2SensorValue _valAbcBase = { .type = Int, .value = { .i = 0}, .name = "ABC Base" };
-    CO2SensorValue _valAbcTick = { .type = Int, .value = { .i = 0}, .name = "ABC Tick" };
-    CO2SensorValue _valAbcCount = { .type = Int, .value = { .i = 0}, .name = "ABC Count" };
-    CO2SensorValue _valTemp = { .type = Int, .value = { .i = 0}, .name = "Temperature" };
-    CO2SensorValue _valTempAdjustment = { .type = Int, .value = { .i = 0}, .name = "Temp Adjustment" };
-    
+    Value _valAbcBase = { .i = 0 };
+    Value _valAbcTick = { .i = 0 };
+    Value _valAbcCount = { .i = 0 };
+    Value _valTemp = { .i = 0 };
+    Value _valTempAdjustment = { .i = 0 };
+
+    const std::string SOURCE_NAME = "MHZ19x";
+protected: 
+    const std::string& GetValuesSourceName() const override;   
 public:
     MhZ19Sensor(PinSerial* pSerial);
-    std::string& GetSerialNo()  override;
-    std::string& GetDeviceName() override;
-    std::string& GetSWVersion() override;
+
     bool RefreshValues() override;
-    int GetPPM() override;
-    const std::vector<int>& GetAvailableMaxPPM() const override;
-    void SetMaxPPM(int pMaxPPM) override; 
-    int GetMaxPPM() override;
-    bool GetIsHeatingUp() override;
-    bool GetHasError() override;
-    int GetBasePPM() override;
-    int GetDaysPerABCCycle() override;
-    bool GetIsABCEnabled() override;
+
+
     void DisableABC() override;
     void ManualCalibration(int pBaseLinePPM) override;
     void EnableABC(int pBaseLinePPM, int pNumberOfDaysPerCycle) override;
-    int GetMinBasePPM() override;
-    int GetMaxBasePPM();
-    int GetMinDaysPerABCCycle();
-    int GetMaxDaysPerABCCycle();
+
 };

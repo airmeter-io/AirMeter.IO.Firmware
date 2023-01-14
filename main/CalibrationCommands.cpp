@@ -1,24 +1,19 @@
 #include "CalibrationCommands.h"
+#include "ValueController.h"
+#include "CO2Sensor.h"
 
-
-
-GetCalibrationInfoCommand::GetCalibrationInfoCommand(ValueModel& pValues) : _values(pValues) {
+GetCalibrationInfoCommand::GetCalibrationInfoCommand()  {
     
 }
 
 void GetCalibrationInfoCommand::Process(Json& pJson,Json& pResult) {
     pResult.CreateStringProperty("Status", "true");
-    
-    if(_values.CO2) {
-        pResult.CreateBoolProperty(  "ABCEnabled",         _values.CO2->GetIsABCEnabled());
-        pResult.CreateNumberProperty("MinBaseline",        _values.CO2->GetMinBasePPM());
-        pResult.CreateNumberProperty("MaxBaseline",        _values.CO2->GetMaxBasePPM());
-        pResult.CreateNumberProperty("Baseline",           _values.CO2->GetBasePPM());
-        pResult.CreateNumberProperty("CalibWaitTime",      _values.CO2->GetRequiredManualCalibrationWaitInSeconds());
-        pResult.CreateNumberProperty("MinABCDaysPerCycle", _values.CO2->GetMinDaysPerABCCycle());
-        pResult.CreateNumberProperty("MaxABCDaysPerCycle", _values.CO2->GetMaxDaysPerABCCycle());
-        pResult.CreateNumberProperty("DaysPerABCCycle",    _values.CO2->GetDaysPerABCCycle());                    
-    }            
+    for(auto keyPair : ValueController::GetCurrent().GetSourcesByName()) {
+        auto source = keyPair.second->DefaultSource;
+        if(source->GetFlags() & CALIBRATION_INFO ) {
+            source->SerialiseToJsonProperty(pResult);
+        }            
+    }           
 }
 
 std::string GetCalibrationInfoCommand::GetName()  {
@@ -26,41 +21,44 @@ std::string GetCalibrationInfoCommand::GetName()  {
 }
 
 
-ManualCalibrationCommand::ManualCalibrationCommand(ValueModel& pValues) : _values(pValues) {
+ManualCalibrationCommand::ManualCalibrationCommand(){
     
 }
 void ManualCalibrationCommand::Process(Json& pJson,Json& pResult) {
-    if(!_values.CO2) {
+    auto method = ValueController::GetCurrent().GetMethod(CO2METHOD_GROUP, CO2METHOD_CALIBRATE);
+    if(!method) {
         pResult.CreateBoolProperty("Status", false);
         pResult.CreateStringProperty("Error", "CO2 Not enabled");                
         return;
     }
-    _values.CO2->ManualCalibration(400);
+    method->Invoke({ {.i = 400}});
     pResult.CreateBoolProperty("Status", true);
     return;
 }
+
 std::string ManualCalibrationCommand::GetName() {
     return "MANUALCALIB";
 }
 
 
-EnableAbcCommand::EnableAbcCommand(ValueModel& pValues) : _values(pValues) {
+EnableAbcCommand::EnableAbcCommand()  {
     
 }
 
 void EnableAbcCommand::Process(Json& pJson,Json& pResult)  {
-    if(!_values.CO2) {
+    auto method = ValueController::GetCurrent().GetMethod(CO2METHOD_GROUP, CO2METHOD_ENABLEABC);
+    if(!method) {
         pResult.CreateBoolProperty("Status", false);
         pResult.CreateStringProperty("Error", "CO2 Not enabled");                
         return;
     }
-    
     if(pJson.HasProperty("Baseline") && pJson.HasProperty("ABCDaysPerCycle")) {
-            auto baseLine = pJson.GetIntProperty("Baseline");
-            auto daysPerCycle = pJson.GetIntProperty("ABCDaysPerCycle");
-            _values.CO2->EnableABC(baseLine, daysPerCycle);
-            pResult.CreateBoolProperty("Status", true);
-            return;
+        auto baseLine = pJson.GetIntProperty("Baseline");
+        auto daysPerCycle = pJson.GetIntProperty("ABCDaysPerCycle");
+     
+        method->Invoke({ {.i = baseLine}, {.i = daysPerCycle}});
+        pResult.CreateBoolProperty("Status", true);
+        return;
     }
     
     pResult.CreateBoolProperty("Status", false);
@@ -71,18 +69,19 @@ std::string EnableAbcCommand::GetName() {
     return "ENABLEABC";
 }
 
-DisableAbcCommand::DisableAbcCommand(ValueModel& pValues) : _values(pValues) {
+DisableAbcCommand::DisableAbcCommand() {
     
 }
 
 void DisableAbcCommand::Process(Json& pJson,Json& pResult) {
-    if(!_values.CO2) {
+    auto method = ValueController::GetCurrent().GetMethod(CO2METHOD_GROUP, CO2METHOD_DISABLEABC);
+    if(!method) {
         pResult.CreateBoolProperty("Status", false);
         pResult.CreateStringProperty("Error", "CO2 Not enabled");                
         return;
     }
     
-    _values.CO2->DisableABC();
+    method->Invoke({});
     pResult.CreateBoolProperty("Status", true);            
 }
 

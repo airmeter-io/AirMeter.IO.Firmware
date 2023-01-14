@@ -1,10 +1,13 @@
 #include "SensorManager.h"
 
+#include "CO2Sensor.h"
 #include "MhZ19Sensor.h"
 #include "CubicCO2Sensor.h"
 #include "SenseairI2CSensor.h"
 #include "SenseairModBusSensor.h"
 #include "SCD30Sensor.h"
+#include "ValueController.h"
+#include "CommonValueNames.h"
 
 // To be abstracted further....
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)  
@@ -65,8 +68,7 @@ SensorManager::SensorManager(DevicePersonality& pDevicePersonality,GeneralSettin
     }
     printf("\n");
     auto uartConfig = pDevicePersonality.GetUartConfig();
-    if(!_co2Sensor && uartConfig.Enabled) {
-        
+    if(!_co2Sensor && uartConfig.Enabled) {        
         switch(_settings.GetCO2SensorType()) {
             case CO2SensorType::None :
                 break;
@@ -86,8 +88,11 @@ SensorManager::SensorManager(DevicePersonality& pDevicePersonality,GeneralSettin
                 break;
         }
     }
-    _values.CO2 = _co2Sensor;
+
+    if(_co2Sensor!=nullptr) _co2Sensor->RegisterWithValueController();
+    
     _bme = new BME280(_i2c);
+    _bme->RegisterWithValueController();
     DisableSensorReadGPIO();
 
 }
@@ -105,10 +110,6 @@ void SensorManager::DisableSensorReadGPIO() {
 }
 
 
-ValueModel& SensorManager::GetValues() {
-    return _values;
-}
-
 
 time_t SensorManager::UpdateValues() {
     time_t curTime;
@@ -119,20 +120,23 @@ time_t SensorManager::UpdateValues() {
         EnableSensorReadGPIO();
         if(_co2Sensor) _co2Sensor->RefreshValues();
         
-        _bme->ReadSensorValues(_values.Bme280);
+        _bme->ReadSensorValues();
         DisableSensorReadGPIO();
         _lastSensorRead = curTime;
         time(&curTime);
 
-        
-        auto co2 = _co2Sensor ? (uint16_t)(_co2Sensor->GetPPM()) : (uint16_t)0;
-        auto temp = (int16_t)(_values.Bme280.temperature*100);
-        auto humidity = (uint16_t)(_values.Bme280.humidity*100);
-        auto pressure = (uint)(_values.Bme280.pressure)- 80000;
+        auto co2ValueSource = ValueController::GetCurrent().GetDefault(CO2VALUE);   
+        auto tempSource = ValueController::GetCurrent().GetDefault(TEMPERATURE);    
+        auto humiditySource = ValueController::GetCurrent().GetDefault(HUMIDITY);
+        auto pressureSource = ValueController::GetCurrent().GetDefault(PRESSURE);
+        auto co2 = co2ValueSource ? (uint16_t)(co2ValueSource->GetValue().i) : (uint16_t)0;
+        auto temp = (uint16_t)tempSource->GetValue().i;
+        auto humidity = (uint16_t)humiditySource->GetValue().i;
+        auto pressure = (uint)pressureSource->GetValue().i- 80000;
 
         DataEntry entry = {
             .TimeStamp = curTime,
-            .Temp = temp,
+            .Temp = (int16_t)temp,
             .CO2 = co2,
             .Humidity = humidity, 
             .Pressure = (uint16_t)pressure

@@ -3,14 +3,13 @@
 #include "Common.h"
 #include "HttpUrlHandler.h"
 #include "Wifi.h"
-#include "ValueModel.h"
 #include "DataManager.h"
 #include "Json.h"
 
 class GetLatestDataCommand : public HttpJsonCommand  {
-    ValueModel& _values;
+    
     public:
-        GetLatestDataCommand(ValueModel& pValues);
+        GetLatestDataCommand();
         void Process(Json& pJson,Json& pResult) override ;
         std::string GetName() override ;
 };

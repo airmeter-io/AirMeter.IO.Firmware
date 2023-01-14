@@ -1,20 +1,23 @@
+
+
 idf_component_register(
-  SRCS "src/PasswordGenerator.cpp"
-    "src/System.cpp"
-    "src/Utility.cpp"
-    "src/GeneralSettings.cpp"
-    "src/DevicePersonality.cpp"
-    "src/SettingsBase.cpp"
-    
+  SRCS "src/UserManager.cpp"
   INCLUDE_DIRS "include"
               "../../common"
   REQUIRES "json"
           "nvs_flash"
-          "driver"
+          "I2C"
+          "HTTPSERVER"
           "mqtt"
           "spiffs"
           "esp_http_server"
-          "HTTPSERVER"
+          "BITMAPFONT"
+          "EPD"
+          "GPIOROUTING"
+          "CO2SENSORS"
+          "VALUES"
+          "BME280"
+          "DATAMANAGER"
           "driver"
           "esp_wifi"
 )

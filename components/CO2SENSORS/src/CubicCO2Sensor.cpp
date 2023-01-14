@@ -83,17 +83,15 @@ public:
 };
 
 CubicCO2Sensor::CubicCO2Sensor(PinSerial* pSerial) : _serial(pSerial) {
-   RegisterValue(&_valDrift);
-   RegisterValue(&_valLightAging);
-   RegisterValue(&_valCalibrated);
-   RegisterValue(&_valHasLessThanRange);
-   RegisterValue(&_valHasGreaterThanRange);
-   RegisterValue(&_valAbcOpen);
-   RegisterValue(&_valAbcBase);
-   RegisterValue(&_valAbcCycle);
-   RegisterValue(&_valRawValStatus);
-   RegisterValue(&_valUnknownStatus);
-   RegisterValue(&_valModeStatus);
+   _deviceName = "Cubic CMxxxx Family CO2 Sensor";
+   AddValueSource(new ValueSource(*this,"CUBIC_Drift",            Generic, Bool,   Dimensionless, _valDrift, GET_LATEST_DATA));
+   AddValueSource(new ValueSource(*this,"CUBIC_LightAging",       Generic, Bool,   Dimensionless, _valLightAging, GET_LATEST_DATA));
+   AddValueSource(new ValueSource(*this,"CUBIC_Calibrated",       Generic, Bool,   Dimensionless, _valCalibrated, GET_LATEST_DATA));
+   AddValueSource(new ValueSource(*this,"CUBIC_LessThanRange",    Generic, Bool,   Dimensionless, _valHasLessThanRange, GET_LATEST_DATA));
+   AddValueSource(new ValueSource(*this,"CUBIC_GreaterThanRange", Generic, Bool,   Dimensionless, _valHasGreaterThanRange, GET_LATEST_DATA));      
+   AddValueSource(new ValueSource(*this,"CUBIC_RawValStatus",     Generic, String, Dimensionless, _valRawValStatus, GET_LATEST_DATA));
+   AddValueSource(new ValueSource(*this,"CUBIC_UnknownStatus",    Generic, String, Dimensionless, _valUnknownStatus, GET_LATEST_DATA));
+   AddValueSource(new ValueSource(*this,"CUBIC_ModeStatus",       Generic, String, Dimensionless, _valModeStatus, GET_LATEST_DATA));
    
    ReadSoftwareVersion();
    ReadSerialNo();
@@ -101,6 +99,10 @@ CubicCO2Sensor::CubicCO2Sensor(PinSerial* pSerial) : _serial(pSerial) {
 
    ReadSensorInfo();
    ReadSensorStatusText();   
+}
+
+const std::string& CubicCO2Sensor::GetValuesSourceName() const {
+   return SOURCE_NAME;
 }
 
 CubicCO2ErrorCode CubicCO2Sensor::ExecuteCommand(CubicCO2Buffer& pInput, CubicCO2Buffer& pOutput, int pTries) {
@@ -148,16 +150,18 @@ bool CubicCO2Sensor::RefreshValues() {
       
    response.Print("Refresh Response");
    auto flags = response.Buffer[5];
-   _valDrift.value.b = flags & (1<<6);
-   _valLightAging.value.b = flags & (1<<5);
-   _valCalibrated.value.b = !(flags & (1<<4));
-   _valHasLessThanRange.value.b = flags & (1<<3);
-   _valHasGreaterThanRange.value.b = flags & (1<<2);
-   _hasError = flags & (1<<1);
-   _isHeatingUp = !(flags & 1);
+   _valDrift.b = flags & (1<<6);
+   _valLightAging.b = flags & (1<<5);
+   _valCalibrated.b = !(flags & (1<<4));
+   _valHasLessThanRange.b = flags & (1<<3);
+   _valHasGreaterThanRange.b = flags & (1<<2);
+   _valHasError.b = flags & (1<<1);
+   _valIsHeatingUp.b = !(flags & 1);
   
-    _ppm = response.Buffer[3]*256 + response.Buffer[4];  
-
+   _valCo2.i = response.Buffer[3]*256 + response.Buffer[4];  
+   _valCo2Unfiltered.i = response.Buffer[3]*256 + response.Buffer[4];  
+   _valCo2Uncompensated.i = response.Buffer[3]*256 + response.Buffer[4];  
+   _valCo2UnfilteredUncompensated.i = response.Buffer[3]*256 + response.Buffer[4];  
 
    return true;
 }
@@ -168,11 +172,11 @@ void CubicCO2Sensor::ReadSoftwareVersion() {
    auto error = ExecuteCommand(command,response);
    if(error) {
       response.Print("Failed read SW ver info");      
-      _softVer = "Unknown";
+      _softwareVersion = "Failed";
       return;
    } 
    
-    _softVer = std::string((char*)response.Buffer+3,10);   
+    _softwareVersion = std::string((char*)response.Buffer+3,10);   
 }
 
 void CubicCO2Sensor::ReadSerialNo() {
@@ -181,7 +185,7 @@ void CubicCO2Sensor::ReadSerialNo() {
    auto error = ExecuteCommand(command,response);
    if(error) {
       response.Print("Failed read serial no");      
-      _serialNo = "Unknown";
+      _serialNo = "Failed";
       return;
    } 
    response.Print("ReadSerioNo");
@@ -202,59 +206,45 @@ void CubicCO2Sensor::ReadAbcInfo() {
    auto error = ExecuteCommand(command,response);
    if(error) {
       response.Print("Failed read ABC info");      
-      _valAbcBase.value.i = 0;
-      _valAbcCycle.value.i = 0;
-      _valAbcOpen.value.b = false;
+      _valBasePPM.i = 0;
+      _valDaysPerAbcCycle.i = 0;
+      _valIsAbcEnabled.b = false;
       return;
    } 
 
-   _valAbcBase.value.i = response.Buffer[7] | (response.Buffer[6] << 8);
-   _valAbcCycle.value.i = response.Buffer[5];
-   _valAbcOpen.value.b = response.Buffer[4]==0;   
+   _valBasePPM.i = response.Buffer[7] | (response.Buffer[6] << 8);
+   _valDaysPerAbcCycle.i = response.Buffer[5];
+   _valIsAbcEnabled.b = response.Buffer[4]==0;   
 }
 
-int CubicCO2Sensor::GetPPM() {
-   return _ppm;
-}
 
-int CubicCO2Sensor::GetMaxPPM() {
-   return _maxPPM;
-}
-const std::vector<int> CubicCO2Sensor::availablePPMs = { 2000, 5000 };
+// const std::vector<int> CubicCO2Sensor::availablePPMs = { 2000, 5000 };
 
 
-const std::vector<int>& CubicCO2Sensor::GetAvailableMaxPPM() const {
+// const std::vector<int>& CubicCO2Sensor::GetAvailableMaxPPM() const {
    
-   return availablePPMs;
-}
+//    return availablePPMs;
+// }
 
-void CubicCO2Sensor::SetMaxPPM(int pMaxPPM) {
-   for(auto avail : GetAvailableMaxPPM())
-      if(avail == pMaxPPM && _maxPPM!=pMaxPPM) {
-         CubicCO2Buffer command(CubicCO2Command::SetSensorInfo,6);
-         command.Buffer[3]=  (pMaxPPM >> 8) & 0xFF;
-         command.Buffer[4]=pMaxPPM & 0xFF; 
-         command.Buffer[5] = 0x00; // unknown
-         command.Buffer[7] = 0x01; // unknown 
-         command.Buffer[8] = 0x00; // unknown
-         command.UpdateChecksum();
-         CubicCO2Buffer response;
-         while(ExecuteCommand(command,response, 10)) {
-            printf("ERROR: Setting Max PPM retrying\n");
-         }         
-         response.Print("Set MAX PPM");
-         _maxPPM = pMaxPPM;
-      }
-}
+// void CubicCO2Sensor::SetMaxPPM(int pMaxPPM) {
+//    for(auto avail : GetAvailableMaxPPM())
+//       if(avail == pMaxPPM && _valMaxPPM.i!=pMaxPPM) {
+//          CubicCO2Buffer command(CubicCO2Command::SetSensorInfo,6);
+//          command.Buffer[3]=  (pMaxPPM >> 8) & 0xFF;
+//          command.Buffer[4]=pMaxPPM & 0xFF; 
+//          command.Buffer[5] = 0x00; // unknown
+//          command.Buffer[7] = 0x01; // unknown 
+//          command.Buffer[8] = 0x00; // unknown
+//          command.UpdateChecksum();
+//          CubicCO2Buffer response;
+//          while(ExecuteCommand(command,response, 10)) {
+//             printf("ERROR: Setting Max PPM retrying\n");
+//          }         
+//          response.Print("Set MAX PPM");
+//          _valMaxPPM.i = pMaxPPM;
+//       }
+// }
 
-
-bool CubicCO2Sensor::GetIsHeatingUp() {
-   return _isHeatingUp;
-}
-
-bool CubicCO2Sensor::GetHasError() {
-   return _hasError;
-}
 
 void CubicCO2Sensor::SetAbcParameters(bool pOpen, int pCycle, int pBaseCO2Value) {
    CubicCO2Buffer command(CubicCO2Command::SetABCInfo,7);   
@@ -271,9 +261,9 @@ void CubicCO2Sensor::SetAbcParameters(bool pOpen, int pCycle, int pBaseCO2Value)
    while(ExecuteCommand(command,response)) {
       response.Print("Failed to set ABC info retrying");  
    }
-   _valAbcBase.value.i = pBaseCO2Value;
-   _valAbcCycle.value.i = pCycle;
-   _valAbcOpen.value.b = pOpen;
+   _valBasePPM.i = pBaseCO2Value;
+   _valDaysPerAbcCycle.i = pCycle;
+   _valIsAbcEnabled.b = pOpen;
    printf("Set ABC Info - Open = %d, Cycle=%d, BaseValue=%d\n", (int)pOpen, (int)pCycle, pBaseCO2Value);
 }
 
@@ -349,7 +339,7 @@ void CubicCO2Sensor::ReadSensorInfo() {
       return;
    } 
    response.Print("ReadSensorInfo");
-   _maxPPM = response.Buffer[4] | (response.Buffer[3] << 8);
+   _valMaxPPM.i = response.Buffer[4] | (response.Buffer[3] << 8);
 }
 
 
@@ -360,29 +350,15 @@ void CubicCO2Sensor::ManualCalibration(int pBaseLinePPM) {
 }
 
 void CubicCO2Sensor::EnableABC(int pBaseLinePPM, int pNumberOfDaysPerCycle) {
-   _valAbcCycle.value.i = pNumberOfDaysPerCycle;
-   _valAbcBase.value.i = pBaseLinePPM;
-   _valAbcOpen.value.b = true;
-   SetAbcParameters(true, _valAbcCycle.value.i, _valAbcBase.value.i);
+   _valDaysPerAbcCycle.i = pNumberOfDaysPerCycle;
+   _valBasePPM.i = pBaseLinePPM;
+   _valIsAbcEnabled.b = true;
+   SetAbcParameters(true, _valDaysPerAbcCycle.i, _valBasePPM.i);
 }
 
 void CubicCO2Sensor::DisableABC() {
-   _valAbcOpen.value.b = false;
-   SetAbcParameters(false, _valAbcCycle.value.i, _valAbcBase.value.i);
-}
-
-
-
-int CubicCO2Sensor::GetBasePPM() {
-   return _valAbcBase.value.i;
-}
-
-int CubicCO2Sensor::GetDaysPerABCCycle() {
-   return _valAbcCycle.value.i;
-}
-
-bool CubicCO2Sensor::GetIsABCEnabled() {
-   return _valAbcOpen.value.b;
+   _valIsAbcEnabled.b = false;
+   SetAbcParameters(false, _valDaysPerAbcCycle.i, _valBasePPM.i);
 }
 
 void CubicCO2Sensor::SetUnknownMode(uint8_t pMode) {
@@ -422,16 +398,7 @@ void CubicCO2Sensor::SetSerialNumber(short pPart1, short pPart2, short pPart3, s
    } 
 }
 
-std::string& CubicCO2Sensor::GetSerialNo() {
-   return _serialNo;
-}
 
-std::string& CubicCO2Sensor::GetDeviceName() {
-   return _deviceName;
-}
-std::string& CubicCO2Sensor::GetSWVersion() {
-   return _softVer;
-}
 
 
 

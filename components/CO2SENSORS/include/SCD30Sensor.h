@@ -21,20 +21,14 @@ enum Scd30I2CCommand : uint16_t
 
 class Scd30Sensor : public CO2Sensor {
     I2CDeviceSession* _session;
-    bool _isHeatingUp = false;
-    bool _hasError = false;
-    bool _isAbcEnabled = false;
-    std::string _deviceName = "SCD30 CO2 Sensor";
-    std::string _softVer = "Unknown";
-    std::string _serialNo =  "Unknown";
-    int _ppm = 0;
-    int _maxPPM = 5000;
-    static const std::vector<int> availablePPMs;
-    CO2SensorValue _valTemperature = { .type = Double, .value = { .i = 0}, .name = "Temperature" };
-    CO2SensorValue _valHumidity = { .type = Double, .value = { .i = 0}, .name = "Humidity" };  
-    CO2SensorValue _valMeasurementInterval = { .type = Int, .value = { .i = 0}, .name = "Measurement Interval" };  
-    CO2SensorValue _valTemperatureOffset = { .type = Int, .value = { .i = 0}, .name = "Temperature Offset" };  
-    CO2SensorValue _valAltitude = { .type = Int, .value = { .i = 0}, .name = "Altitude" };  
+
+
+    Value _valTemperature = { .i = 0 };
+    Value _valHumidity = { .i = 0 };  
+    Value _valMeasurementInterval = { .i = 0 };  
+    Value _valTemperatureOffset = { .i = 0 };  
+    Value _valAltitude = { .i = 0 };  
+    const std::string SOURCE_NAME = "SCD30";
     bool ReadCommand(Scd30I2CCommand pCommand, uint8_t* pParamData, uint pNumParamBytes, void * pResponseData, uint pNumResponseBytes);
     void ReadSerialNo();
     void ReadSoftwareVersion();    
@@ -45,29 +39,17 @@ class Scd30Sensor : public CO2Sensor {
     void SetMeasurementInterval(uint16_t pIntervalSeconds);
 
     uint Crc8(void *pData, size_t pLength);
+protected: 
+    const std::string& GetValuesSourceName() const override;
 public:
     Scd30Sensor(I2CDeviceSession* pSession);
     
-    std::string& GetSerialNo()  override;
-    std::string& GetDeviceName() override;
-    std::string& GetSWVersion() override;
 
-    int GetMinDaysPerABCCycle() override;
-    int GetMaxDaysPerABCCycle() override;
-    int GetMinBasePPM() override;
-    int GetMaxBasePPM() override;
 
     bool RefreshValues() override;
-    int GetPPM() override;
-    bool GetIsHeatingUp() override;
-    bool GetHasError() override;
-    const std::vector<int>& GetAvailableMaxPPM() const override;
-    void SetMaxPPM(int pMaxPPM) override;   
-    int GetMaxPPM() override;
+
     
-    int GetBasePPM() override;
-    int GetDaysPerABCCycle() override;
-    bool GetIsABCEnabled() override;
+
     void DisableABC() override;
     void ManualCalibration(int pBaseLinePPM) override;
     void EnableABC(int pBaseLinePPM, int pNumberOfDaysPerCycle) override;

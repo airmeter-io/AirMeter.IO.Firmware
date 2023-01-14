@@ -54,7 +54,9 @@ DevicePersonality* DevicePersonality::Load() {
             if(displayProp->HasObjectProperty("config")) {
                 auto configProp = displayProp->GetObjectProperty("config");
                 displayConfig.DriverConfig = new Json(configProp->Print());
+                delete configProp;
             }
+            delete displayProp;
         }
 
         if(json.HasObjectProperty("uart")) {
@@ -74,7 +76,9 @@ DevicePersonality* DevicePersonality::Load() {
                         uartConfig.TxGpio = (gpio_num_t)txGpio;
                     }
                 }
-            }            
+                delete gpioProp;
+            } 
+            delete uartProp;           
         }
         
         

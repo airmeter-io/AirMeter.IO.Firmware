@@ -13,6 +13,8 @@ idf_component_register(
           "I2C"
           "HTTPSERVER"
           "SOFTSERIAL"
+          "GENERAL"
+          "VALUES"
           "mqtt"
           "spiffs"
           "esp_http_server"

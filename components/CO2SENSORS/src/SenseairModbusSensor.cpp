@@ -152,6 +152,13 @@ SenseairModBusSensor::SenseairModBusSensor(PinSerial* pSerial) : _serial(pSerial
     ReadHoldingRegistersInfo();
 }
 
+
+
+const std::string& SenseairModBusSensor::GetValuesSourceName() const {
+   return SOURCE_NAME;
+}
+
+
 SenseairModBusSensor::~SenseairModBusSensor() {
 }
 
@@ -184,7 +191,11 @@ bool SenseairModBusSensor::RefreshValues() {
     if(SendCommand(cmd)){
         auto buffer = cmd.GetResponse().GetBuffer();
         UpdateErrorStatus(buffer+3);
-        _ppm = buffer[9]*256+buffer[10];
+        _valCo2.i = buffer[9]*256+buffer[10];
+        _valCo2Unfiltered.i = buffer[9]*256+buffer[10];
+        _valCo2Uncompensated.i = buffer[9]*256+buffer[10];
+        _valCo2UnfilteredUncompensated.i = buffer[9]*256+buffer[10];
+
         ushort tempRaw = buffer[11]*256 + buffer[12];
         ushort measurementCount = buffer[16];
         ushort measurementSeconds = buffer[17]*256 + buffer[18];
@@ -201,8 +212,8 @@ void SenseairModBusSensor::ReadInputRegistersInfo() {
    
     if(SendCommand(cmd)) {
         auto buffer = cmd.GetResponse().GetBuffer();
-         _valFirmwareType.value.i = buffer[3]*256 + buffer[4];
-         _softVer = std::to_string(buffer[13])+"."+std::to_string(buffer[14]);
+         _valFirmwareType.i = buffer[3]*256 + buffer[4];
+         _softwareVersion = std::to_string(buffer[13])+"."+std::to_string(buffer[14]);
          char buf[10];
         snprintf(buf, sizeof(buf), "%.2X%.2X%.2X%.2X", buffer[15],buffer[16], buffer[17],buffer[18]);
         _serialNo = buf;
@@ -215,12 +226,12 @@ void SenseairModBusSensor::ReadHoldingRegistersInfo() {
     SendCommand(cmd);
     auto values = cmd.GetResponse().GetBuffer()+3;
     auto measurementMode =  values[21];
-    _valSingleMeasurementMode.value.b = measurementMode == 1;
-    _valMeasurementPeriod.value.i = values[22]*256 + values[23];
-    _valMeasurementNoSamples.value.i = values[24]*256 + values[25];
-    _valAbcPeriod.value.i = values[26]*256 + values[27];
-    _valAbcTarget.value.i = values[30]*256 + values[31];
-    _valFilter.value.i = values[33];
+    _valSingleMeasurementMode.b = measurementMode == 1;
+    _valMeasurementPeriod.i = values[22]*256 + values[23];
+    _valMeasurementNoSamples.i = values[24]*256 + values[25];
+    _valAbcPeriod.i = values[26]*256 + values[27];
+    _valAbcTarget.i = values[30]*256 + values[31];
+    _valFilter.i = values[33];
     auto meterControl = values[37];
     _meterControl = "";
 
@@ -242,7 +253,7 @@ void SenseairModBusSensor::ReadHoldingRegistersInfo() {
             printf("Failed Update Single Measurement Mode\n");
         }
     }
-    if(_valMeasurementNoSamples.value.i > 50) {
+    if(_valMeasurementNoSamples.i > 50) {
         uint8_t registers[4];
         registers[0] = 0;
         registers[1] = 16;

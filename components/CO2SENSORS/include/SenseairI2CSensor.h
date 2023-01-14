@@ -9,6 +9,7 @@ class SenseairI2CSensor : public SenseairBase {
     bool _hasDataRestore = false;
     ISensorManager *_sensorManager;
     uint8_t _sensorStateData[25] = { 0x1 };
+    const std::string SOURCE_NAME = "SenseairI2C";;
     void ReadFirmwareVersion();
     void ReadSensorID();
     void ReadCalibrationStatus();
@@ -19,13 +20,13 @@ class SenseairI2CSensor : public SenseairBase {
 
     bool WriteRegister(uint8_t pRegAddr, const uint8_t *pRegData, uint32_t pLen);
     bool ReadRegister(uint8_t pRegAddr, uint8_t *pRegData, uint32_t pLen);
-    
+protected: 
+    const std::string& GetValuesSourceName() const override;   
 public:
     SenseairI2CSensor(I2CDeviceSession* pSession, ISensorManager *pSensorManager);
     ~SenseairI2CSensor();
 
     
-    int GetRequiredManualCalibrationWaitInSeconds() override;
     bool RefreshValues() override;
    
     void DisableABC() override;

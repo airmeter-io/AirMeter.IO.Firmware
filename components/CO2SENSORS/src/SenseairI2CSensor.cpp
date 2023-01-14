@@ -42,18 +42,25 @@ enum SENSEAIR_I2C_RERISTERS
 
 SenseairI2CSensor::SenseairI2CSensor(I2CDeviceSession* pSession, ISensorManager* pSensorManager) : _session(pSession), _sensorManager(pSensorManager) {
     _deviceName = "Senseair I2C";
+    _valCalibWaitTime.i = 2;
     ReadFirmwareVersion();
     ReadSensorID();
     ReadCalibrationStatus();
 
     
     ReadMeasurementModeInfo();
-    if(!_valSingleMeasurementMode.value.b) {
+    if(!_valSingleMeasurementMode.b) {
         uint8_t mode = 1;
         WriteRegister((uint8_t)SENSEAIR_I2C_RERISTERS::MEASUREMENT_MODE, &mode, sizeof(mode));
         ReadMeasurementModeInfo();
     }
 }
+
+
+const std::string& SenseairI2CSensor::GetValuesSourceName() const {
+   return SOURCE_NAME;
+}
+
 
 SenseairI2CSensor::~SenseairI2CSensor() {
     delete _session;
@@ -64,11 +71,11 @@ SenseairI2CSensor::~SenseairI2CSensor() {
 
 
 bool SenseairI2CSensor::RefreshValues() {
-    uint8_t ppmBytes[0xf];
+    uint8_t ppmBytes[0x16];
   
     vTaskDelay(50 / portTICK_PERIOD_MS);      
 
-    if(_valSingleMeasurementMode.value.b) {
+    if(_valSingleMeasurementMode.b) {
         if(_hasDataRestore) 
             WriteRegister((uint8_t)SENSEAIR_I2C_RERISTERS::START_SINGLE_MEASUREMENT, _sensorStateData, sizeof(_sensorStateData));
         else 
@@ -76,10 +83,13 @@ bool SenseairI2CSensor::RefreshValues() {
             
         vTaskDelay(2450 / portTICK_PERIOD_MS);      
         if(ReadRegister((uint8_t )SENSEAIR_I2C_RERISTERS::CO2_FILTERED_COMPENSATED,ppmBytes, sizeof(ppmBytes))) {
-                _ppm = ppmBytes[0]*256 + ppmBytes[1];
+                _valCo2.i = ppmBytes[0]*256 + ppmBytes[1];
                 ushort tempRaw = ppmBytes[2]*256 + ppmBytes[3];
                 ushort measurementCount = ppmBytes[7];
                 ushort measurementSeconds = ppmBytes[8]*256 + ppmBytes[9];
+                _valCo2Unfiltered.i = ppmBytes[10]*256 + ppmBytes[11];
+                _valCo2Uncompensated.i = ppmBytes[12]*256 + ppmBytes[13];
+                _valCo2UnfilteredUncompensated.i = ppmBytes[14]*256 + ppmBytes[15];
                 measurementSeconds*=2;
             _temp = std::to_string(tempRaw/100)+"."+std::to_string(tempRaw % 100);
 
@@ -90,11 +100,14 @@ bool SenseairI2CSensor::RefreshValues() {
             _hasDataRestore = true;
     } else {
         if(ReadRegister((uint8_t )SENSEAIR_I2C_RERISTERS::CO2_FILTERED_COMPENSATED,ppmBytes, sizeof(ppmBytes))) {
-                _ppm = ppmBytes[0]*256 + ppmBytes[1];
+                _valCo2.i = ppmBytes[0]*256 + ppmBytes[1];
                 ushort tempRaw = ppmBytes[2]*256 + ppmBytes[3];
                 ushort measurementCount = ppmBytes[7];
                 ushort measurementSeconds = ppmBytes[8]*256 + ppmBytes[9];
                 measurementSeconds*=2;
+                _valCo2Unfiltered.i = ppmBytes[10]*256 + ppmBytes[11];
+                _valCo2Uncompensated.i = ppmBytes[12]*256 + ppmBytes[13];
+                _valCo2UnfilteredUncompensated.i = ppmBytes[14]*256 + ppmBytes[15];
             _temp = std::to_string(tempRaw/100)+"."+std::to_string(tempRaw % 100);
 
             _measurementInfo = std::to_string(measurementSeconds) + "s since reading #"+std::to_string(measurementCount);
@@ -120,7 +133,7 @@ bool SenseairI2CSensor::WriteCalibrationCommand(uint8_t pByte1, uint8_t pByte2) 
 
 
 void SenseairI2CSensor::DisableABC() {
-    _abcEnabled = false;
+    _valIsAbcEnabled.b = false;
 }
 
 void SenseairI2CSensor::ManualCalibration(int pBaseLinePPM) {
@@ -151,13 +164,13 @@ void SenseairI2CSensor::ManualCalibration(int pBaseLinePPM) {
 }
 
 void SenseairI2CSensor::EnableABC(int pBaseLinePPM, int pNumberOfDaysPerCycle) {
-    _abcEnabled = true;
+    _valIsAbcEnabled.b = true;
 }
 
 void SenseairI2CSensor::ReadFirmwareVersion() {
     uint8_t version[2];
     if(ReadRegister((uint8_t )SENSEAIR_I2C_RERISTERS::FIRMWARE_REV,version, sizeof(version))) {
-        _softVer = std::to_string(version[0])+"."+std::to_string(version[1]);       
+        _softwareVersion = std::to_string(version[0])+"."+std::to_string(version[1]);       
     }
 }
 
@@ -178,12 +191,12 @@ void SenseairI2CSensor::ReadCalibrationStatus() {
 void SenseairI2CSensor::ReadMeasurementModeInfo() {
     uint8_t values[17];
     if(ReadRegister((uint8_t )SENSEAIR_I2C_RERISTERS::MEASUREMENT_MODE,values, sizeof(values))) {
-        _valSingleMeasurementMode.value.b = values[0] == 1;
-        _valMeasurementPeriod.value.i = values[1]*256 + values[2];
-        _valMeasurementNoSamples.value.i = values[3]*256 + values[4];
-        _valAbcPeriod.value.i = values[5]*256 + values[6];
-        _valAbcTarget.value.i = values[9]*256 + values[10];
-        _valFilter.value.i = values[12];
+        _valSingleMeasurementMode.b = values[0] == 1;
+        _valMeasurementPeriod.i = values[1]*256 + values[2];
+        _valMeasurementNoSamples.i = values[3]*256 + values[4];
+        _valAbcPeriod.i = values[5]*256 + values[6];
+        _valAbcTarget.i = values[9]*256 + values[10];
+        _valFilter.i = values[12];
         auto meterControl = values[16];
         _meterControl = "";
 
@@ -319,6 +332,3 @@ bool SenseairI2CSensor::WriteRegister(uint8_t pRegAddr, const uint8_t *pRegData,
 }
 
 
-int SenseairI2CSensor::GetRequiredManualCalibrationWaitInSeconds() {
-    return 2;
-}

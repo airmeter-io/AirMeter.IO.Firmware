@@ -15,25 +15,14 @@ GeneralSettings::GeneralSettings() {
     snprintf(hex, sizeof(hex), "%.4X",*(uint16_t*)(macAddress+4) );
     _deviceName+=hex;
 
-    auto f = fopen("/spiffs/device.json", "rb");
-    if (f != NULL) {
-        
-        fseek(f, 0, SEEK_END);
-        long fsize = ftell(f);
-        fseek(f, 0, SEEK_SET); 
-
-        auto* rawJson = (char *)calloc(fsize + 1,1);
-        fread(rawJson, 1, fsize, f);
-        fclose(f);
-
-        Json json(rawJson);
-        LoadSettings(json);
-        free(rawJson);
-    } else 
-        Save();
+    Load();
 }
 
-void GeneralSettings::LoadSettings(Json& pJson) {
+const char * GeneralSettings::GetFilePath() {
+    return "/spiffs/device.json";
+}
+
+void GeneralSettings::LoadSettingsFromJson(Json& pJson) {
     if(pJson.HasProperty("DeviceNetName"))
         _deviceName = pJson.GetStringProperty("DeviceNetName");
     if(pJson.HasProperty("ApPassword"))
@@ -54,25 +43,16 @@ void GeneralSettings::LoadSettings(Json& pJson) {
         _sensorUpdateInterval = (CO2SensorType)pJson.GetIntProperty("SensorUpdateInterval");        
 }
 
-void GeneralSettings::Save() {    
-    auto f = fopen("/spiffs/device.json", "w");
-    if (f == NULL) {
-        ESP_LOGE("GeneralSettings", "Failed to open file for writing");
-        return;
-    }
-    Json json;
-    json.CreateStringProperty("DeviceNetName", _deviceName);
-    json.CreateStringProperty("ApPassword", _apPassword);
-    json.CreateBoolProperty("EnableMqtt", _enableMqtt);
-    json.CreateBoolProperty("EnableDhcpNtp", _enableDhcpNtp);
-    json.CreateStringProperty("MqttTopic", _mqttTopic);
-    json.CreateNumberProperty("MqttPublishSecondDelay", _mqttPublishSecondDelay);
-    json.CreateStringProperty("MqttServerAddress", _mqttServerAddress);
-    json.CreateNumberProperty("CO2SensorType", (int)_sensorType);
-    json.CreateNumberProperty("SensorUpdateInterval", _sensorUpdateInterval);
-    auto jsonStr = json.Print();
-    fprintf(f, "%s", jsonStr.c_str());
-    fclose(f);
+void GeneralSettings::SaveSettingsToJson(Json& pJson) {    
+    pJson.CreateStringProperty("DeviceNetName", _deviceName);
+    pJson.CreateStringProperty("ApPassword", _apPassword);
+    pJson.CreateBoolProperty("EnableMqtt", _enableMqtt);
+    pJson.CreateBoolProperty("EnableDhcpNtp", _enableDhcpNtp);
+    pJson.CreateStringProperty("MqttTopic", _mqttTopic);
+    pJson.CreateNumberProperty("MqttPublishSecondDelay", _mqttPublishSecondDelay);
+    pJson.CreateStringProperty("MqttServerAddress", _mqttServerAddress);
+    pJson.CreateNumberProperty("CO2SensorType", (int)_sensorType);
+    pJson.CreateNumberProperty("SensorUpdateInterval", _sensorUpdateInterval);
 }
 
 std::string& GeneralSettings::GetMqttServerAddress() {

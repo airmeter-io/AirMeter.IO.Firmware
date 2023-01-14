@@ -17,6 +17,7 @@ std::string HttpRequest::GetUri() {
 
 std::string HttpRequest::GetHost() {
     auto len = httpd_req_get_hdr_value_len(_req, "Host") + 1;
+
     if (len > 1) {
         auto buf = (char *)malloc(len);
         std::string result;
@@ -27,7 +28,7 @@ std::string HttpRequest::GetHost() {
         free(buf);
         return result;
     }
-
+    
     return "";
 }
 

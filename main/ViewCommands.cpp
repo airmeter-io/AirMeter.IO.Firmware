@@ -1,54 +1,23 @@
 #include "ViewCommands.h"
-#include "ValueModel.h"
 #include "DataManagerQuery.h"
 #include "Json.h"
-
+#include "ValueController.h"
 #include "Utility.h"
 #include <string>
 #include <vector>
 
-GetLatestDataCommand::GetLatestDataCommand(ValueModel& pValues) : _values(pValues) {
+GetLatestDataCommand::GetLatestDataCommand()  {
     
 }
 
 void GetLatestDataCommand::Process(Json& pJson,Json& pResult)  {
     pResult.CreateStringProperty("Status", "true");
-    pResult.CreateBoolProperty("HasCo2", _values.CO2!=nullptr);
-    if(_values.CO2) {
-        pResult.CreateNumberProperty("Co2", _values.CO2->GetPPM());    
-        pResult.CreateNumberProperty("Co2Max", _values.CO2->GetMaxPPM());    
-        pResult.CreateBoolProperty("Co2Heating", _values.CO2->GetIsHeatingUp());
-        pResult.CreateBoolProperty("Co2Error", _values.CO2->GetHasError());
-        pResult.CreateNumberProperty("Co2AdditionalCount", (int)(_values.CO2->GetValues().size()));
-        pResult.CreateStringProperty("Co2Name", _values.CO2->GetDeviceName().c_str()); 
-        pResult.CreateStringProperty("Co2SwVersion", _values.CO2->GetSWVersion().c_str()); 
-        pResult.CreateStringProperty("Co2SerialNo", _values.CO2->GetSerialNo().c_str()); 
-        std::vector<Json*> additonalValues;
-        for(auto additional : _values.CO2->GetValues()) {
-            auto additionalValJson = new Json();
-            additonalValues.push_back(additionalValJson);
-            additionalValJson->CreateStringProperty("Name", additional->name);
-            switch(additional->type){
-            case Bool : 
-                additionalValJson->CreateBoolProperty("Value", additional->value.b);
-                break;
-            case Int :
-                additionalValJson->CreateNumberProperty("Value", additional->value.i);
-                break;
-            case Double:  
-                additionalValJson->CreateNumberProperty("Value", additional->value.d);
-                break;
-            case String:
-                additionalValJson->CreateStringProperty("Value", *additional->value.s);
-                break;
-            }
-        }
-        pResult.CreateArrayProperty("Co2AdditionalValues", additonalValues);
+    for(auto keyPair : ValueController::GetCurrent().GetSourcesByName()) {
+        auto source = keyPair.second->DefaultSource;
+        if(source->GetFlags() & GET_LATEST_DATA ) {
+            source->SerialiseToJsonProperty(pResult);
+        }            
     }
-    
-    pResult.CreateStringProperty("Temp", _values.Bme280.GetTemperatureStr());
-    pResult.CreateStringProperty("Pressure", _values.Bme280.GetPressureStr(2));
-    pResult.CreateStringProperty("Humidity", _values.Bme280.GetHumidityStr()); 
     pResult.CreateStringProperty("Time", GetCurrentIsoTimeString()); 
     
 }

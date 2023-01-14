@@ -1,15 +1,14 @@
 #pragma once
 
 #include "GeneralSettings.h"
-#include "ValueModel.h"
+
 #include<string>
 
 class CO2MonitorDisplay {
 protected:
     GeneralSettings& _settings;
-    ValueModel& _values;
 public:
-    CO2MonitorDisplay(GeneralSettings& pSettings, ValueModel& pValues);
+    CO2MonitorDisplay(GeneralSettings& pSettings);
 
     virtual void RenderReadings() = 0;
     virtual void RenderAccessPointInfo(const std::string& pSSID, const std::string& pPassword) = 0;

@@ -1,4 +1,5 @@
 #include "BME280.h"
+#include "CommonValueNames.h"
 #include<math.h>
 
 void user_delay_ms(uint32_t period, void *pUserInfo)
@@ -56,7 +57,9 @@ I2C& BME280::GetI2C() const {
 }
 
 BME280::BME280(I2C& pI2C) : _i2c(pI2C) {
-    
+    AddValueSource(new ValueSource(*this,TEMPERATURE,   AtmosphericTemperature, Fixed, Centigrade, _valHumidity, GET_LATEST_DATA));       
+    AddValueSource(new ValueSource(*this,PRESSURE,      AtmosphericPressure,    Fixed, hPa,        _valPressure, GET_LATEST_DATA));       
+    AddValueSource(new ValueSource(*this,HUMIDITY,      AtmosphericHumidity,    Fixed, Percent,    _valTemperature, GET_LATEST_DATA));    
     _bme.chip_id = BME280_I2C_ADDR_PRIM;
 	_bme.intf = BME280_I2C_INTF;
 	_bme.read = user_i2c_read;
@@ -85,8 +88,12 @@ BME280::BME280(I2C& pI2C) : _i2c(pI2C) {
 
 }
 
+const std::string& BME280::GetValuesSourceName() const {
+    return SOURCE_NAME;
+}
 
-bool BME280::ReadSensorValues(BME280SensorValues &pReadValues) {
+
+bool BME280::ReadSensorValues() {
     struct bme280_data comp_data;
     auto result = bme280_get_sensor_data(BME280_ALL, &comp_data, &_bme);
     if(result!=0) {
@@ -95,10 +102,10 @@ bool BME280::ReadSensorValues(BME280SensorValues &pReadValues) {
             return false;
     }
 
-     pReadValues.temperature = comp_data.temperature;
-     pReadValues.pressure = comp_data.pressure;
-     pReadValues.humidity = comp_data.humidity;
-     return true;
+    _valTemperature.i= round(comp_data.temperature*100);
+    _valPressure.i = round(comp_data.pressure);
+    _valHumidity.i = round(comp_data.humidity*100);
+    return true;
 }
 
 uint8_t BME280::GetDeviceId() const {
@@ -109,28 +116,3 @@ BME280::~BME280() {
 
 }
 
-#define DEC_PLACE_MULTIPLIER 100
-
-char *BME280SensorValues::GetPressureStr(int pDecimialDigits) {
-    int decPlaceMulti = pow(10, pDecimialDigits);
-    int32_t value = round((pressure/100)*decPlaceMulti);
-   
-    char format[8] ="%d.%.1d";
-    format[5] ='0'+pDecimialDigits;
-    snprintf(_pressureStr, sizeof(_pressureStr), format,  (int32_t)(value / decPlaceMulti), (int32_t)( abs(value) % decPlaceMulti));
-    return _pressureStr;
-}
-
-char *BME280SensorValues::GetTemperatureStr() {
-    int32_t value = temperature * DEC_PLACE_MULTIPLIER;
-
-    snprintf(_temperatureStr, sizeof(_temperatureStr), "%d.%d",  (int)(value / DEC_PLACE_MULTIPLIER), (int)(abs(value) % DEC_PLACE_MULTIPLIER));
-    return _temperatureStr;
-}
-
-char *BME280SensorValues::GetHumidityStr() {
-    int32_t value = humidity * DEC_PLACE_MULTIPLIER;
-
-    snprintf(_humidityStr, sizeof(_humidityStr), "%d.%d",  (int)(value / DEC_PLACE_MULTIPLIER), (int)(abs(value) % DEC_PLACE_MULTIPLIER));
-    return _humidityStr;
-}

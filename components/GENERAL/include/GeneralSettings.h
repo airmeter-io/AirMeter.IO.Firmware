@@ -4,11 +4,12 @@
 #include <string>
 #include <vector>
 #include "Json.h"
+#include "SettingsBase.h"
 
 enum CO2SensorType { None, MHZ19, Cubic, SenseAirModBus, MaxType };
 
 
-class GeneralSettings {
+class GeneralSettings : public SettingsBase {
 
    std::string _deviceName = "device";
    std::string _apPassword = "";
@@ -22,11 +23,13 @@ class GeneralSettings {
    bool _enableDhcpNtp = false;
    int _mqttPublishSecondDelay = 5*60;
 
-   void LoadSettings(Json& pJson);
+protected:
+    const char* GetFilePath() override;
+    void LoadSettingsFromJson(Json& pJson) override;
+    void SaveSettingsToJson(Json& pJson) override;
 public:
     GeneralSettings();
     
-    void Save();
     std::string GetDeviceName();
     void SetDeviceName(const std::string& pDeviceName);
     std::string GetApPassword();

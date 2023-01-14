@@ -6,7 +6,6 @@
 #include "Wifi.h"
 #include "GeneralSettings.h"
 #include "ButtonManager.h"
-#include "ValueModel.h"
 #include "BME280.h"
 #include "StringWithValues.h"
 #include "I2C.h"
@@ -24,7 +23,6 @@ class MainLogicLoop : private StringValueSource, private ScreenManagerNotifier {
     SensorManager* _sensorManager = nullptr;
     GeneralSettings* _generalSettings = nullptr;
     DevicePersonality* _devicePersonality = nullptr;
-    ValueModel _values;
     //CO2MonitorDisplay* _display = nullptr;
     MqttManager* _mqtt = nullptr;
     DataManagerRamTemporaryStore *_ramStore = nullptr;

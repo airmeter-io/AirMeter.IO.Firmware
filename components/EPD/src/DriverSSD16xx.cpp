@@ -39,7 +39,9 @@ bool DriverSSD16xx::LoadPanel(std::string pName, SSD16xxConfiguration& pInfo) {
 
         Json json(rawJson);
         if(json.HasObjectProperty(pName)) {
-            result = LoadPanelInfo(json.GetObjectProperty(pName), pInfo);
+            auto panelConfig = json.GetObjectProperty(pName);
+            result = LoadPanelInfo(panelConfig, pInfo);
+            delete panelConfig;
         }
         free(rawJson);
     }
@@ -59,14 +61,19 @@ bool DriverSSD16xx::LoadPanelInfo(Json* pJson, SSD16xxConfiguration& pInfo) {
         if(!partial->HasProperty("GateDrivingVoltage") ||
            !partial->HasProperty("VCOM") ||
            !partial->HasProperty("Data") ||
-           !partial->HasObjectProperty("SourceDrivingVoltage"))
+           !partial->HasObjectProperty("SourceDrivingVoltage")) {
+           delete partial;
            return false;
+        }
         
         pInfo.LUTPartialUpdate.GateDrivingVoltage = partial->GetIntProperty("GateDrivingVoltage");
         pInfo.LUTPartialUpdate.VCOM = partial->GetIntProperty("VCOM");
         auto source = partial->GetObjectProperty("SourceDrivingVoltage");
-        if(!source->HasProperty("Vsh1") || !source->HasProperty("Vsh2") || !source->HasProperty("Vsl"))
+        if(!source->HasProperty("Vsh1") || !source->HasProperty("Vsh2") || !source->HasProperty("Vsl")) {
+            delete partial;
+            delete source;
             return false;
+        }
         pInfo.LUTPartialUpdate.SourceDrivingVoltage.Vsh1 = source->GetIntProperty("Vsh1");
         pInfo.LUTPartialUpdate.SourceDrivingVoltage.Vsh2 = source->GetIntProperty("Vsh2");
         pInfo.LUTPartialUpdate.SourceDrivingVoltage.Vsl = source->GetIntProperty("Vsl");
@@ -74,6 +81,8 @@ bool DriverSSD16xx::LoadPanelInfo(Json* pJson, SSD16xxConfiguration& pInfo) {
         if(!HexStringToBytes(partial->GetStringProperty("Data"), &pInfo.LUTPartialUpdate.Data, &pInfo.LUTPartialUpdate.DataLength)) {
             printf("Failed to parse LUT hex string\n");
         }
+        delete partial;
+        delete source;
     }
 
     return true;        

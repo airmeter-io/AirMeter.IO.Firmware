@@ -122,12 +122,10 @@ void MainLogicLoop::Run() {
     CommandHandler *command = nullptr;
     CaptiveRedirectHandler* captiveRedirect = nullptr;
     WebContentHandler *webContent = nullptr;
-    
 
-  //  _display = new Oledssd1306Display(*_generalSettings, _sensorManager->GetValues(), *_wifi, *_i2c );
     httpServer->Start();
  
-    command = new CommandHandler(*_wifi, *_generalSettings, _sensorManager->GetValues(), *_dataManager);
+    command = new CommandHandler(*_wifi, *_generalSettings, *_dataManager);
     webContent = new WebContentHandler();
     httpServer->AddUrlHandler(webContent);
     httpServer->AddUrlHandler(command);
@@ -155,7 +153,7 @@ void MainLogicLoop::Run() {
 
         if(_generalSettings->GetEnableMqtt()) {
             printf("Starting Mqtt...\n");
-            _mqtt = new MqttManager(*_generalSettings,_sensorManager->GetValues());
+            _mqtt = new MqttManager(*_generalSettings);
         }
     }
 
@@ -172,17 +170,6 @@ void MainLogicLoop::Run() {
 }
 
  std::string MainLogicLoop::ResolveValue(std::string pName) {
-    if(pName == "CO2Ppm") { 
-        if(_sensorManager->GetValues().CO2==nullptr)
-            return "-";
-        return std::to_string(_sensorManager->GetValues().CO2->GetPPM());
-    }
-    if(pName == "Temp")
-        return _sensorManager->GetValues().Bme280.GetTemperatureStr();
-    if(pName == "Pressure")
-        return _sensorManager->GetValues().Bme280.GetPressureStr(2);
-    if(pName == "Humidity")
-        return _sensorManager->GetValues().Bme280.GetHumidityStr();
     if(pName == "Time") {
         
         time_t now;
@@ -202,6 +189,9 @@ void MainLogicLoop::Run() {
     if(pName == "AccessPointPassword") {
         return _generalSettings->GetApPassword();
     }
+
+    auto source = ValueController::GetCurrent().GetDefault(pName);
+    if(source) return source->GetValueAsString();
     return "ERR";
  }
 

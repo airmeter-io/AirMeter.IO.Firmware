@@ -4,30 +4,36 @@
 #include "I2CCompat.h"
 
 Scd30Sensor::Scd30Sensor(I2CDeviceSession* pSession) : _session(pSession) {    
-    RegisterValue(&_valTemperature);
-    RegisterValue(&_valHumidity);
-    RegisterValue(&_valMeasurementInterval);
-    RegisterValue(&_valTemperatureOffset);
-    RegisterValue(&_valAltitude);
+    _deviceName = "SCD30 CO2 Sensor";
+
+    AddValueSource(new ValueSource(*this,"SCD30_Temperature",         Generic, Double, Dimensionless, _valTemperature, GET_LATEST_DATA));
+    AddValueSource(new ValueSource(*this,"SCD30_Humidity",            Generic, Double, Dimensionless, _valHumidity, GET_LATEST_DATA));
+    AddValueSource(new ValueSource(*this,"SCD30_MeasurementInterval", Generic, Int,    Dimensionless, _valMeasurementInterval, GET_LATEST_DATA));
+    AddValueSource(new ValueSource(*this,"SCD30_TemperatureOffset",   Generic, Int,    Dimensionless, _valTemperatureOffset, GET_LATEST_DATA));
+    AddValueSource(new ValueSource(*this,"SCD30_Altitude",            Generic, Int,    Dimensionless, _valAltitude, GET_LATEST_DATA));
     
+    _valMaxPPM.i = 5000;
+    _valBasePPM.i = 400;
+    _valMinBasePPM.i = 400;
+    _valMaxBasePPM.i = 2000;
+    _valDaysPerAbcCycle.i = 7;
+    _valMaxDaysPerAbcCycle.i = 7;
+    _valMinDaysPerAbcCycle.i = 7;
+
     ReadSoftwareVersion();    
     ReadSerialNo();
     ReadMeasurementInterval();      
     ReadABCStatus();  
     ReadTemperatureOffset();  
     ReadAltitude();
+
 }
 
-std::string& Scd30Sensor::GetSerialNo()  { 
-    return _serialNo;
-}
-std::string& Scd30Sensor::GetDeviceName() { 
-    return _deviceName;
+
+const std::string& Scd30Sensor::GetValuesSourceName() const {
+   return SOURCE_NAME;
 }
 
-std::string& Scd30Sensor::GetSWVersion() { 
-    return _softVer;
-}
 
 uint Scd30Sensor::Crc8(void *pData, size_t pLength)
 {
@@ -136,9 +142,13 @@ bool Scd30Sensor::RefreshValues() {
     float* co2 = ((float *)(&co2Raw));
     float* temp =((float *)(&tempRaw));
     float* rh = ((float *)(&rhRaw));
-    _ppm = *co2;
-    _valTemperature.value.d = *temp;
-    _valHumidity.value.d = *rh;
+    _valCo2.i = *co2;
+    _valCo2Unfiltered.i = *co2;
+    _valCo2Uncompensated.i = *co2;
+    _valCo2UnfilteredUncompensated.i = *co2;
+
+    _valTemperature.d = *temp;
+    _valHumidity.d = *rh;
     return true;
 }
 
@@ -165,8 +175,8 @@ void Scd30Sensor::ReadSoftwareVersion() {
         ESP_LOGV(TAG, "Failed to read software version from SCD30");
         //return;
     }
-    _softVer = std::to_string((int)(fwVersion[0]))+"."+std::to_string((int)(fwVersion[1]));
-     printf("Softver: %s\n",  _softVer.c_str());
+    _softwareVersion = std::to_string((int)(fwVersion[0]))+"."+std::to_string((int)(fwVersion[1]));
+     printf("Softver: %s\n",  _softwareVersion.c_str());
 }
 
 void Scd30Sensor::ReadMeasurementInterval() {
@@ -177,9 +187,9 @@ void Scd30Sensor::ReadMeasurementInterval() {
         ESP_LOGV(TAG, "Failed to read measurement interval from SCD30");
         return;
     }
-    _valMeasurementInterval.value.i = (intervalBytes[0] << 8) + intervalBytes[1];
-     printf("Measurement Interval: %d\n",  _valMeasurementInterval.value.i);
-    if(_valMeasurementInterval.value.i!=2)  {
+    _valMeasurementInterval.i = (intervalBytes[0] << 8) + intervalBytes[1];
+     printf("Measurement Interval: %d\n",  _valMeasurementInterval.i);
+    if(_valMeasurementInterval.i!=2)  {
         SetMeasurementInterval(2);
         while(!ReadCommand(Scd30I2CCommand::SET_MEASUREMENT_INTERVAL, nullptr, 0, &intervalBytes, 1))
         {
@@ -187,8 +197,8 @@ void Scd30Sensor::ReadMeasurementInterval() {
             ESP_LOGV(TAG, "Failed to read measurement interval from SCD30");
             return;
         }
-        _valMeasurementInterval.value.i = (intervalBytes[0] << 8) + intervalBytes[1];
-         printf("Measurement Interval (Reset): %d\n",  _valMeasurementInterval.value.i);
+        _valMeasurementInterval.i = (intervalBytes[0] << 8) + intervalBytes[1];
+         printf("Measurement Interval (Reset): %d\n",  _valMeasurementInterval.i);
     }
    
 }   
@@ -202,7 +212,7 @@ void Scd30Sensor::ReadABCStatus() {
        // return;
     }
     printf("ABC %d\n",  ((bytes[0] << 8) + bytes[1]));
-    _isAbcEnabled = ((bytes[0] << 8) + bytes[1])==1;    
+    _valIsAbcEnabled.b = ((bytes[0] << 8) + bytes[1])==1;    
 }
 
 void Scd30Sensor::ReadTemperatureOffset() {
@@ -213,7 +223,7 @@ void Scd30Sensor::ReadTemperatureOffset() {
         ESP_LOGV(TAG, "Failed to temperature offset from SCD30");
         return;
     }
-    _valTemperatureOffset.value.i = (bytes[0] << 8) + bytes[1];
+    _valTemperatureOffset.i = (bytes[0] << 8) + bytes[1];
 }
 
 void Scd30Sensor::ReadAltitude() {
@@ -224,64 +234,9 @@ void Scd30Sensor::ReadAltitude() {
         ESP_LOGV(TAG, "Failed to read altitude from SCD30");
         return;
     }
-    _valAltitude.value.i = (bytes[0] << 8) + bytes[1];
+    _valAltitude.i = (bytes[0] << 8) + bytes[1];
 }
 
-
-int Scd30Sensor::GetPPM() { 
-    return _ppm;
-}
-
-bool Scd30Sensor::GetIsHeatingUp() {
-    return _isHeatingUp;
-}
-
-bool Scd30Sensor::GetHasError() { 
-    return _hasError;
-}
-const std::vector<int>& Scd30Sensor::GetAvailableMaxPPM() const {
-    return availablePPMs;
-}
-
-const std::vector<int> Scd30Sensor::availablePPMs = { 5000 };
-
-void Scd30Sensor::SetMaxPPM(int pMaxPPM) {
-
-}   
-
-int Scd30Sensor::GetMaxPPM() {
-    return _maxPPM;
-}
-
-int Scd30Sensor::GetBasePPM() { 
-    return 400;
-}
-
-int Scd30Sensor::GetDaysPerABCCycle() { 
-    return 7;
-}
-
-bool Scd30Sensor::GetIsABCEnabled() {
-    return _isAbcEnabled;
-}
-
-int Scd30Sensor::GetMinDaysPerABCCycle() {
-    return 7;
-}
-
-int Scd30Sensor::GetMaxDaysPerABCCycle() {
-    return 7;
-}
-
-int Scd30Sensor::GetMinBasePPM()
-{
-    return 400;
-}
-
-int Scd30Sensor::GetMaxBasePPM()
-{
-    return 2000;
-}
 
 void Scd30Sensor::DisableABC() { 
     uint8_t paramBytes[2]  = {0,0};

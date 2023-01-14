@@ -1,70 +1,23 @@
 #include "SenseairBase.h"
 
 SenseairBase::SenseairBase()  {
-    _serialNo = "UNKNOWN";
-    _softVer = "UNKNOWN";
-    RegisterValue(&_valMeasurementInfo);
-    RegisterValue(&_valFirmwareType);
-    RegisterValue(&_valFirmwareTemperature);
-    RegisterValue(&_valError);
-  
-    RegisterValue(&_valSingleMeasurementMode);
-    RegisterValue(&_valMeasurementPeriod);
-    RegisterValue(&_valMeasurementNoSamples);
-    RegisterValue(&_valAbcPeriod);
-    RegisterValue(&_valAbcTarget);
-    RegisterValue(&_valFilter);
-    RegisterValue(&_valMeterControl);
-}
+    _valMaxPPM.i = 5000;
+    _valBasePPM.i = 400;
+    _valIsAbcEnabled.b = true;
+    _valDaysPerAbcCycle.i = 1;
 
-const std::vector<int> SenseairBase::availablePPMs = { 2000, 5000 };
+    AddValueSource(new ValueSource(*this,"Sunrise_MeasurementInfo",       Generic, String, Dimensionless, _valMeasurementInfo, GET_LATEST_DATA));
+    AddValueSource(new ValueSource(*this,"Sunrise_FirmwareType",          Generic, Int,    Dimensionless, _valFirmwareType, GET_LATEST_DATA));
+    AddValueSource(new ValueSource(*this,"Sunrise_FirmwareTemperature",   Generic, String, Dimensionless, _valFirmwareTemperature, GET_LATEST_DATA));
+    AddValueSource(new ValueSource(*this,"Sunrise_Error",                 Generic, String, Dimensionless, _valError, GET_LATEST_DATA));
 
-
-std::string& SenseairBase::GetSerialNo() {
-    return _serialNo;
-}
-
-std::string& SenseairBase::GetDeviceName() {
-    return _deviceName;
-}
-
-std::string& SenseairBase::GetSWVersion() {
-    return _softVer;
-}
-
-
-int SenseairBase::GetPPM() {
-    return _ppm;
-}
-
-int SenseairBase::GetMaxPPM() {
-    return 5000;
-}
-
-const std::vector<int>& SenseairBase::GetAvailableMaxPPM() const {
-    return availablePPMs;
-}
-void SenseairBase::SetMaxPPM(int pMaxPPM) {
-
-}
-bool SenseairBase::GetIsHeatingUp() {
-    return _isHeatingUp;
-}
-
-bool SenseairBase::GetHasError() {
-    return _sensorError;
-}
-
-int SenseairBase::GetBasePPM() {
-    return 400;
-}
-
-int SenseairBase::GetDaysPerABCCycle() {
-    return 1;
-}
-
-bool SenseairBase::GetIsABCEnabled() {
-    return _abcEnabled;
+    AddValueSource(new ValueSource(*this,"Sunrise_SingleMeasurementMode", Generic, Bool,   Dimensionless, _valSingleMeasurementMode, GET_LATEST_DATA));
+    AddValueSource(new ValueSource(*this,"Sunrise_MeasurementPeriod",     Generic, Int,    Dimensionless, _valMeasurementPeriod, GET_LATEST_DATA));
+    AddValueSource(new ValueSource(*this,"Sunrise_NumSamples",            Generic, Int,    Dimensionless, _valMeasurementNoSamples, GET_LATEST_DATA));
+    AddValueSource(new ValueSource(*this,"Sunrise_AbcPeriod",             Generic, Int,    Dimensionless, _valAbcPeriod, GET_LATEST_DATA));
+    AddValueSource(new ValueSource(*this,"Sunrise_AbcTarget",             Generic, Int,    Dimensionless, _valAbcTarget, GET_LATEST_DATA));
+    AddValueSource(new ValueSource(*this,"Sunrise_IRFilter",              Generic, Int,    Dimensionless, _valFilter, GET_LATEST_DATA));
+    AddValueSource(new ValueSource(*this,"Sunrise_MeterControl",          Generic, String, Dimensionless, _valMeterControl, GET_LATEST_DATA));
 }
 
 #define SENSOR_STATUS_MSB_LOW_VOLTAGE_ERROR 1
@@ -80,54 +33,54 @@ bool SenseairBase::GetIsABCEnabled() {
 
 
  void SenseairBase::UpdateErrorStatus(uint8_t* pInput) {
-    _sensorError = false;
+    _valHasError.b = false;
     _error = "";
     if(pInput[0] & SENSOR_STATUS_MSB_LOW_VOLTAGE_ERROR) {
-        _sensorError= true;
+        _valHasError.b= true;
         _error+="'Low Voltage' ";        
     } 
 
     if(pInput[0] & SENSOR_STATUS_MSB_MEASUREMENT_TIMEOUT_ERROR)  {
-        _sensorError = true;
+        _valHasError.b = true;
         _error+="'Measurement Timeout' ";    
     }
 
 
     if(pInput[1] & SENSOR_STATUS_LSB_FATAL_ERROR)  {
-        _sensorError= true;
+        _valHasError.b= true;
         _error+="Fatal ";    
     }
 
     if(pInput[1] & SENSOR_STATUS_LSB_I2C_ERROR)  {
-        _sensorError = true;
+        _valHasError.b = true;
         _error+="I2C ";    
     }
 
     if(pInput[1] & SENSOR_STATUS_LSB_ALGORITHM_ERROR)  {
-         _sensorError = true;
+         _valHasError.b = true;
          _error+="Algorithm ";    
     } 
 
     if(pInput[1] & SENSOR_STATUS_LSB_CALIBRATION_ERROR)  {
-        _sensorError = true;
+        _valHasError.b = true;
          _error+="Calibration ";    
     } 
 
     if(pInput[1] & SENSOR_STATUS_LSB_SELF_DIAGNOSTICS_ERROR)  {
-        _sensorError = true;
+        _valHasError.b = true;
         _error+="'Self Diagnostics' ";    
     } 
 
     if(pInput[1] & SENSOR_STATUS_LSB_OUT_OF_RANGE_ERROR)  {
-        _sensorError = true;
+        _valHasError.b = true;
         _error+="'Out of Range' ";    
     } 
 
     if(pInput[1] & SENSOR_STATUS_LSB_MEMORY_ERROR)  {
-        _sensorError = true;
+        _valHasError.b = true;
          _error+="'Memory' ";    
     } 
     
-    _isHeatingUp = pInput[1] & SENSOR_STATUS_LSB_NO_MEASUREMENT_COMPLETED;
+    _valIsHeatingUp.b = pInput[1] & SENSOR_STATUS_LSB_NO_MEASUREMENT_COMPLETED;
 
 }

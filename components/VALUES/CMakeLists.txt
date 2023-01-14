@@ -4,4 +4,6 @@ idf_component_register(
                  "../../common"
     REQUIRES "json"
              "I2C"
-             "driver")
+             "driver"
+             "GENERAL"
+             "SECURITY")

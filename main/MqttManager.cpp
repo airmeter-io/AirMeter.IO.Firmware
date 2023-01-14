@@ -1,15 +1,18 @@
 #include "MqttManager.h"
 #include "Utility.h"
-
+#include "CO2Sensor.h"
+#include "ValueController.h"
+#include "CommonValueNames.h"
 #include "Json.h"
 
 class ReadingsTopic : public MqttPublishTopic {
     std::string _topicName;
     std::string _currentValue;
-    ValueModel& _values;
+
 public:
-    ReadingsTopic(GeneralSettings& pSettings, ValueModel& pValueModel) : _values(pValueModel) {
+    ReadingsTopic(GeneralSettings& pSettings)  {
         _topicName = pSettings.GetMqttTopic();
+
         ReplaceAll(_topicName, "%DEVICE_NAME%", pSettings.GetDeviceName());
         _topicName += "/SENSOR";
     }
@@ -23,15 +26,14 @@ public:
     }
     std::string& GetCurrentValue() {
         Json json;
-        if(_values.CO2) {
-            json.CreateNumberProperty("CO2", _values.CO2->GetPPM());    
-            json.CreateBoolProperty("CO2Heating", _values.CO2->GetIsHeatingUp());
-            json.CreateBoolProperty("CO2Error", _values.CO2->GetHasError());                 
+
+        for(auto keyPair : ValueController::GetCurrent().GetSourcesByName()) {
+            auto source = keyPair.second->DefaultSource;
+            if(source->IsIncludedInMQTTReadings() ) {
+                source->SerialiseToJsonProperty(json);
+            }            
         }
-        
-        json.CreateStringProperty("Temp", _values.Bme280.GetTemperatureStr());
-        json.CreateStringProperty("Pressure", _values.Bme280.GetPressureStr(2));
-        json.CreateStringProperty("Humidity", _values.Bme280.GetHumidityStr()); 
+
         json.CreateStringProperty("Time", GetCurrentIsoTimeString()); 
         _currentValue = json.Print();
         return _currentValue;
@@ -41,9 +43,8 @@ public:
 class InfoTopic : public MqttPublishTopic {
     std::string _topicName;
     std::string _currentValue;
-    ValueModel& _values;
 public:
-    InfoTopic(GeneralSettings& pSettings, ValueModel& pValueModel) : _values(pValueModel) {
+    InfoTopic(GeneralSettings& pSettings)  {
         _topicName = pSettings.GetMqttTopic();
         ReplaceAll(_topicName, "%DEVICE_NAME%", pSettings.GetDeviceName());
         _topicName += "/INFO";
@@ -58,10 +59,16 @@ public:
     }
     std::string& GetCurrentValue() {
         Json json;
-        if(_values.CO2) {            
-            json.CreateStringProperty("CO2Name", _values.CO2->GetDeviceName().c_str()); 
-            json.CreateStringProperty("CO2SerialNo", _values.CO2->GetSerialNo().c_str());             
-        }
+        
+        auto deviceNameSource = ValueController::GetCurrent().GetDefault(CO2VALUE_DEVICENAME);              
+        auto serialNoSource = ValueController::GetCurrent().GetDefault(CO2VALUE_SERIALNO);     
+
+        if(deviceNameSource)           
+            json.CreateStringProperty("CO2Name",  deviceNameSource->GetValue().s->c_str()); 
+
+        if(serialNoSource)
+            json.CreateStringProperty("CO2SerialNo", serialNoSource->GetValue().s->c_str());             
+        
         json.CreateStringProperty("Time", GetCurrentIsoTimeString()); 
         _currentValue = json.Print();
         return _currentValue;
@@ -69,10 +76,10 @@ public:
 };
 
 
-MqttManager::MqttManager(GeneralSettings& pSettings, ValueModel& pValueModel) : _settings(pSettings), _valueModel(pValueModel)  {
+MqttManager::MqttManager(GeneralSettings& pSettings) : _settings(pSettings)  {
     _mqtt = new Mqtt(pSettings.GetMqttServerAddress());
-    _readings = new ReadingsTopic(pSettings, pValueModel);
-    _info = new InfoTopic(pSettings, pValueModel);
+    _readings = new ReadingsTopic(pSettings);
+    _info = new InfoTopic(pSettings);
     _mqtt->Publish(_readings);
     _mqtt->Publish(_info);
     time(&_lastPublish);

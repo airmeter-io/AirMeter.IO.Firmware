@@ -4,28 +4,23 @@
 
 #include "BME280_driver/bme280.h"
 #include "I2C.h"
+#include "ValueController.h"
 
-class BME280SensorValues {
-    char _pressureStr[20];
-    char _temperatureStr[20];
-    char _humidityStr[20];
-public:
-    double pressure  = 0;
-    double temperature  = 0;
-    double humidity = 0;
 
-    char *GetPressureStr(int pDecimialDigits);
-    char *GetTemperatureStr();
-    char *GetHumidityStr();
-};
-
-class BME280 {
+class BME280 : public ValuesSource {
     I2C& _i2c;  
     struct bme280_dev _bme;  
     int _width;
     int _height;
     int _frameBufferSize;
     uint8_t* _frameBuffer;
+
+    Value _valPressure = { .i = 0 };
+    Value _valTemperature = { .i = 0 };
+    Value _valHumidity = { .i = 0 };
+    const std::string SOURCE_NAME = "CubicCM11xx";
+protected: 
+    const std::string& GetValuesSourceName() const override;
 public:
     BME280(I2C& pI2C);
     ~BME280();
@@ -33,6 +28,6 @@ public:
     I2C& GetI2C() const;
     uint8_t GetDeviceId() const;
 
-    bool ReadSensorValues(BME280SensorValues &pReadValues);
+    bool ReadSensorValues();
 
 };

@@ -41,30 +41,22 @@ enum CubicCO2ErrorCode {
 class CubicCO2Sensor : public CO2Sensor {
     PinSerial* _serial;
     char _rxBuf[32];
-    std::string _softVer;
-    std::string _serialNo;
     std::string _rawValStatus;
     std::string _unknownStatus;
     std::string _modeStatus;
-   CO2SensorValue _valDrift = { .type = Bool, .value = { .b = false}, .name = "Drift" };
-    CO2SensorValue _valLightAging = { .type = Bool, .value = { .b = false}, .name = "LightAging" };
-    CO2SensorValue _valCalibrated = { .type = Bool, .value = { .b = false}, .name = "Calibrated" };
-    CO2SensorValue _valHasLessThanRange = { .type = Bool, .value = { .b = false}, .name = "Has less than range" };
-    CO2SensorValue _valHasGreaterThanRange = { .type = Bool, .value = { .b = false}, .name = "Has greater than range" };
-    CO2SensorValue _valAbcOpen = { .type = Bool, .value = { .b = false}, .name = "ABC Open" };
-    CO2SensorValue _valAbcCycle = { .type = Int, .value = { .i = 0}, .name = "ABC Cycle" };
-    CO2SensorValue _valAbcBase = { .type = Int, .value = { .b = false}, .name = "ABC Base" };
-    CO2SensorValue _valRawValStatus = { .type = String, .value = { .s = &_rawValStatus}, .name = "Raw Value Status" }; 
-    CO2SensorValue _valUnknownStatus= { .type = String, .value = { .s = &_unknownStatus}, .name = "Unknown Status" }; 
-    CO2SensorValue _valModeStatus= { .type = String, .value = { .s = &_modeStatus}, .name = "Mode Status" }; 
-    bool _isHeatingUp = false;
-    bool _hasError = false;
-    std::string _deviceName = "Cubic CMxxxx Family CO2 Sensor";
-    int _ppm = 0;
-    int _maxPPM;
-    static const std::vector<int> availablePPMs;
+    Value _valDrift = {  .b = false };
+    Value _valLightAging = { .b = false };
+    Value _valCalibrated = { .b = false };
+    Value _valHasLessThanRange = { .b = false };
+    Value _valHasGreaterThanRange = { .b = false };
+    Value _valAbcBase = { .b = false };
+    Value _valRawValStatus = { .s = &_rawValStatus }; 
+    Value _valUnknownStatus= { .s = &_unknownStatus }; 
+    Value _valModeStatus= { .s = &_modeStatus }; 
+
+
     CubicCO2ErrorCode ExecuteCommand(CubicCO2Buffer& pInput, CubicCO2Buffer& pOutput, int pTries=3);
-    
+    const std::string SOURCE_NAME = "CubicCM11xx";
 
     void ReadSoftwareVersion();
     void ReadSerialNo();
@@ -72,24 +64,15 @@ class CubicCO2Sensor : public CO2Sensor {
     void ReadSensorInfo();
     void SetAbcParameters(bool pOpen, int pCycle, int pBaseCO2Value);
     void StartCalibration(int pBaseCO2Value);
+protected: 
+    const std::string& GetValuesSourceName() const override;
 public:
     CubicCO2Sensor(PinSerial* pSerial);
-    
-    std::string& GetSerialNo()  override;
-    std::string& GetDeviceName() override;
-    std::string& GetSWVersion() override;
 
     bool RefreshValues() override;
-    int GetPPM() override;
-    bool GetIsHeatingUp() override;
-    bool GetHasError() override;
-    const std::vector<int>& GetAvailableMaxPPM() const override;
-    void SetMaxPPM(int pMaxPPM) override;   
-    int GetMaxPPM() override;
+
     
-    int GetBasePPM() override;
-    int GetDaysPerABCCycle() override;
-    bool GetIsABCEnabled() override;
+  
     void DisableABC() override;
     void ManualCalibration(int pBaseLinePPM) override;
     void EnableABC(int pBaseLinePPM, int pNumberOfDaysPerCycle) override;

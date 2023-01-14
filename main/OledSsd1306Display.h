@@ -2,7 +2,6 @@
 #include "SsdDisplay.h"
 #include "GeneralSettings.h"
 #include "MonitorDisplay.h"
-#include "ValueModel.h"
 #include "I2C.h"
 #include "Wifi.h"
 
@@ -20,7 +19,7 @@ class Oledssd1306Display : public CO2MonitorDisplay {
 
    // SsdDisplay *_ssd = nullptr;
 public:
-    Oledssd1306Display(GeneralSettings& pSettings, ValueModel& pValues, Wifi& pWifi, I2C& pI2C);
+    Oledssd1306Display(GeneralSettings& pSettings, Wifi& pWifi, I2C& pI2C);
 
     void RenderReadings() override;
     void RenderAccessPointInfo(const std::string& pSSID, const std::string& pPassword) override;

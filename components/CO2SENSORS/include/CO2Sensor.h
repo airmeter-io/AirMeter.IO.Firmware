@@ -3,34 +3,14 @@
 #include<string>
 #include<vector>
 #include "ValueController.h"
-
-const std::string CO2VALUE = "CO2";
-const std::string CO2VALUE_UNFILTERED = "CO2_UNFILTERED";
-const std::string CO2VALUE_UNCOMPENSATED = "CO2_UNCOMPENSATED";
-const std::string CO2VALUE_UNFILTERED_UNCOMPENSATED = "CO2_UNFILTERED_UNFILTERED";
-const std::string CO2VALUE_MAXPPM = "CO2_MaxPPM";
-const std::string CO2VALUE_BASEPPM = "CO2_BasePPM";
-const std::string CO2VALUE_MINBASEPPM = "CO2_MinBasePPM";
-const std::string CO2VALUE_MAXBASEPPM = "CO2_MaxBasePPM";
-const std::string CO2VALUE_HASERROR = "CO2_HasError";
-const std::string CO2VALUE_ISHEATING = "CO2_IsHeating";
-const std::string CO2VALUE_ISABCENABLED = "CO2_IsABCEnabled";
-const std::string CO2VALUE_DAYSPERCYCLE = "CO2_ABCDaysPerCycle";
-const std::string CO2VALUE_MINDAYSPERCYCLE = "CO2_ABCMinDaysPerCycle";
-const std::string CO2VALUE_MAXDAYSPERCYCLE = "CO2_ABCMaxDaysPerCycle";
-const std::string CO2VALUE_CALIBWAITTIME = "CO2_CalibWaitTime";
+#include "CommonValueNames.h"
 
 
 
-const std::string CO2VALUE_DEVICENAME = "CO2_DeviceName";
-const std::string CO2VALUE_SERIALNO = "CO2_SerialNo";
-const std::string CO2VALUE_SOFWAREVERSION = "CO2_SoftwareVersion";
-
-const std::string CO2METHOD_GROUP = "CO2";
-const std::string CO2METHOD_CALIBRATE = "CALIBRATE";
-const std::string CO2METHOD_ENABLEABC = "ENABLEABC";
-const std::string CO2METHOD_DISABLEABC = "DISABLEABC";
-const std::string CO2METHOD_SETMAXPPM = "SETMAXPPM";
+const std::string CO2METHOD_CALIBRATE = "Calibrate";
+const std::string CO2METHOD_ENABLEABC = "EnableABC";
+const std::string CO2METHOD_DISABLEABC = "DisableABC";
+const std::string CO2METHOD_SETMAXPPM = "SetMaxPPM";
 
 
 

@@ -19,7 +19,7 @@
                     "H": 122,
                     "Justify": "Center",
                     "VerticalAlign": "Middle",
-                    "Text": "{CO2Ppm}ppm"
+                    "Text": "{Co2.PPM}ppm"
                 },
                 {
                     "Type": "Text",
@@ -31,7 +31,7 @@
                     "H": 122,
                     "Justify": "Left",
                     "VerticalAlign": "Top",
-                    "Text": "{Temp}C"
+                    "Text": "{Atmosphere.Temp}C"
                 },
                 {
                     "Type": "Text",
@@ -55,7 +55,7 @@
                     "H": 122,
                     "Justify": "Right",
                     "VerticalAlign": "Top",
-                    "Text": "{Humidity}%"
+                    "Text": "{Atmosphere.Humidity}%"
                 },
                 {
                     "Type": "Text",
@@ -67,7 +67,7 @@
                     "H": 122,
                     "Justify": "Left",
                     "VerticalAlign": "Bottom",
-                    "Text": "{Pressure}hPa"
+                    "Text": "{Atmosphere.Pressure}hPa"
                 },
                 {
                     "Type": "Text",
@@ -104,7 +104,7 @@
                     "H": 122,
                     "Justify": "Left",
                     "VerticalAlign": "Top",
-                    "Text": "{CO2Ppm}ppm"
+                    "Text": "{Co2.PPM}ppm"
                 }
             ],
             "ButtonVeryLongReleased": [
@@ -143,7 +143,7 @@
                     "H": 122,
                     "Justify": "Center",
                     "VerticalAlign": "Top",
-                    "Text": "{CO2Ppm}ppm"
+                    "Text": "{Co2.PPM}ppm"
                 },
                 {
                     "Type": "Text",
@@ -258,7 +258,7 @@
                     "H": 122,
                     "Justify": "Center",
                     "VerticalAlign": "Middle",
-                    "Text": "{CO2Ppm}ppm"
+                    "Text": "{Co2.PPM}ppm"
                 },
                 {
                     "Type": "Text",
@@ -357,7 +357,7 @@
                     "H": 20,
                     "Justify": "Left",
                     "VerticalAlign": "Middle",
-                    "Text": "{CO2Ppm}ppm"
+                    "Text": "{Co2.PPM}ppm"
                 },
                 {
                     "Type": "Text",
@@ -369,7 +369,7 @@
                     "H": 20,
                     "Justify": "Left",
                     "VerticalAlign": "Top",
-                    "Text": "{Temp}C"
+                    "Text": "{Atmosphere.Temp}C"
                 },
                 {
                     "Type": "Text",
@@ -381,7 +381,7 @@
                     "H": 20,
                     "Justify": "Left",
                     "VerticalAlign": "Top",
-                    "Text": "{Humidity}%"
+                    "Text": "{Atmosphere.Humidity}%"
                 },
                 {
                     "Type": "Text",
@@ -429,7 +429,7 @@
                     "H": 122,
                     "Justify": "Left",
                     "VerticalAlign": "Top",
-                    "Text": "{CO2Ppm}ppm"
+                    "Text": "{C02.PPM}ppm"
                 }
             ],
             "ButtonVeryLongReleased": [

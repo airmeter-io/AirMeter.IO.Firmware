@@ -82,16 +82,27 @@ public:
    }
 };
 
+const std::string GROUP_CM110x = "CM110x";
+
+const ValueIdentifier CM110x_DRIFT            = { .Id = 1040, .Grouping = GROUP_CM110x, .Name = "Drift" };
+const ValueIdentifier CM110x_LIGHTAGING       = { .Id = 1041, .Grouping = GROUP_CM110x, .Name = "LightAging"} ;
+const ValueIdentifier CM110x_CALIBRATED       = { .Id = 1042, .Grouping = GROUP_CM110x, .Name = "Calibrated"};
+const ValueIdentifier CM110x_LESSTHANRANGE    = { .Id = 1043, .Grouping = GROUP_CM110x, .Name = "LessThanRange"};
+const ValueIdentifier CM110x_GREATERTHANRANGE = { .Id = 1044, .Grouping = GROUP_CM110x, .Name = "GreaterThanRange"};
+const ValueIdentifier CM110x_RAWVALSTATUS     = { .Id = 1045, .Grouping = GROUP_CM110x, .Name = "RawValStatus"};
+const ValueIdentifier CM110x_UNKNOWSTATUS     = { .Id = 1046, .Grouping = GROUP_CM110x, .Name = "UnknownStatus"};
+const ValueIdentifier CM110x_MODESTATUS       = { .Id = 1047, .Grouping = GROUP_CM110x, .Name = "ModeStatus"};
+
 CubicCO2Sensor::CubicCO2Sensor(PinSerial* pSerial) : _serial(pSerial) {
    _deviceName = "Cubic CMxxxx Family CO2 Sensor";
-   AddValueSource(new ValueSource(*this,"CUBIC_Drift",            Generic, Bool,   Dimensionless, _valDrift, GET_LATEST_DATA));
-   AddValueSource(new ValueSource(*this,"CUBIC_LightAging",       Generic, Bool,   Dimensionless, _valLightAging, GET_LATEST_DATA));
-   AddValueSource(new ValueSource(*this,"CUBIC_Calibrated",       Generic, Bool,   Dimensionless, _valCalibrated, GET_LATEST_DATA));
-   AddValueSource(new ValueSource(*this,"CUBIC_LessThanRange",    Generic, Bool,   Dimensionless, _valHasLessThanRange, GET_LATEST_DATA));
-   AddValueSource(new ValueSource(*this,"CUBIC_GreaterThanRange", Generic, Bool,   Dimensionless, _valHasGreaterThanRange, GET_LATEST_DATA));      
-   AddValueSource(new ValueSource(*this,"CUBIC_RawValStatus",     Generic, String, Dimensionless, _valRawValStatus, GET_LATEST_DATA));
-   AddValueSource(new ValueSource(*this,"CUBIC_UnknownStatus",    Generic, String, Dimensionless, _valUnknownStatus, GET_LATEST_DATA));
-   AddValueSource(new ValueSource(*this,"CUBIC_ModeStatus",       Generic, String, Dimensionless, _valModeStatus, GET_LATEST_DATA));
+   AddValueSource(new ValueSource(*this,CM110x_DRIFT, Bool,   Dimensionless, _valDrift, GET_LATEST_DATA));
+   AddValueSource(new ValueSource(*this,CM110x_LIGHTAGING, Bool,   Dimensionless, _valLightAging, GET_LATEST_DATA));
+   AddValueSource(new ValueSource(*this,CM110x_CALIBRATED, Bool,   Dimensionless, _valCalibrated, GET_LATEST_DATA));
+   AddValueSource(new ValueSource(*this,CM110x_LESSTHANRANGE, Bool,   Dimensionless, _valHasLessThanRange, GET_LATEST_DATA));
+   AddValueSource(new ValueSource(*this,CM110x_GREATERTHANRANGE, Bool,   Dimensionless, _valHasGreaterThanRange, GET_LATEST_DATA));      
+   AddValueSource(new ValueSource(*this,CM110x_RAWVALSTATUS, String, Dimensionless, _valRawValStatus, GET_LATEST_DATA));
+   AddValueSource(new ValueSource(*this,CM110x_UNKNOWSTATUS, String, Dimensionless, _valUnknownStatus, GET_LATEST_DATA));
+   AddValueSource(new ValueSource(*this,CM110x_MODESTATUS, String, Dimensionless, _valModeStatus, GET_LATEST_DATA));
    
    ReadSoftwareVersion();
    ReadSerialNo();

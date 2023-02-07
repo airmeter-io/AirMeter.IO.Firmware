@@ -3,14 +3,23 @@
 #include<string>
 #include "I2CCompat.h"
 
+
+const std::string GROUP_SCD30 = "Scd30";
+
+const ValueIdentifier SCD30_TEMPERATURE         = { .Id = 1000, .Grouping = GROUP_SCD30, .Name = "Temperature" };
+const ValueIdentifier SCD30_HUMIDITY            = { .Id = 1001, .Grouping = GROUP_SCD30, .Name = "Humidity"} ;
+const ValueIdentifier SCD30_MEASUREMENTINTERVAL = { .Id = 1002, .Grouping = GROUP_SCD30, .Name = "MeasurementInterval"};
+const ValueIdentifier SCD30_TEMPERATUREOFFSET   = { .Id = 1003, .Grouping = GROUP_SCD30, .Name = "TemperatureOffset"};
+const ValueIdentifier SCD30_ALTITUDE            = { .Id = 1004, .Grouping = GROUP_SCD30, .Name = "Altitude"};
+
 Scd30Sensor::Scd30Sensor(I2CDeviceSession* pSession) : _session(pSession) {    
     _deviceName = "SCD30 CO2 Sensor";
 
-    AddValueSource(new ValueSource(*this,"SCD30_Temperature",         Generic, Double, Dimensionless, _valTemperature, GET_LATEST_DATA));
-    AddValueSource(new ValueSource(*this,"SCD30_Humidity",            Generic, Double, Dimensionless, _valHumidity, GET_LATEST_DATA));
-    AddValueSource(new ValueSource(*this,"SCD30_MeasurementInterval", Generic, Int,    Dimensionless, _valMeasurementInterval, GET_LATEST_DATA));
-    AddValueSource(new ValueSource(*this,"SCD30_TemperatureOffset",   Generic, Int,    Dimensionless, _valTemperatureOffset, GET_LATEST_DATA));
-    AddValueSource(new ValueSource(*this,"SCD30_Altitude",            Generic, Int,    Dimensionless, _valAltitude, GET_LATEST_DATA));
+    AddValueSource(new ValueSource(*this,SCD30_TEMPERATURE,        Double, Dimensionless, _valTemperature, GET_LATEST_DATA));
+    AddValueSource(new ValueSource(*this,SCD30_HUMIDITY,           Double, Dimensionless, _valHumidity, GET_LATEST_DATA));
+    AddValueSource(new ValueSource(*this,SCD30_MEASUREMENTINTERVAL,Int,    Dimensionless, _valMeasurementInterval, GET_LATEST_DATA));
+    AddValueSource(new ValueSource(*this,SCD30_TEMPERATUREOFFSET,  Int,    Dimensionless, _valTemperatureOffset, GET_LATEST_DATA));
+    AddValueSource(new ValueSource(*this,SCD30_ALTITUDE,           Int,    Dimensionless, _valAltitude, GET_LATEST_DATA));
     
     _valMaxPPM.i = 5000;
     _valBasePPM.i = 400;

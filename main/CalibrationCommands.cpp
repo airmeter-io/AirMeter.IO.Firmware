@@ -8,11 +8,18 @@ GetCalibrationInfoCommand::GetCalibrationInfoCommand()  {
 
 void GetCalibrationInfoCommand::Process(Json& pJson,Json& pResult) {
     pResult.CreateStringProperty("Status", "true");
-    for(auto keyPair : ValueController::GetCurrent().GetSourcesByName()) {
-        auto source = keyPair.second->DefaultSource;
-        if(source->GetFlags() & CALIBRATION_INFO ) {
-            source->SerialiseToJsonProperty(pResult);
-        }            
+    for(auto groupPair : ValueController::GetCurrent().GetGroups()) {
+        Json* groupJson = nullptr;
+        for(auto keyPair : groupPair.second->SourcesByName) {
+            auto source = keyPair.second->DefaultSource;
+            if(source->GetFlags() & CALIBRATION_INFO ) {
+                if(groupJson == nullptr) 
+                    groupJson = pResult.CreateObjectProperty(groupPair.first);
+                source->SerialiseToJsonProperty(*groupJson);
+            }            
+        }   
+        if(groupJson!=nullptr)
+            delete groupJson; 
     }           
 }
 
@@ -25,7 +32,7 @@ ManualCalibrationCommand::ManualCalibrationCommand(){
     
 }
 void ManualCalibrationCommand::Process(Json& pJson,Json& pResult) {
-    auto method = ValueController::GetCurrent().GetMethod(CO2METHOD_GROUP, CO2METHOD_CALIBRATE);
+    auto method = ValueController::GetCurrent().GetMethod(GROUP_CO2, CO2METHOD_CALIBRATE);
     if(!method) {
         pResult.CreateBoolProperty("Status", false);
         pResult.CreateStringProperty("Error", "CO2 Not enabled");                
@@ -46,12 +53,14 @@ EnableAbcCommand::EnableAbcCommand()  {
 }
 
 void EnableAbcCommand::Process(Json& pJson,Json& pResult)  {
-    auto method = ValueController::GetCurrent().GetMethod(CO2METHOD_GROUP, CO2METHOD_ENABLEABC);
+    auto method = ValueController::GetCurrent().GetMethod(GROUP_CO2, CO2METHOD_ENABLEABC);
+
     if(!method) {
         pResult.CreateBoolProperty("Status", false);
         pResult.CreateStringProperty("Error", "CO2 Not enabled");                
         return;
     }
+
     if(pJson.HasProperty("Baseline") && pJson.HasProperty("ABCDaysPerCycle")) {
         auto baseLine = pJson.GetIntProperty("Baseline");
         auto daysPerCycle = pJson.GetIntProperty("ABCDaysPerCycle");
@@ -74,7 +83,7 @@ DisableAbcCommand::DisableAbcCommand() {
 }
 
 void DisableAbcCommand::Process(Json& pJson,Json& pResult) {
-    auto method = ValueController::GetCurrent().GetMethod(CO2METHOD_GROUP, CO2METHOD_DISABLEABC);
+    auto method = ValueController::GetCurrent().GetMethod(GROUP_CO2, CO2METHOD_DISABLEABC);
     if(!method) {
         pResult.CreateBoolProperty("Status", false);
         pResult.CreateStringProperty("Error", "CO2 Not enabled");                

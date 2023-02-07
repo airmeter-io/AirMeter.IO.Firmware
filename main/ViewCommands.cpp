@@ -12,12 +12,21 @@ GetLatestDataCommand::GetLatestDataCommand()  {
 
 void GetLatestDataCommand::Process(Json& pJson,Json& pResult)  {
     pResult.CreateStringProperty("Status", "true");
-    for(auto keyPair : ValueController::GetCurrent().GetSourcesByName()) {
-        auto source = keyPair.second->DefaultSource;
-        if(source->GetFlags() & GET_LATEST_DATA ) {
-            source->SerialiseToJsonProperty(pResult);
-        }            
-    }
+
+    for(auto groupPair : ValueController::GetCurrent().GetGroups()) {
+        Json* groupJson = nullptr;
+        for(auto keyPair : groupPair.second->SourcesByName) {
+            auto source = keyPair.second->DefaultSource;
+            if(source->GetFlags() & GET_LATEST_DATA ) {
+                if(groupJson == nullptr) 
+                    groupJson = pResult.CreateObjectProperty(groupPair.first);
+                source->SerialiseToJsonProperty(*groupJson);
+            }            
+        }   
+        if(groupJson!=nullptr)
+            delete groupJson; 
+    }      
+    
     pResult.CreateStringProperty("Time", GetCurrentIsoTimeString()); 
     
 }

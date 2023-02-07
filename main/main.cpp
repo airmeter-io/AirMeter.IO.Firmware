@@ -190,8 +190,15 @@ void MainLogicLoop::Run() {
         return _generalSettings->GetApPassword();
     }
 
-    auto source = ValueController::GetCurrent().GetDefault(pName);
-    if(source) return source->GetValueAsString();
+    auto  pos = pName.find (".");
+    if(pos!=std::string::npos) {
+        auto group =  pName.substr(0, pos);
+        auto name = pName.substr(pos+1,std::string::npos);
+        auto source = ValueController::GetCurrent().GetDefault(group, name);
+        if(source) return source->GetValueAsString();
+    }
+   
+    
     return "ERR";
  }
 
@@ -293,10 +300,6 @@ bool MountSpiffs(esp_vfs_spiffs_conf_t& pConf) {
 
     return true;
 }
-
-
- RTC_NOINIT_ATTR uint test;
-
 
 extern "C" void app_main(void)
 {

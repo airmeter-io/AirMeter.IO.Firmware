@@ -41,7 +41,7 @@ public:
     bool HasArrayProperty(const std::string& pProperty);
     void GetAsArrayElements(std::vector<Json*>& pElements);
     void CreateStringProperty(const std::string& pProperty, const std::string& pValue);
-    Json CreateObjectProperty(const std::string& pProperty);
+    Json* CreateObjectProperty(const std::string& pProperty);
     void CreateNumberProperty(const std::string& pProperty, uint pValue);
     void CreateNumberProperty(const std::string& pProperty, int pValue);
     void CreateNumberProperty(const std::string& pProperty, double pValue);

@@ -77,13 +77,20 @@ public:
    }
 };
 
+const std::string GROUP_MHZ19x = "MHZ19x";
+
+const ValueIdentifier MHZ19x_TEMPERATURE         = { .Id = 1020, .Grouping = GROUP_MHZ19x, .Name = "Temperature" };
+const ValueIdentifier MHZ19x_HUMIDITY            = { .Id = 1021, .Grouping = GROUP_MHZ19x, .Name = "ABCCount"} ;
+const ValueIdentifier MHZ19x_MEASUREMENTINTERVAL = { .Id = 1022, .Grouping = GROUP_MHZ19x, .Name = "ABCTick"};
+const ValueIdentifier MHZ19x_ALTITUDE            = { .Id = 1023, .Grouping = GROUP_MHZ19x, .Name = "TempAdjustment"};
+
 MhZ19Sensor::MhZ19Sensor(PinSerial* pSerial) : _serial(pSerial){
    _deviceName = "Winsen MH-Zxx Family CO2 Sensor";
 
-   AddValueSource(new ValueSource(*this,"MHZ19x_ABCCount",        Generic, Int, Dimensionless, _valAbcCount, GET_LATEST_DATA));
-   AddValueSource(new ValueSource(*this,"MHZ19x_ABCTick",        Generic, Int, Dimensionless, _valAbcTick, GET_LATEST_DATA));
-   AddValueSource(new ValueSource(*this,"MHZ19x_Temp",           Generic, Int, Dimensionless, _valTemp, GET_LATEST_DATA));
-   AddValueSource(new ValueSource(*this,"MHZ19x_TempAdjustment", Generic, Int, Dimensionless, _valTempAdjustment, GET_LATEST_DATA));
+   AddValueSource(new ValueSource(*this, MHZ19x_TEMPERATURE, Int, Dimensionless, _valAbcCount, GET_LATEST_DATA));
+   AddValueSource(new ValueSource(*this, MHZ19x_HUMIDITY, Int, Dimensionless, _valAbcTick, GET_LATEST_DATA));
+   AddValueSource(new ValueSource(*this, MHZ19x_MEASUREMENTINTERVAL, Int, Dimensionless, _valTemp, GET_LATEST_DATA));
+   AddValueSource(new ValueSource(*this, MHZ19x_ALTITUDE, Int, Dimensionless, _valTempAdjustment, GET_LATEST_DATA));
    
    _valBasePPM.i = 400;
    _valMaxBasePPM.i = 400;

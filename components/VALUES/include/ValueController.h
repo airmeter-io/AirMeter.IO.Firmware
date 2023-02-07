@@ -8,31 +8,6 @@
 #include "AccessLevels.h"
 #include "EnumFlags.h"
 
-enum ValueMeasurement {
-    // General 
-    Generic = 0,
-    StaticString = 1,
-    DynamicString = 2,
-
-    // Device Measurement
-    BatteryVoltage = 100,
-    ExternalPowerVoltage = 101,
-
-    // Wifi Measurements
-    WifiConnected = 200,
-    WifiSignalStength = 201,
-    WifiChannel = 202,
-
-    // Atmospheric Measurements
-    AtmosphericCO2 = 1001,
-    AtmosphericTemperature,
-    AtmosphericHumidity,
-    AtmosphericPressure,
-    AtmosphericPM25,
-    AtmosphericVOC
-};
-
-
 enum ValueDataType { Bool, Int, Fixed, Double, String};
 enum ValueUnit { 
     Dimensionless, 
@@ -46,6 +21,11 @@ enum ValueUnit {
     PPM
 };
 
+typedef struct {
+    uint16_t Id;
+    const std::string Grouping;
+    const std::string Name;
+} ValueIdentifier;
 
 typedef union {
     bool b;
@@ -75,8 +55,7 @@ MAKE_ENUM_FLAGS(ValueSourceFlags);
 
 class ValueSource {
     const ValuesSource& _valuesSource;
-    const std::string _name;
-    ValueMeasurement _measurement;
+    const ValueIdentifier& _identifier;
     ValueDataType _dataType;
     ValueUnit _unit;
     Value& _value;
@@ -89,8 +68,7 @@ class ValueSource {
 public:
     ValueSource(
         const ValuesSource& pValuesSource, 
-        const std::string& pName, 
-        ValueMeasurement pMeasurement, 
+        const ValueIdentifier& pIdentifier,
         ValueDataType pDataType, 
         ValueUnit pUnit, 
         Value& pValue,
@@ -99,8 +77,8 @@ public:
         );
 
     const ValuesSource& GetValuesSource() const;
-    const std::string& GetName() const;
-    ValueMeasurement GetMeasurement() const;
+    const ValueIdentifier& GetIdentifier() const;
+
     ValueDataType GetDataType() const;
     ValueUnit GetUnit() const;
     ValueSourceFlags GetFlags() const;
@@ -158,11 +136,16 @@ public:
     ValueSource* DefaultSource;
 };
 
+class ValueSourceGroupHolder {
+public:
+    std::map<const std::string, ValueSourceByNameHolder*> SourcesByName;
+    std::map<const std::string, MethodSource*> Methods;
+};
+
 
 class ValueController : public SettingsBase {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
     std::vector<ValuesSource*> _sources;
-    std::map<const std::string, ValueSourceByNameHolder*> _sourcesByName;
-    std::map<const std::string, MethodSource*> _methods;
+    std::map<const std::string, ValueSourceGroupHolder*> _groups;
     static ValueController* _current;
 protected:
     const char* GetFilePath() override;
@@ -170,16 +153,16 @@ protected:
     void SaveSettingsToJson(Json& pJson) override;
 public:
     void RegisterSource(ValuesSource* pSource);
-    const std::vector<ValueSource*>& Find(const std::string& pName);
-    ValueSource* GetDefault(const std::string& pName);
+    const std::vector<ValueSource*>& Find(const std::string& pGroup, const std::string& pName);
+    ValueSource* GetDefault(const std::string& pGroup, const std::string& pName);
     void SetDefault(ValueSource* pValueSource);
     MethodSource* GetMethod(std::string pMethodGroup, std::string pMethodName);
     
     static ValueController& GetCurrent();
 
 
-    inline std::map<const std::string, ValueSourceByNameHolder*>& GetSourcesByName() {
-        return _sourcesByName;
+    inline std::map<const std::string, ValueSourceGroupHolder*>& GetGroups() {
+        return _groups;
     }
 
 

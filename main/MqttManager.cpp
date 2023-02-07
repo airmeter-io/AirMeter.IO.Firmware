@@ -27,12 +27,20 @@ public:
     std::string& GetCurrentValue() {
         Json json;
 
-        for(auto keyPair : ValueController::GetCurrent().GetSourcesByName()) {
-            auto source = keyPair.second->DefaultSource;
-            if(source->IsIncludedInMQTTReadings() ) {
-                source->SerialiseToJsonProperty(json);
-            }            
-        }
+        for(auto groupPair : ValueController::GetCurrent().GetGroups()) {
+            Json* groupJson = nullptr;
+            for(auto keyPair : groupPair.second->SourcesByName) {
+                auto source = keyPair.second->DefaultSource;
+                if(source->IsIncludedInMQTTReadings() ) {
+                    if(groupJson == nullptr) 
+                        groupJson = json.CreateObjectProperty(groupPair.first);
+                    source->SerialiseToJsonProperty(*groupJson);
+                }            
+            }   
+            if(groupJson!=nullptr)
+                delete groupJson; 
+        } 
+       
 
         json.CreateStringProperty("Time", GetCurrentIsoTimeString()); 
         _currentValue = json.Print();
@@ -60,8 +68,8 @@ public:
     std::string& GetCurrentValue() {
         Json json;
         
-        auto deviceNameSource = ValueController::GetCurrent().GetDefault(CO2VALUE_DEVICENAME);              
-        auto serialNoSource = ValueController::GetCurrent().GetDefault(CO2VALUE_SERIALNO);     
+        auto deviceNameSource = ValueController::GetCurrent().GetDefault(GROUP_CO2,CO2VALUE_DEVICENAME.Name);              
+        auto serialNoSource = ValueController::GetCurrent().GetDefault(GROUP_CO2,CO2VALUE_SERIALNO.Name);     
 
         if(deviceNameSource)           
             json.CreateStringProperty("CO2Name",  deviceNameSource->GetValue().s->c_str()); 

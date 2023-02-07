@@ -26,7 +26,6 @@ class MeterPageContent extends React.Component {
 
     fetchData = () => {
         const requestOptions = {
-
             method: 'POST',
             headers: { 'Content-Type': 'application/json;charset=UTF-8' },
             body: JSON.stringify({ COMMAND: "GETLATEST"})
@@ -34,27 +33,27 @@ class MeterPageContent extends React.Component {
         fetch('command', requestOptions)
             .then(response => {return response.json();})
             .then(data => {     
-                if( JSON.parse(data.HasCo2.toLowerCase())) {            
+                if( data.Co2!=undefined) {            
                   this.setState({ 
-                      CO2: parseInt(data.Co2,10),
-                      CO2Max: parseInt(data.Co2Max,10),
-                      CO2Heating: JSON.parse(data.Co2Heating.toLowerCase()),
-                      CO2Error: JSON.parse(data.Co2Error.toLowerCase()),
-                      CO2SerialNo: data.Co2SerialNo,
-                      CO2SwVersion: data.Co2SwVersion,
-                      CO2Name: data.Co2Name,
-                      Temp: Number(data.Temp),
-                      Pressure: Number(data.Pressure),
-                      Humidity: Number(data.Humidity),
-                      Additional: data.Co2AdditionalValues,
+                      CO2: parseInt(data.Co2.PPM,10),
+                      CO2Max: parseInt(data.Co2.MaxPPM,10),
+                      CO2Heating: JSON.parse(data.Co2.IsHeating.toLowerCase()),
+                      CO2Error: JSON.parse(data.Co2.HasError.toLowerCase()),
+                      CO2SerialNo: data.Co2.SerialNo,
+                      CO2SwVersion: data.Co2.SoftwareVersion,
+                      CO2Name: data.Co2.DeviceName,
+                      Temp: Number(data.Atmosphere.Temp),
+                      Pressure: Number(data.Atmosphere.Pressure),
+                      Humidity: Number(data.Atmosphere.Humidity),
+                      Additional: [],
                       Time:  new Date(data.Time)});
-               
+
                 } else {
                   this.setState({ 
                     CO2Name: "None Configured",
-                    Temp: Number(data.Temp),
-                    Pressure: Number(data.Pressure),
-                    Humidity: Number(data.Humidity),
+                    Temp: Number(data.Atmosphere.Temp),
+                    Pressure: Number(data.Atmosphere.Pressure),
+                    Humidity: Number(data.Atmosphere.Humidity),
                     Additional: [],
                     Time:  new Date(data.Time)});
                 }

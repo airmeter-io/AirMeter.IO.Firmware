@@ -138,10 +138,10 @@ void Json::CreateArrayProperty(const std::string& pProperty, std::vector<Json*>&
     cJSON_AddItemToObject(_json,pProperty.c_str(),array.GetJsonObject());
 }
 
-Json Json::CreateObjectProperty(const std::string& pProperty) {
-    Json json;
-    json._dontFree = true;
-    cJSON_AddItemToObject(_json,pProperty.c_str(),json.GetJsonObject());
+Json* Json::CreateObjectProperty(const std::string& pProperty) {
+    Json* json = new Json();
+    json->_dontFree = true;
+    cJSON_AddItemToObject(_json,pProperty.c_str(),json->GetJsonObject());
     return json;
 }
 

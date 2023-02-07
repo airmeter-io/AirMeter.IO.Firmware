@@ -3,16 +3,14 @@
 
 ValueSource::ValueSource(
     const ValuesSource& pValuesSource, 
-    const std::string& pName, 
-    ValueMeasurement pMeasurement, 
+    const ValueIdentifier& pIdentifier,
     ValueDataType pDataType, 
     ValueUnit pUnit, 
     Value& pValue,
     ValueSourceFlags pFlags,
     uint pPriority) :
     _valuesSource(pValuesSource), 
-    _name(pName), 
-    _measurement(pMeasurement), 
+    _identifier(pIdentifier), 
     _dataType(pDataType), 
     _unit(pUnit), 
     _value(pValue),
@@ -26,12 +24,8 @@ const ValuesSource& ValueSource::GetValuesSource() const {
     return _valuesSource;
 }
 
-const std::string& ValueSource::GetName() const {
-    return _name;
-}
-
-ValueMeasurement ValueSource::GetMeasurement() const {
-    return _measurement;
+const ValueIdentifier& ValueSource::GetIdentifier() const {
+    return _identifier;
 }
 
 ValueDataType ValueSource::GetDataType() const {
@@ -111,20 +105,38 @@ const std::vector<MethodSource*>& ValuesSource::GetMethodSources() const {
 void ValueController::RegisterSource(ValuesSource* pSource) {
     _sources.push_back(pSource);
     for(auto source : pSource->GetValueSources()) {
-        if(_sourcesByName.find( source->GetName() ) == _sourcesByName.end()) {
-            _sourcesByName[source->GetName()] = new ValueSourceByNameHolder();
-            _sourcesByName[source->GetName()]->DefaultSource = source;
+        auto identifier = source->GetIdentifier();
+        if(_groups.find(identifier.Grouping) == _groups.end()) {
+            _groups[identifier.Grouping] = new ValueSourceGroupHolder();
         }
-        _sourcesByName[source->GetName()]->Sources.push_back(source);
+        auto group =_groups[identifier.Grouping];
+        if(group->SourcesByName.find( identifier.Name) == group->SourcesByName.end()) {
+            group->SourcesByName[identifier.Name] = new ValueSourceByNameHolder();
+            group->SourcesByName[identifier.Name]->DefaultSource = source;
+        }
+        group->SourcesByName[identifier.Name]->Sources.push_back(source);
     }
     for(auto method : pSource->GetMethodSources()) {
-        auto fullName = method->GetGrouping()+"."+method->GetName();
-        _methods[fullName] = method;
+        if(_groups.find(method->GetGrouping()) == _groups.end()) {
+            _groups[method->GetGrouping()] = new ValueSourceGroupHolder();
+        }
+        auto group =_groups[method->GetGrouping()];
+        group->Methods[method->GetName()] = method;
     }
 }
 
-const std::vector<ValueSource*>& ValueController::Find(const std::string& pName) {
-    return _sourcesByName[pName]->Sources;
+const std::vector<ValueSource*> EmptyValueSourceList;
+
+const std::vector<ValueSource*>& ValueController::Find(
+    const std::string& pGroup, 
+    const std::string& pName) {
+
+    if(_groups.find(pGroup) == _groups.end()) 
+        return EmptyValueSourceList;
+    
+    auto group =_groups[pGroup];
+   
+    return group->SourcesByName[pName]->Sources;
 }
 
 
@@ -134,16 +146,16 @@ void ValueSource::SerialiseToJsonProperty(Json& pJson)
 {
     switch(_dataType){
     case Bool : 
-        pJson.CreateBoolProperty(_name, _value.b);
+        pJson.CreateBoolProperty(_identifier.Name, _value.b);
         break;
     case Int :
-        pJson.CreateNumberProperty(_name, _value.i);
+        pJson.CreateNumberProperty(_identifier.Name, _value.i);
         break;
     case Double:  
-        pJson.CreateNumberProperty(_name, _value.d);
+        pJson.CreateNumberProperty(_identifier.Name, _value.d);
         break;
     case String:
-        pJson.CreateStringProperty(_name, *_value.s);
+        pJson.CreateStringProperty(_identifier.Name, *_value.s);
         break;
     case Fixed:
         char buf[20];
@@ -153,7 +165,7 @@ void ValueSource::SerialiseToJsonProperty(Json& pJson)
                  "%d.%.2d",  
                  (int)(value / DEC_PLACE_MULTIPLIER), 
                  (int)( abs(value) % DEC_PLACE_MULTIPLIER));
-        pJson.CreateStringProperty(_name, buf);
+        pJson.CreateStringProperty(_identifier.Name, buf);
         break;
     }
 }
@@ -181,13 +193,25 @@ std::string ValueSource::GetValueAsString() {
     return "-";
 }
 
-ValueSource* ValueController::GetDefault(const std::string& pName) {
-    return _sourcesByName[pName]->DefaultSource;
+
+ValueSource* ValueController::GetDefault(const std::string& pGroup, const std::string& pName) {
+    if(_groups.find(pGroup) == _groups.end()) 
+        return nullptr;
+    
+    auto group =_groups[pGroup];   
+    return group->SourcesByName[pName]->DefaultSource;
 }
 
 void ValueController::SetDefault(ValueSource* pValueSource) {
-    _sourcesByName[pValueSource->GetName()]->DefaultSource = pValueSource;
+
+    if(_groups.find(pValueSource->GetIdentifier().Grouping) == _groups.end()) 
+        return;
+    
+    auto group =_groups[pValueSource->GetIdentifier().Grouping];   
+    group->SourcesByName[pValueSource->GetIdentifier().Name]->DefaultSource = pValueSource;
 }
+
+   
 
 
 const char* ValueController::GetFilePath() {
@@ -195,36 +219,52 @@ const char* ValueController::GetFilePath() {
 }
 
 void ValueController::LoadSettingsFromJson(Json& pJson) {
-    for ( const auto &source : _sourcesByName ) {
-        if(pJson.HasObjectProperty(source.first)) {
-            auto jsonConfig = pJson.GetObjectProperty(source.first);
-            auto valueByName = source.second;
-            if(jsonConfig->HasProperty("Default")) {
-                auto defStr = jsonConfig->GetStringProperty("Default");
-                for(auto valSource : valueByName->Sources)
-                    if(valSource->GetValuesSource().GetValuesSourceName()==defStr)
-                    {
-                        valueByName->DefaultSource = valSource;
-                        break;
-                    }                
+    for( const auto &group : _groups) {
+        if(pJson.HasObjectProperty(group.first)) {
+            auto groupJson = pJson.GetObjectProperty(group.first);
+
+            for ( const auto &source : group.second->SourcesByName ) {
+                if(groupJson->HasObjectProperty(source.first)) {
+                    auto jsonConfig = groupJson->GetObjectProperty(source.first);
+                    auto valueByName = source.second;
+                    if(jsonConfig->HasProperty("Default")) {
+                        auto defStr = jsonConfig->GetStringProperty("Default");
+                        for(auto valSource : valueByName->Sources)
+                            if(valSource->GetValuesSource().GetValuesSourceName()==defStr)
+                            {
+                                valueByName->DefaultSource = valSource;
+                                break;
+                            }                
+                    }
+                    delete jsonConfig;
+                }
             }
-            delete jsonConfig;
+            delete groupJson;
         }
+        
     }
 }
 
 void ValueController::SaveSettingsToJson(Json& pJson) {
-    for(const auto &source : _sourcesByName) {
-        auto jsonConfig = pJson.CreateObjectProperty(source.first);
-        auto valueByName = source.second;
-        jsonConfig.CreateStringProperty("Default", valueByName->DefaultSource->GetValuesSource().GetValuesSourceName());
+    for( const auto &group : _groups) {
+        auto groupConfig = pJson.CreateObjectProperty(group.first);
+        for(const auto &source : group.second->SourcesByName) {
+            auto jsonConfig = groupConfig->CreateObjectProperty(source.first);
+            auto valueByName = source.second;
+            jsonConfig->CreateStringProperty("Default", valueByName->DefaultSource->GetValuesSource().GetValuesSourceName());
+            delete jsonConfig;
+     
+        }
+        delete groupConfig;
     }
 }
 
 MethodSource* ValueController::GetMethod(std::string pMethodGroup, std::string pMethodName) {
-    auto fullName = pMethodGroup+"."+pMethodName;
-    if(_methods.count(fullName)==0) return nullptr;
-    return _methods[fullName];
+    if(_groups.find(pMethodGroup) == _groups.end()) 
+        return nullptr;
+    
+    auto group =_groups[pMethodGroup];   
+    return  group->Methods[pMethodName];
 }
 
 ValueController* ValueController::_current;

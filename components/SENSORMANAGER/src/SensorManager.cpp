@@ -125,10 +125,10 @@ time_t SensorManager::UpdateValues() {
         _lastSensorRead = curTime;
         time(&curTime);
 
-        auto co2ValueSource = ValueController::GetCurrent().GetDefault(CO2VALUE);   
-        auto tempSource = ValueController::GetCurrent().GetDefault(TEMPERATURE);    
-        auto humiditySource = ValueController::GetCurrent().GetDefault(HUMIDITY);
-        auto pressureSource = ValueController::GetCurrent().GetDefault(PRESSURE);
+        auto co2ValueSource = ValueController::GetCurrent().GetDefault(GROUP_CO2,CO2VALUE.Name);   
+        auto tempSource = ValueController::GetCurrent().GetDefault(GROUP_ATMOSPHERE, TEMPERATURE.Name);    
+        auto humiditySource = ValueController::GetCurrent().GetDefault(GROUP_ATMOSPHERE, HUMIDITY.Name);
+        auto pressureSource = ValueController::GetCurrent().GetDefault(GROUP_ATMOSPHERE, PRESSURE.Name);
         auto co2 = co2ValueSource ? (uint16_t)(co2ValueSource->GetValue().i) : (uint16_t)0;
         auto temp = (uint16_t)tempSource->GetValue().i;
         auto humidity = (uint16_t)humiditySource->GetValue().i;

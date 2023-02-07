@@ -2,6 +2,7 @@
 #include "Common.h"
 #include<vector>
 #include <string>
+#include <functional>
 
 
 extern "C" {

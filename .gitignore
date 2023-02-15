@@ -7,3 +7,7 @@
 /sdkconfig
 /sdkconfig.defaults
 /dependencies.lock
+/webui2/dist/*.woff2
+/webui2/node_modules
+/webui2/dist/0ab669b7a0d19b178f57.woff
+/webui2/package-lock.json

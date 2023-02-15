@@ -47,7 +47,6 @@ class MeterPageContent extends React.Component {
                       Humidity: Number(data.Atmosphere.Humidity),
                       Additional: [],
                       Time:  new Date(data.Time)});
-
                 } else {
                   this.setState({ 
                     CO2Name: "None Configured",

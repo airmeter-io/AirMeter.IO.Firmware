@@ -1,0 +1,96 @@
+
+.tempGaugeContainer {
+    width: 25%;
+    position: absolute;
+    display: block;
+    top: 50%;
+    left: 12.5%;
+    transform: translate(-50%, -50%);
+}
+
+
+.humidityGaugeContainer {
+    width: 25%;
+    position: absolute;
+    display: block;
+    top: calc(30% );
+    left: 87.5%;
+    transform: translate(-50%, -50%);
+}
+
+.pressureGaugeContainer {
+    width: 25%;
+    position: absolute;
+    display: block;
+    top: 80.0%;
+    left: 87.5%;
+    transform: translate(-50%, -50%);
+}
+
+
+.tempGaugeContainer, .humidityGaugeContainer, .pressureGaugeContainer {
+    height: 50%; 
+    overflow:hidden;
+    
+}
+
+.co2GaugeContainer {
+    width: 50%;
+    overflow:hidden;
+    display: block;
+    top: 50%;
+    left: 50%;
+    position:relative;
+    transform: translate(-50%, -50%);
+    height: 90%;
+}
+
+.gaugeContainer {
+    height: calc(100% - 80px);
+    position: relative;
+}
+
+@media screen and (max-device-width: 400px) {
+    .tempGaugeContainer {
+        width: 50%;
+        position: absolute;
+        display: block;
+        top: 15%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        height: 25%;
+    }
+    
+    
+    .humidityGaugeContainer {
+        width: 50%;
+        position: absolute;
+        display: block;
+        top: 85%;
+        left: 25%;
+        transform: translate(-50%, -50%);
+        height: 25%;
+    }
+    
+    .pressureGaugeContainer {
+        width: 50%;
+        position: absolute;
+        display: block;
+        top: 85%;
+        left: 75%;
+        transform: translate(-50%, -50%);
+        height: 25%;
+    }
+    
+    .co2GaugeContainer {
+        width: 100%;
+        overflow:hidden;
+        display: block;
+        top: 47%;
+        left: 50%;
+        position:relative;
+        transform: translate(-50%, -50%);
+        height: 50%;
+    }
+    
+}

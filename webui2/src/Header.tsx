@@ -15,18 +15,40 @@ import CssBaseline from '@mui/material/CssBaseline';
 import LoginIcon from '@mui/icons-material/Login';
 import Typography from '@mui/material/Typography';
 import Login from './Login';
+import { ReactNode } from 'react';
+import MenuIcon from '@mui/icons-material/Menu';
+import Drawer from '@mui/material/Drawer';
+import Divider from '@mui/material/Divider';
 
 interface IHeaderProps {
   title: string;
+  children?: ReactNode[] | ReactNode;
 }
 
+interface IHeaderState {
+  open : boolean;
+}
 
-class Header extends React.Component<IHeaderProps,{}> {
+const drawerWidth = 340;
+
+
+class Header extends React.Component<IHeaderProps,IHeaderState> {
+  state = {
+    open: false
+  };
   private loginRef = React.createRef<Login>();
   handleClickOpen() {
     if(this.loginRef.current!=null)
       this.loginRef.current.handleClickOpen();
   };
+
+  handleDrawOpen() {
+    this.setState( { open: true});
+  }
+
+  handleOnClose(event: object, reason: string) {
+    this.setState( { open: false});
+  }
 
   render() {
     
@@ -35,7 +57,16 @@ class Header extends React.Component<IHeaderProps,{}> {
         <CssBaseline />
         <Box sx={{ flexGrow: 1 }}>
           <AppBar position="static">
-            <Toolbar>            
+            <Toolbar>  
+              { this.props.children!==undefined &&              
+              <IconButton
+                color="inherit"
+                aria-label="open drawer"
+                onClick={this.handleDrawOpen.bind(this)}
+                edge="start"
+                sx={{ mr: 2, ...(this.state.open && { display: 'none' }) }}>
+                 <MenuIcon />
+              </IconButton> }
               <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
                 { this.props.title }
               </Typography>
@@ -43,6 +74,23 @@ class Header extends React.Component<IHeaderProps,{}> {
             </Toolbar>
           </AppBar>
         </Box>
+        { this.props.children!==undefined && <Drawer
+        sx={{
+          width: drawerWidth,
+          flexShrink: 0,
+          '& .MuiDrawer-paper': {
+            width: drawerWidth,
+            boxSizing: 'border-box',
+          },
+        }}
+        anchor="left"
+        onClose={this.handleOnClose.bind(this)}
+        open={this.state.open}
+      >
+       
+        <Divider />
+         { this.props.children }
+      </Drawer>}
         <Login ref={this.loginRef}/>
     </div>);
   }

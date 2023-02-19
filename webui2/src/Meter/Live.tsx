@@ -8,8 +8,13 @@ import MinorRadialGauge from './MinorRadialGauge';
 import CO2RadialGauge from './CO2RadialGauge';
 import Container from '@mui/material/Container';
 import CssBaseline from '@mui/material/CssBaseline';
-import {IMeterValues} from '../ViewModel/MeterView';
+import {IMeterValues, IMeterValueGroup} from '../ViewModel/MeterView';
 import MainView from '../ViewModel/MainView';
+import Typography from '@mui/material/Typography';
+import ListItem from '@mui/material/ListItem';
+import ListItemText from '@mui/material/ListItemText';
+import List from '@mui/material/List';
+import Divider from '@mui/material/Divider';
 
 class Live extends React.Component<{},IMeterValues> {
   state = {
@@ -38,7 +43,20 @@ class Live extends React.Component<{},IMeterValues> {
   render() {
     return (
       <Box>
-        <Header title="Live"/>
+        <Header title="Live">
+        { this.state.groups.map((group : IMeterValueGroup ,i) => 
+          <React.Fragment>
+            <Box sx={{ml: 5, mr: 5, mb: 5, mt: 5}}>           
+              <Typography paragraph variant="h5">{group.name}</Typography>            
+                {group.values.map((value) => (
+                  <Typography>
+                    {value.name}: <strong>{value.value}</strong>
+                  </Typography>                
+                ))}
+              <Divider/>
+            </Box>
+          </React.Fragment>) }
+        </Header>
         <CssBaseline />
       <Container maxWidth={false} sx={{ height: '90vh' }} disableGutters>
       <div className="gaugeContainer">

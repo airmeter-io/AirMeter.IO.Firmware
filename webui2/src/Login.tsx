@@ -33,7 +33,7 @@ class Login extends React.Component<{},ILoginState> {
     const t = i18n.getFixedT(null, namespaces.login);
     return (
       <div>
-      <Dialog open={this.state.open} onClose={this.handleClose}>
+      <Dialog open={this.state.open} onClose={this.handleClose.bind(this)}>
             <DialogTitle>{t("title")}</DialogTitle>
             <DialogContent>
               <DialogContentText>{t("description")}</DialogContentText>

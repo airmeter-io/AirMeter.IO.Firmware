@@ -45,6 +45,7 @@ void HttpUrlHandler::ProcessAsJsonRequest(HttpRequest* pReq) {
 
     auto commandName = json.GetStringProperty("COMMAND");
     printf("Processing Command %s\n", commandName.c_str());
+    
     for(auto command : _commands)
         if(commandName == command->GetName()) {
             command->ProcessFullResponse(json, *pReq);
@@ -66,5 +67,6 @@ void HttpUrlHandler::Process(HttpRequest *pReq) {
 void HttpJsonCommand::ProcessFullResponse(Json& pJson, HttpRequest& pReq ) {
     Json result;
     Process(pJson,result);
+    pReq.SetHeader("Access-Control-Allow-Origin", "*");
     pReq.SendResponse("application/json;charset=UTF-8",result.Print());
 }

@@ -18,7 +18,16 @@ void SaveSettingsCommand::Process(Json& pJson,Json& pResult)  {
     
     if(pJson.HasProperty("EnableDhcpNtp")) 
         _settings.SetEnableDhcpNtp(pJson.GetBoolProperty("EnableDhcpNtp"));
+
+    if(pJson.HasProperty("EnablePowerSave")) 
+        _settings.SetEnablePowerSave(pJson.GetBoolProperty("EnablePowerSave"));
     
+    if(pJson.HasProperty("PrimaryNtpServer")) 
+        _settings.SetPrimaryNtpServer(pJson.GetStringProperty("PrimaryNtpServer"));
+    
+    if(pJson.HasProperty("SecondaryNtpServer")) 
+        _settings.SetSecondaryNtpServer(pJson.GetStringProperty("SecondaryNtpServer"));
+
     if(pJson.HasProperty("MqttServerAddress")) 
         _settings.SetMqttServerAddress(pJson.GetStringProperty("MqttServerAddress"));
     
@@ -60,11 +69,15 @@ void LoadSettingsCommand::Process(Json& pJson,Json& pResult)  {
     pResult.CreateStringProperty("DeviceName",_settings.GetDeviceName());
     pResult.CreateBoolProperty("EnableMqtt",_settings.GetEnableMqtt());
     pResult.CreateBoolProperty("EnableDhcpNtp",_settings.GetEnableDhcpNtp());
+    pResult.CreateBoolProperty("EnablePowerSave",_settings.GetEnablePowerSave());
+    pResult.CreateStringProperty("PrimaryNtpServer",_settings.GetPrimaryNtpServer());
+    pResult.CreateStringProperty("SecondaryNtpServer",_settings.GetSecondaryNtpServer());
     pResult.CreateStringProperty("MqttServerAddress",_settings.GetMqttServerAddress());
     pResult.CreateStringProperty("MqttTopic",_settings.GetMqttTopic());
     pResult.CreateNumberProperty("MqttPublishDelay",_settings.GetMqttPublishDelay());
     pResult.CreateNumberProperty("Co2SensorType", (int)_settings.GetCO2SensorType());
     pResult.CreateNumberProperty("SensorUpdateInterval", (int)_settings.GetSensorUpdateInterval());
+
 }
 std::string LoadSettingsCommand::GetName() {
     return "LOADSETTINGS";

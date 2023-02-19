@@ -8,7 +8,7 @@ import NetworkWifiIcon from '@mui/icons-material/NetworkWifi';
 import { namespaces } from "../i18n/i18n.constants";
 import { useTranslation } from "react-i18next";
 import AppBreadcrumb from '../AppBreadcrumb';
-import ISettingSection from './ISettingSection';
+import ISettingSection from './Components/ISettingSection';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';

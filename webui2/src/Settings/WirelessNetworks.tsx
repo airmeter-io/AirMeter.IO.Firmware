@@ -9,7 +9,7 @@ import { namespaces } from "../i18n/i18n.constants";
 import { useTranslation } from "react-i18next";
 import AppBreadcrumb from '../AppBreadcrumb';
 import { DataGrid, GridColDef,GridRenderCellParams } from '@mui/x-data-grid';
-import WirelessActionsMenu from './WirelessActionsMenu';
+import WirelessActionsMenu from './Components/WirelessActionsMenu';
 import WifiFindIcon from '@mui/icons-material/WifiFind';
 import Fab from '@mui/material/Fab';
 import AddIcon from '@mui/icons-material/Add';

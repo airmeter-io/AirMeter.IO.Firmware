@@ -7,12 +7,13 @@ class ReactRadialGauge extends React.Component<RadialGaugeOptions,{}> {
   gauge : RadialGauge;
   el : HTMLCanvasElement;
   componentDidMount () {
+    var t = this;
     const options = Object.assign({}, this.props, {
       renderTo: this.el,
       // listeners:{
-      //   value: function(value : number) {
-      //       this.gauge.update({ units: (Number(value)).toFixed(this.props.Decimals) + " "+ props.Units });
-      //   } }
+      //    value: function(value : number) {
+      //        t.gauge.update({renderTo: t.el, units: (Number(value)).toFixed(2) + " "});
+      //    } }
     });
     this.gauge = new RadialGauge(options).draw();
     window.addEventListener('resize', this.updateDimensions);   

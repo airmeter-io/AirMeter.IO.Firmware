@@ -5,7 +5,10 @@ export const en = {
     title: "Manage Device Settings",
     breadcrumb: "Settings",
     buttons: {
-       save: "Save"
+       save: "Save",
+       close: "Close",
+       cancel: "Cancel",
+       skip: "Skip"
     },
     general: {
         title: "General",
@@ -40,14 +43,65 @@ export const en = {
         description: "Allows calibration of sensors within this device and allows configuration of calibration settings.",
         breadcrumb: "Calibration",
         manual: {
-          title: "Perform Manual Calibration",
-          breadcrumb: "Perform Manual",
-          description: "Manually calibrate the CO2 sensor to background (outside) levels."
+          title: "Perform Calibration",
+          breadcrumb: "Perform",
+          description: "Manually calibrate the CO2 sensor to background (outside) levels.",
+          resetLabel: "Repeat Calibration",
+          step1: {
+            label: "Place device outside",
+            nextLabel: "Next",
+            para1: "Outside air that is away from sources of pollution has a relatively constant CO2 just above 400ppm. The CO2 sensor can use this to calibrate against as an approximate baseline value. Before calibration is performed it must be placed outside.",
+            para2: "The weather conditions must be dry, not excessively hot and the sensor avoid the following:-",
+            tip1: "Sources of pollution such as motor vehicles, home heating boilers/burners or any other combustion source.",
+            tip2: "Sources of heat such as direct sunlight or radiant heat.",
+            tip3: "People exhaling are also sources of CO2 which includes yourself.",
+            tip4: "Excessively humid conditions (> 80%), precipitation such as rain or placing the device in standing water!"
+          },
+          step2: {
+            label: 'Wait for readings to settle',
+            nextLabel: "Next",
+            para1: "After ensuring that the sensor is located outside as per the instructions on the previous screen. you must now wait for the sensor readings to stablise before you can complete the calibration process. This is because the reading taken during calibration will be assumed to represent the ambient CO2 concentration level of outdoor air (E.g. around 400ppm).",
+            para2: "During this time leave the sensor in position in the outdoor air and ensure that it is not obstructed or interfered with.",
+            para3: "Wait will be complete in: {{time}} after which you will be able to press Next to start the calibration.",
+          },
+          step3: {
+            label: 'Perform Calibration',
+            nextLabel: "Calibrate",
+            para1: "As the previous steps have now been completed the device can now be calibrated.",
+            para2: "Initiate the calibration by pressing the Calibrate button.",
+            failed: {
+              para1: "Something went wrong and the device failed to calibrate. You can try again by clicking the calibrate button again.",
+              para2: "The sensor reported: "
+            }
+          },
+          finished: {
+            para1: "The CO2 sensor calibration sequence has been completed successfully. When the readings are next updated you will see the newly calibrated value.",
+            para2: "To ensure the sensor is fully calibrated check it outside at different times of the day. If the readings drop below 400ppm then the sensor may benefit from another calibration.",
+            para3: "Note that CO2 levels do fluctuate outdoors therefore some trial and error diagnostics is required to find the optimum time of day & location for calibration.",
+          }
+
         },
-        automatic: {
-          title: "Configure Automatic Calibration",
-          breadcrumb: "Configure Automatic",
-          description: "Enable/disable automatic (ABC) CO2 calibration and configure its settings."
+        options: {
+          title: "Configure Calibration Options",
+          breadcrumb: "Configure Options",
+          description: "Configure options including automatic (ABC) calibration and the baseline CO2 value.",
+          frequencies: {
+            hours: "{{hours}} hours",
+            days: "{{days}} days",                      
+            daysHours: "{{days}} days and {{hours}} hours"
+          },
+          enableAbc: {
+            title: "Enable Automatic Baseline Calibration (ABC)",
+            helper: "Automatic Baseline Calibration (ABC) is a mode in which the CO2 sensor automatically calibrates itself against the minimum reading it receives over a period. It works most effectively in locations where background (e.g. outdoor) CO2 levels are reached during each calibration period."
+          }, 
+          frequency: {
+            label: "The calibration cycle length is {{frequency}}.",
+            helper: "This sets how long the ABC calibration cycle will be. Consider how often the device will experience background (e.g. outdoor) CO2 levels."
+          },
+          baseline: {
+            label: "The background CO2 level is assumed to be {{baseline}} ppm",
+            helper: "This sets what background CO2 level is assumed when performing calibration."
+          }        
         }
     }, 
     data: {

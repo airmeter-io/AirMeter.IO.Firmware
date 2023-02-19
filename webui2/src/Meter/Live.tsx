@@ -8,21 +8,33 @@ import MinorRadialGauge from './MinorRadialGauge';
 import CO2RadialGauge from './CO2RadialGauge';
 import Container from '@mui/material/Container';
 import CssBaseline from '@mui/material/CssBaseline';
+import {IMeterValues} from '../ViewModel/MeterView';
+import MainView from '../ViewModel/MainView';
 
-interface ILiveState {
-  Temp : number;
-  Humidity : number;
-  Pressure : number;
-  CO2 : number;
-}
-
-class Live extends React.Component<{},ILiveState> {
+class Live extends React.Component<{},IMeterValues> {
   state = {
-    Temp: 10,
-    Humidity: 50,
-    Pressure: 1000,
-    CO2: 400 
+    temp: 10,
+    humidity: 50,
+    pressure: 1000,
+    co2: 400,
+    groups: []
   }
+
+  private interval : ReturnType<typeof setInterval>;
+
+  private async fetchData() {
+    var values = await MainView.Current.MeterView.GetLatest();
+    this.setState(values);
+  }
+
+  componentDidMount () {   
+    this.fetchData(); 
+    this.interval = setInterval(() => { this.fetchData() }, 10000);
+  }
+  componentWillUnmount () {
+      clearInterval(this.interval);
+  }
+
   render() {
     return (
       <Box>
@@ -39,10 +51,10 @@ class Live extends React.Component<{},ILiveState> {
                       MajorTicks={["-20","","-10","","0","","10","","20","","30","","40","","50"]} 
                       MinorTicks={2} 
                       Decimals={2} 
-                      Value={this.state.Temp} />
+                      Value={this.state.temp} />
               </div>               
               <div className="co2GaugeContainer" >
-                  <CO2RadialGauge Value={this.state.CO2}/>
+                  <CO2RadialGauge Value={this.state.co2}/>
               </div>
               <div className="humidityGaugeContainer">
                   <MinorRadialGauge
@@ -53,7 +65,7 @@ class Live extends React.Component<{},ILiveState> {
                       MajorTicks={["0","","25","","50","","75","","100"]} 
                       MinorTicks={5} 
                       Decimals={2} 
-                      Value={this.state.Humidity} />
+                      Value={this.state.humidity} />
               </div>	
               <div  className="pressureGaugeContainer">
                   <MinorRadialGauge
@@ -64,7 +76,7 @@ class Live extends React.Component<{},ILiveState> {
                       MajorTicks={["","980","","990","","1000","","1010","","1020","","1030","","1040",""]} 
                       MinorTicks={10} 
                       Decimals={1} 
-                      Value={this.state.Pressure} />
+                      Value={this.state.pressure} />
               </div>	
           </div>
       </Container>

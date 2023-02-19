@@ -40,7 +40,10 @@ void GeneralSettings::LoadSettingsFromJson(Json& pJson) {
     if(pJson.HasProperty("CO2SensorType")) 
         _sensorType = (CO2SensorType)pJson.GetIntProperty("CO2SensorType");
     if(pJson.HasProperty("SensorUpdateInterval")) 
-        _sensorUpdateInterval = (CO2SensorType)pJson.GetIntProperty("SensorUpdateInterval");        
+        _sensorUpdateInterval = (CO2SensorType)pJson.GetIntProperty("SensorUpdateInterval");            
+    if(pJson.HasProperty("EnablePowerSave")) {
+        _enablePowerSave = pJson.GetBoolProperty("EnablePowerSave");
+    }
 }
 
 void GeneralSettings::SaveSettingsToJson(Json& pJson) {    
@@ -53,6 +56,7 @@ void GeneralSettings::SaveSettingsToJson(Json& pJson) {
     pJson.CreateStringProperty("MqttServerAddress", _mqttServerAddress);
     pJson.CreateNumberProperty("CO2SensorType", (int)_sensorType);
     pJson.CreateNumberProperty("SensorUpdateInterval", _sensorUpdateInterval);
+    pJson.CreateBoolProperty("EnablePowerSave", _enablePowerSave);
 }
 
 std::string& GeneralSettings::GetMqttServerAddress() {
@@ -150,4 +154,12 @@ int GeneralSettings::GetSensorUpdateInterval() {
 
 void GeneralSettings::SetSensorUpdateInterval(int pIntervalInSeconds) {
     _sensorUpdateInterval = pIntervalInSeconds;
+}
+
+bool GeneralSettings::GetEnablePowerSave() {
+    return _enablePowerSave;
+}
+
+void GeneralSettings::SetEnablePowerSave(bool pEnable) {
+    _enablePowerSave = pEnable;
 }

@@ -27,7 +27,7 @@ void WebContentHandler::ProcessRequest(HttpRequest *pReq) {
 
     for(auto file : _files) {
         printf("File: %s\n", file);
-        const int SizeToRead = 1024;
+        const int SizeToRead = 1024*16;
         if(pReq->GetUri()==file || bzIndex.compare(file)==0 || gzUrl.compare(file)==0 || brUrl.compare(file)==0) {
             std::string fn = file==std::string("/") ? std::string("/web/index.html") : std::string("/web")+file;
              printf("FN: %s\n", fn.c_str());

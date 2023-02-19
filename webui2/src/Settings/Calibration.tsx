@@ -8,7 +8,7 @@ import CompassCalibrationIcon from '@mui/icons-material/CompassCalibration';
 import { namespaces } from "../i18n/i18n.constants";
 import { useTranslation } from "react-i18next";
 import AppBreadcrumb from '../AppBreadcrumb';
-import ISettingSection from './ISettingSection';
+import ISettingSection from './Components/ISettingSection';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import TuneIcon from '@mui/icons-material/Tune';
 import List from '@mui/material/List';
@@ -29,9 +29,9 @@ function Calibration() {
        icon: <TuneIcon/>
     },
     {
-      title: t("calibration.automatic.title"),
-      description: t("calibration.automatic.description"),
-      to: "/settings/calibration/automatic",
+      title: t("calibration.options.title"),
+      description: t("calibration.options.description"),
+      to: "/settings/calibration/options",
       icon: <RestartAltIcon />
     }];
 

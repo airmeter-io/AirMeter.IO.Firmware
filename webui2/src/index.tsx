@@ -16,9 +16,9 @@ import Data from './Settings/Data';
 import Ntp from './Settings/Ntp';
 import Users from './Settings/Users';
 import CalibrationManual from './Settings/CalibrationManual';
-import CalibrationAutomatic from './Settings/CalibrationAutomatic';
 import WirelessNetworks from './Settings/WirelessNetworks';
 import WirelessOptions from './Settings/WirelessOptions';
+import CalibrationOptions from './Settings/CalibrationOptions';
 
 
 const router = createHashRouter([
@@ -59,8 +59,8 @@ const router = createHashRouter([
     element: <CalibrationManual/>,
   },
   {
-    path: "/settings/calibration/automatic",
-    element: <CalibrationAutomatic/>,
+    path: "/settings/calibration/options",
+    element: <CalibrationOptions/>,
   },    
   {
     path: "/settings/cloud",

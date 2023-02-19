@@ -57,6 +57,7 @@ function MinorRadialGauge(props : IMinorRadialGaugeProps) {
         value = {props.Value}
         animateOnInit = {false}
         animatedValue  = {true}
+        units = {props.Value+" "+props.Units}
          />)
 }
 

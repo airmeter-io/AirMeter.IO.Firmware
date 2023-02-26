@@ -8,7 +8,10 @@ export const en = {
        save: "Save",
        close: "Close",
        cancel: "Cancel",
-       skip: "Skip"
+       skip: "Skip",
+       confirm: "Confirm",
+       remove: "Remove",
+       connect: "Connect"
     },
     general: {
         title: "General",
@@ -36,7 +39,45 @@ export const en = {
           title: "Configure Options",
           description: "Configure options that control how and when this device will attempt to connect to available networks.",
           breadcrumb: "Configure Options"
+        },
+        add: {
+          title: "Add Wireless Network",
+          password: "Network Password",
+          step1: {
+            label: "Search for networks",
+            nextLabel: "Search",
+            para1: "Click the Search button to initiate a scan for wireless that your device may be able to connect to.",
+            para2: "Ensure that the device is as near as possible (whilst still being accessible via the current connection) to the access point which you wish to add."
+          },
+          step2: {
+            label: "Choose network",
+            nextLabel: "Choose",
+            para1: "Click the Search button to initiate a scan for wireless that your device may be able to connect to.",
+            para2: "Ensure that the device is as near as possible (whilst still being accessible via the current connection) to the access point which you wish to add."
+          },
+          step3: {
+            label: "Authenticate & Test",
+            nextLabel: "Test & Add Connection",
+            para1: "The {{network}} network you selected on the previous step requires password as it is secured with {{authMode}}. Please enter the network password in the box below, choose whether to switch to the new network now and whether to make it default, then press 'Test & Add Connection' to continue.",
+            para2: "",
+            connectAfter: {
+              label: "Switch to this network."
+            },
+            makeDefault: {
+              label: "Make default network."
+            }
+          }
+        },
+        remove: {
+          title: "Remove configuration for {{ssid}}",
+          para1: "This will perminantly remove this network configuration and therefore this device will no longer attempt to connect to this network.",          
+        },
+        card: {
+          moveUpPriority: "Move up to priority {{priority}}",
+          moveDownPriority: "Move down to priority {{priority}}",
         }
+
+
     },
     calibration: {
         title: "Calibration",

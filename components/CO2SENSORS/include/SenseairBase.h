@@ -27,7 +27,6 @@ protected:
     Value _valSingleMeasurementMode = { .b = false };
     Value _valMeasurementPeriod = { .i = 0 };
     Value _valMeasurementNoSamples = { .i = 0 };
-    Value _valAbcPeriod = { .i = 0 };
     Value _valAbcTarget = { .i = 0 };
     Value _valFilter = { .i = 0 };
     Value _valMeterControl = { .s = &_meterControl };

@@ -29,26 +29,25 @@ protected:
     Value _valCo2Uncompensated { .i = 0};
     Value _valCo2UnfilteredUncompensated { .i = 0};
     Value _valMaxPPM { .i = 2000 };
-    Value _valMaxBasePPM { .i = 350 };
-    Value _valMinBasePPM { .i = 2000 };
+    Value _valMaxBasePPM { .i = 2000};
+    Value _valMinBasePPM { .i = 400 };
     Value _valBasePPM { .i = 400 };
     Value _valHasError { .b = false };
     Value _valIsHeatingUp { .b = false } ;
     Value _valIsAbcEnabled {.b = false };
-    Value _valDaysPerAbcCycle;
-    Value _valMinDaysPerAbcCycle { .i = 1 };
-    Value _valMaxDaysPerAbcCycle { .i = 31};
+    Value _valHoursPerAbcCycle;
+    Value _valMinHoursPerAbcCycle { .i = 1 };
+    Value _valMaxHoursPerAbcCycle { .i = 31*24};
+    Value _valStepHoursPerAbcCycle { .i = 1};
     Value _valCalibWaitTime { .i = 2*60 };
 public:
     CO2Sensor();
 
     virtual bool RefreshValues() = 0;
   
-
-
     virtual void DisableABC() = 0;
     virtual void ManualCalibration(int pBaseLinePPM) = 0;
-    virtual void EnableABC(int pBaseLinePPM, int pNumberOfDaysPerCycle) = 0;
+    virtual void EnableABC(int pBaseLinePPM, int pNumberOfHoursPerCycle) = 0;
 };
 
 class ISensorManager {

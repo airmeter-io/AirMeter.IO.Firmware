@@ -23,6 +23,7 @@ class GeneralSettings : public SettingsBase {
    bool _enableDhcpNtp = false;
    int _mqttPublishSecondDelay = 5*60;
    bool _enablePowerSave = true;
+   int _backgroundCO2 = 400;
 
 protected:
     const char* GetFilePath() override;
@@ -56,4 +57,6 @@ public:
     void SetSensorUpdateInterval(int pIntervalInSeconds);
     bool GetEnablePowerSave();
     void SetEnablePowerSave(bool pEnable);
+    int GetBackgroundCO2();
+    void SetBackgroundCO2(int pBaseline);
 };

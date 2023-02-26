@@ -3,35 +3,17 @@
 #include "Common.h"
 #include "HttpUrlHandler.h"
 #include "Wifi.h"
-
+#include "GeneralSettings.h"
 #include "Json.h"
 
 
-class GetCalibrationInfoCommand : public HttpJsonCommand  {
+class CalibrationCommand : public HttpJsonCommand  {
 
+    private:
+        GeneralSettings& _settings;
     public:
-        GetCalibrationInfoCommand() ;
+        CalibrationCommand(GeneralSettings& pSettings) ;
         void Process(Json& pJson,Json& pResult) override ;
         std::string GetName() override ;
 };
 
-class ManualCalibrationCommand : public HttpJsonCommand  {
-    public:
-        ManualCalibrationCommand() ;
-        void Process(Json& pJson,Json& pResult) override ;
-        std::string GetName() override ;
-};
-
-class EnableAbcCommand : public HttpJsonCommand  {
-    public:
-        EnableAbcCommand() ;
-        void Process(Json& pJson,Json& pResult) override;
-        std::string GetName() override ;
-};
-
-class DisableAbcCommand : public HttpJsonCommand  {
-    public:
-        DisableAbcCommand() ;
-        void Process(Json& pJson,Json& pResult) override ;
-        std::string GetName() override ;
-};

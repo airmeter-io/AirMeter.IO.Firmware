@@ -1,6 +1,11 @@
 import Delay from './Delay';
 import {i18n} from "../i18n/i18n";
 import { namespaces } from "../i18n/i18n.constants";
+import ConnectionManager from '../Protocol/RestApi'
+
+
+const connection = new ConnectionManager();
+
 
 const t = i18n.getFixedT(null, namespaces.settings);
 
@@ -40,32 +45,64 @@ class CalibrationSettingsView {
         maxBaseline: 500,
         stepBaseline: 5
     };    
+
+    private _displayValues : ICalibrationDisplayValues = {
+      co2 : 400,
+      waitSeconds: 60
+    };
+
     private _calibWaitTime : Date = new Date();
+    
+
+
 
     public async Load() {
-        await Delay(600);
+        var result = await connection.executeCommand("CALIBRATE", pCmd=>pCmd.Mode = "Info");
+
+        this._values = {
+          enableAbc: result.Co2.IsABCEnabled ==="true",
+          abcFrequency: parseInt(result.Co2.ABCHoursPerCycle),
+          minAbcFrequency: parseInt(result.Co2.ABCMinHoursPerCycle),
+          maxAbcFrequency: parseInt(result.Co2.ABCMaxHoursPerCycle),
+          stepAbcFrequency: parseInt(result.Co2.ABCStepHoursPerCycle),
+          baseline: parseInt(result.BackgroundCO2),
+          minBaseline: parseInt(result.Co2.MinBasePPM),
+          maxBaseline: parseInt(result.Co2.MaxBasePPM),
+          stepBaseline: 5
+        };
+                
         return structuredClone(this._values);
     }
 
+
+
     public async Save(pValues : ICalibrationSettingsValues) {
-        await Delay(1000);
+        var result = await connection.executeCommand("CALIBRATE", pCmd=>{
+          pCmd.Mode = "SetOptions";       
+          pCmd.EnableABC = pValues.enableAbc.toString();
+          pCmd.ABCHoursPerCycle = pValues.abcFrequency.toString();
+          pCmd.Baseline = pValues.baseline.toString();
+        });
+
         this._values = pValues;
     }
 
     public async Calibrate() : Promise<ICalibrationResult> {
-      await Delay(1000); 
+      var result = await connection.executeCommand("CALIBRATE", pCmd=>pCmd.Mode = "Perform");     
       return {
-        success: true,
-        message: "shit happend"
+        success: result.Status==="true",
+        message: ""
       };
     }
 
     public async GetDisplayValues() : Promise<ICalibrationDisplayValues> {
-      await Delay(200);
-      return {
-        co2: 403,
-        waitSeconds: 120
+      var result = await connection.executeCommand("CALIBRATE", pCmd=>pCmd.Mode = "Info");
+      
+      this._displayValues =  {
+        co2: parseInt(result.Co2.PPM),
+        waitSeconds: parseInt(result.Co2.CalibWaitTime)
       };
+      return structuredClone(this._displayValues);
     }
 
     public FormatFrequency(pFreq : number) {
@@ -88,7 +125,7 @@ class CalibrationSettingsView {
     public GetRemainingSeconds() {
       var elapsed = Math.floor((new Date().getTime() - this._calibWaitTime.getTime())/1000);
       console.log("elapsed "+ elapsed + " - start: "+ this._calibWaitTime);
-      var remaining =120 - elapsed;
+      var remaining =this._displayValues.waitSeconds - elapsed;
       if(remaining < 0) remaining =  0;
       return remaining;
     }

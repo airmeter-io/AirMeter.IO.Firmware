@@ -25,9 +25,9 @@ Scd30Sensor::Scd30Sensor(I2CDeviceSession* pSession) : _session(pSession) {
     _valBasePPM.i = 400;
     _valMinBasePPM.i = 400;
     _valMaxBasePPM.i = 2000;
-    _valDaysPerAbcCycle.i = 7;
-    _valMaxDaysPerAbcCycle.i = 7;
-    _valMinDaysPerAbcCycle.i = 7;
+    _valHoursPerAbcCycle.i = 7*24;
+    _valMaxHoursPerAbcCycle.i = 7*24;
+    _valMinHoursPerAbcCycle.i = 7*24;
 
     ReadSoftwareVersion();    
     ReadSerialNo();
@@ -275,7 +275,7 @@ void Scd30Sensor::ManualCalibration(int pBaseLinePPM) {
     }
 }
 
-void Scd30Sensor::EnableABC(int pBaseLinePPM, int pNumberOfDaysPerCycle) { 
+void Scd30Sensor::EnableABC(int pBaseLinePPM, int pNumberOfHoursPerCycle) { 
     uint8_t paramBytes[2]  = {0,1};
     while(!ReadCommand(Scd30I2CCommand::GET_OR_SET_ABC, paramBytes, sizeof(paramBytes), nullptr, 0))
     {

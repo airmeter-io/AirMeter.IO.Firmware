@@ -229,7 +229,7 @@ void SenseairModBusSensor::ReadHoldingRegistersInfo() {
     _valSingleMeasurementMode.b = measurementMode == 1;
     _valMeasurementPeriod.i = values[22]*256 + values[23];
     _valMeasurementNoSamples.i = values[24]*256 + values[25];
-    _valAbcPeriod.i = values[26]*256 + values[27];
+    _valHoursPerAbcCycle.i = values[26]*256 + values[27];
     _valAbcTarget.i = values[30]*256 + values[31];
     _valFilter.i = values[33];
     auto meterControl = values[37];
@@ -276,6 +276,6 @@ void SenseairModBusSensor::ManualCalibration(int pBaseLinePPM) {
 
 }
 
-void SenseairModBusSensor::EnableABC(int pBaseLinePPM, int pNumberOfDaysPerCycle) {
+void SenseairModBusSensor::EnableABC(int pBaseLinePPM, int pNumberOfHoursPerCycle) {
 
 }

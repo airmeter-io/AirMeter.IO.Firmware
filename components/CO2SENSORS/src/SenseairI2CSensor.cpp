@@ -163,7 +163,7 @@ void SenseairI2CSensor::ManualCalibration(int pBaseLinePPM) {
     _sensorManager->DisableSensorReadGPIO();
 }
 
-void SenseairI2CSensor::EnableABC(int pBaseLinePPM, int pNumberOfDaysPerCycle) {
+void SenseairI2CSensor::EnableABC(int pBaseLinePPM, int pNumberOfHoursPerCycle) {
     _valIsAbcEnabled.b = true;
 }
 
@@ -194,7 +194,7 @@ void SenseairI2CSensor::ReadMeasurementModeInfo() {
         _valSingleMeasurementMode.b = values[0] == 1;
         _valMeasurementPeriod.i = values[1]*256 + values[2];
         _valMeasurementNoSamples.i = values[3]*256 + values[4];
-        _valAbcPeriod.i = values[5]*256 + values[6];
+        _valHoursPerAbcCycle.i = values[5]*256 + values[6];
         _valAbcTarget.i = values[9]*256 + values[10];
         _valFilter.i = values[12];
         auto meterControl = values[16];

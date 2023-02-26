@@ -75,7 +75,7 @@ public:
   
     void DisableABC() override;
     void ManualCalibration(int pBaseLinePPM) override;
-    void EnableABC(int pBaseLinePPM, int pNumberOfDaysPerCycle) override;
+    void EnableABC(int pBaseLinePPM, int pNumberOfHoursPerCycle) override;
 
 
     void ReadSensorStatusText();

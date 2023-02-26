@@ -18,7 +18,7 @@ interface IStepperProcessStep {
   isOptional : () => boolean;
   executeNext: () => Promise<boolean>;
   onShow: () => void;
-  view : React.ReactElement<any>;
+  view : ()=> React.ReactElement<any>;
 }
 
 interface IStepperProcessProps {
@@ -85,7 +85,7 @@ function StepperProcess(props : IStepperProcessProps) {
 
   const handleClose = () => props.onClose();
 
-  const getStepView = (step : number) => props.steps[step].view;
+  const getStepView = (step : number) => props.steps[step].view();
   
   return (
         <Box sx={{ width: '100%', minWidth: "600px", mt: "2em" }}>
@@ -108,7 +108,7 @@ function StepperProcess(props : IStepperProcessProps) {
           </Stepper>
           {activeStep === props.steps.length ? (
             <React.Fragment>
-              <Box sx={{ mt: 2, mb: 1 }}>
+              <Box sx={{ mt: 2, mb: 1 , minHeight: 200}}>
                  {props.finishedView}
               </Box>
               
@@ -120,7 +120,7 @@ function StepperProcess(props : IStepperProcessProps) {
             </React.Fragment>
           ) : (
             <React.Fragment>
-              <Box sx={{ mt: 2, mb: 1 }}>
+              <Box sx={{ mt: 2, mb: 1, minHeight: 200 }}>
                 {getStepView(activeStep)}
                 
               </Box>             

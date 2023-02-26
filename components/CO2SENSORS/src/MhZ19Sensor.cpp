@@ -95,9 +95,9 @@ MhZ19Sensor::MhZ19Sensor(PinSerial* pSerial) : _serial(pSerial){
    _valBasePPM.i = 400;
    _valMaxBasePPM.i = 400;
    _valMinBasePPM.i = 400;
-   _valDaysPerAbcCycle.i = 1;
-   _valMaxDaysPerAbcCycle.i = 1;
-   _valMinDaysPerAbcCycle.i = 1;
+   _valHoursPerAbcCycle.i = 24;
+   _valMaxHoursPerAbcCycle.i = 24;
+   _valMinHoursPerAbcCycle.i = 24;
    
    char buf[300];
    while(true) {
@@ -178,7 +178,7 @@ void MhZ19Sensor::ManualCalibration(int pBaseLinePPM) {
    response.Print("Started manual Calibration");
 }
 
-void MhZ19Sensor::EnableABC( int pBaseLinePPM, int pNumberOfDaysPerCycle) {
+void MhZ19Sensor::EnableABC( int pBaseLinePPM, int pNumberOfHoursPerCycle) {
    MHZ19Buffer command(MHZ19Command::SetAutoCalibration);
    MHZ19Buffer response;
    command.Buffer[3] = 0xA0;

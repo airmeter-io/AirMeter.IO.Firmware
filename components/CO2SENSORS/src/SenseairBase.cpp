@@ -18,7 +18,7 @@ SenseairBase::SenseairBase()  {
     _valMaxPPM.i = 5000;
     _valBasePPM.i = 400;
     _valIsAbcEnabled.b = true;
-    _valDaysPerAbcCycle.i = 1;
+    _valHoursPerAbcCycle.i = 1*24;
 
     AddValueSource(new ValueSource(*this,SUNRISE_MEASUREMENTINFO,       String, Dimensionless, _valMeasurementInfo, GET_LATEST_DATA));
     AddValueSource(new ValueSource(*this,SUNRISE_FIRMWARETYPE,          Int,    Dimensionless, _valFirmwareType, GET_LATEST_DATA));
@@ -26,8 +26,7 @@ SenseairBase::SenseairBase()  {
     AddValueSource(new ValueSource(*this,SUNRISE_ERROR,                 String, Dimensionless, _valError, GET_LATEST_DATA));
     AddValueSource(new ValueSource(*this,SUNRISE_SINGLEMEASUREMENTMODE, Bool,   Dimensionless, _valSingleMeasurementMode, GET_LATEST_DATA));
     AddValueSource(new ValueSource(*this,SUNRISE_MEASUREMENTPERIOD,     Int,    Dimensionless, _valMeasurementPeriod, GET_LATEST_DATA));
-    AddValueSource(new ValueSource(*this,SUNRISE_NUMSAMPLES,            Int,    Dimensionless, _valMeasurementNoSamples, GET_LATEST_DATA));
-    AddValueSource(new ValueSource(*this,SUNRISE_ABCPERIOD,             Int,    Dimensionless, _valAbcPeriod, GET_LATEST_DATA));
+    AddValueSource(new ValueSource(*this,SUNRISE_NUMSAMPLES,            Int,    Dimensionless, _valMeasurementNoSamples, GET_LATEST_DATA));    
     AddValueSource(new ValueSource(*this,SUNRISE_ABCTARGET,             Int,    Dimensionless, _valAbcTarget, GET_LATEST_DATA));
     AddValueSource(new ValueSource(*this,SUNRISE_IRFILTER,              Int,    Dimensionless, _valFilter, GET_LATEST_DATA));
     AddValueSource(new ValueSource(*this,SUNRISE_METERCONTROL,          String, Dimensionless, _valMeterControl, GET_LATEST_DATA));

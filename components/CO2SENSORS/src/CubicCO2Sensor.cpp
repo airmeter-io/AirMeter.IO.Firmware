@@ -218,13 +218,13 @@ void CubicCO2Sensor::ReadAbcInfo() {
    if(error) {
       response.Print("Failed read ABC info");      
       _valBasePPM.i = 0;
-      _valDaysPerAbcCycle.i = 0;
+      _valHoursPerAbcCycle.i = 0;
       _valIsAbcEnabled.b = false;
       return;
    } 
 
    _valBasePPM.i = response.Buffer[7] | (response.Buffer[6] << 8);
-   _valDaysPerAbcCycle.i = response.Buffer[5];
+   _valHoursPerAbcCycle.i = response.Buffer[5]*24;
    _valIsAbcEnabled.b = response.Buffer[4]==0;   
 }
 
@@ -263,7 +263,7 @@ void CubicCO2Sensor::SetAbcParameters(bool pOpen, int pCycle, int pBaseCO2Value)
    
    command.Buffer[3] = 0x64;
    command.Buffer[4] = pOpen ? 0 : 2;
-   command.Buffer[5] = pCycle;
+   command.Buffer[5] = pCycle/24;
    command.Buffer[6] = (pBaseCO2Value >> 8) & 0xFF;
    command.Buffer[7] = (pBaseCO2Value & 0xFF);        
    command.Buffer[8] = 0x64;
@@ -273,7 +273,7 @@ void CubicCO2Sensor::SetAbcParameters(bool pOpen, int pCycle, int pBaseCO2Value)
       response.Print("Failed to set ABC info retrying");  
    }
    _valBasePPM.i = pBaseCO2Value;
-   _valDaysPerAbcCycle.i = pCycle;
+   _valHoursPerAbcCycle.i = pCycle*24;
    _valIsAbcEnabled.b = pOpen;
    printf("Set ABC Info - Open = %d, Cycle=%d, BaseValue=%d\n", (int)pOpen, (int)pCycle, pBaseCO2Value);
 }
@@ -360,16 +360,16 @@ void CubicCO2Sensor::ManualCalibration(int pBaseLinePPM) {
    StartCalibration(pBaseLinePPM);
 }
 
-void CubicCO2Sensor::EnableABC(int pBaseLinePPM, int pNumberOfDaysPerCycle) {
-   _valDaysPerAbcCycle.i = pNumberOfDaysPerCycle;
+void CubicCO2Sensor::EnableABC(int pBaseLinePPM, int pNumberOfHoursPerCycle) {
+   _valHoursPerAbcCycle.i = pNumberOfHoursPerCycle;
    _valBasePPM.i = pBaseLinePPM;
    _valIsAbcEnabled.b = true;
-   SetAbcParameters(true, _valDaysPerAbcCycle.i, _valBasePPM.i);
+   SetAbcParameters(true, _valHoursPerAbcCycle.i, _valBasePPM.i);
 }
 
 void CubicCO2Sensor::DisableABC() {
    _valIsAbcEnabled.b = false;
-   SetAbcParameters(false, _valDaysPerAbcCycle.i, _valBasePPM.i);
+   SetAbcParameters(false, _valHoursPerAbcCycle.i, _valBasePPM.i);
 }
 
 void CubicCO2Sensor::SetUnknownMode(uint8_t pMode) {

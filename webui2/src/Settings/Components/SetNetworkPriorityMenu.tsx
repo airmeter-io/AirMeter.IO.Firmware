@@ -3,13 +3,13 @@ import { styled, alpha } from '@mui/material/styles';
 import Button from '@mui/material/Button';
 import Menu, { MenuProps } from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
-import EditIcon from '@mui/icons-material/Edit';
-import Divider from '@mui/material/Divider';
-import ArchiveIcon from '@mui/icons-material/Archive';
-import FileCopyIcon from '@mui/icons-material/FileCopy';
-import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-
+import {IAvailableNetworkPriority} from '../../ViewModel/WirelessSettingsView';
+import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import { useTranslation  } from "react-i18next";
+import {i18n} from "../../i18n/i18n";
+import { namespaces } from "../../i18n/i18n.constants";
 const StyledMenu = styled((props: MenuProps) => (
   <Menu
     elevation={0}
@@ -21,8 +21,7 @@ const StyledMenu = styled((props: MenuProps) => (
       vertical: 'top',
       horizontal: 'right',
     }}
-    {...props}
-  />
+    {...props}  />
 ))(({ theme }) => ({
   '& .MuiPaper-root': {
     borderRadius: 6,
@@ -51,9 +50,18 @@ const StyledMenu = styled((props: MenuProps) => (
   },
 }));
 
-export default function UserActionsMenu() {
+
+interface ISetNetworkPriorityMenuProps {
+    priorities : IAvailableNetworkPriority[];
+    currentPriority : number;
+    onPriorityClick : (pPriority : number) => void;
+    isCurrent : boolean;
+}
+
+export default function SetNetworkPriorityMenu(props : ISetNetworkPriorityMenuProps) {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
+  const { t } = useTranslation(namespaces.settings);
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
@@ -61,19 +69,22 @@ export default function UserActionsMenu() {
     setAnchorEl(null);
   };
 
+  const handleSelect = (pPriority : number) => {
+    props.onPriorityClick(pPriority);
+    handleClose();
+   
+  };
+
   return (
     <div>
       <Button
-        id="demo-customized-button"
         aria-controls={open ? 'demo-customized-menu' : undefined}
         aria-haspopup="true"
         aria-expanded={open ? 'true' : undefined}
-        variant="contained"
         disableElevation
         onClick={handleClick}
-        endIcon={<KeyboardArrowDownIcon />}
-      >
-        Options
+        endIcon={<KeyboardArrowDownIcon />}>
+        {t("wireless.card.moveUpPriority", {priority: props.currentPriority+1})}
       </Button>
       <StyledMenu
         id="demo-customized-menu"
@@ -82,25 +93,12 @@ export default function UserActionsMenu() {
         }}
         anchorEl={anchorEl}
         open={open}
-        onClose={handleClose}
-      >
-        <MenuItem onClick={handleClose} disableRipple>
-          <EditIcon />
-          Edit
-        </MenuItem>
-        <MenuItem onClick={handleClose} disableRipple>
-          <FileCopyIcon />
-          Duplicate
-        </MenuItem>
-        <Divider sx={{ my: 0.5 }} />
-        <MenuItem onClick={handleClose} disableRipple>
-          <ArchiveIcon />
-          Archive
-        </MenuItem>
-        <MenuItem onClick={handleClose} disableRipple>
-          <MoreHorizIcon />
-          More
-        </MenuItem>
+        onClose={handleClose}>
+          {props.priorities.map(pPriority => <MenuItem onClick={()=>handleSelect(pPriority.priority)} disableRipple>
+          {pPriority.up ? <ArrowDropUpIcon/> : <ArrowDropDownIcon/>}
+          {pPriority.up ? t("wireless.card.moveUpPriority", {priority: pPriority.priority+1}) : 
+                          t("wireless.card.moveDownPriority", {priority: pPriority.priority+1})}
+        </MenuItem>)}       
       </StyledMenu>
     </div>
   );

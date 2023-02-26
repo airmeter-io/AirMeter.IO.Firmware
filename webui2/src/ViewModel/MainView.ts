@@ -4,6 +4,7 @@ import CloudSettingsView from './CloudSettingsView';
 import DataSettingsView from './DataSettingsView';
 import CalibrationSettingsView from './CalibrationSettingsView';
 import MeterView from './MeterView';
+import WirelessSettingsView from './WirelessSettingsView';
 
 class MainView {
     public readonly GeneralSettings = new GeneralSettingsView();
@@ -12,6 +13,7 @@ class MainView {
     public readonly DataSettings = new DataSettingsView();
     public readonly CalibrationSettings = new CalibrationSettingsView();
     public readonly MeterView = new MeterView();
+    public readonly WirelessSettings = new WirelessSettingsView();
     public static readonly Current = new MainView();
 }
 

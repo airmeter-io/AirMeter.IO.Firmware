@@ -8,47 +8,58 @@ import NetworkWifiIcon from '@mui/icons-material/NetworkWifi';
 import { namespaces } from "../i18n/i18n.constants";
 import { useTranslation } from "react-i18next";
 import AppBreadcrumb from '../AppBreadcrumb';
-import { DataGrid, GridColDef,GridRenderCellParams } from '@mui/x-data-grid';
-import WirelessActionsMenu from './Components/WirelessActionsMenu';
 import WifiFindIcon from '@mui/icons-material/WifiFind';
 import Fab from '@mui/material/Fab';
 import AddIcon from '@mui/icons-material/Add';
+import AddWirelessNetwork from './Dialogs/AddWirelessNetwork';
+import * as React from 'react';
 
-const columns: GridColDef[] = [
-  { field: 'id', headerName: 'Priority', width: 90 },
-  {
-    field: 'ssid',
-    headerName: 'SSID',
-    width: 150,
-    editable: false,
-  },
-  {
-    field: 'status',
-    headerName: 'Status',
-    width: 150,
-    editable: false,
-  },
-  {
-    field: 'actions',
-    headerName: 'Actions',    
-    sortable: false,
-    width: 160,
-    renderCell: (params: GridRenderCellParams<string>) => (
-      
-        <WirelessActionsMenu/>
-      
-    ),
-  },
-];
-
-const rows = [
-  { id: 1, ssid: 'MoreThings', status: 'Connected', actions: {}},
-  { id: 2, ssid: 'MoreThings2', status: '', actions: {}},
-
-];
-
+import {IConfiguredNetwork} from '../ViewModel/WirelessSettingsView';
+import Button from '@mui/material/Button';
+import MainView from '../ViewModel/MainView';
+import { useEffect } from 'react';
+import Backdrop from '@mui/material/Backdrop';
+import CircularProgress from '@mui/material/CircularProgress';
+import Grid from '@mui/material/Grid';
+import SetNetworkPriorityMenu from './Components/SetNetworkPriorityMenu';
+import ConfiguredNetworkCard from './Cards/ConfiguredNetworkCard';
 function WirelessNetworks() {
+  const [networks , setNetworks] = React.useState<IConfiguredNetwork[]>([]);
+  const [loading , setLoading] = React.useState(false);
+  const addRef: React.RefObject<AddWirelessNetwork> = React.createRef<AddWirelessNetwork>();
   const { t } = useTranslation(namespaces.settings);
+  const handleFabClick = () => {
+    addRef.current?.handleClickOpen();
+  };
+
+  const handleSetPriority = async (pNetwork : IConfiguredNetwork,pPriority : number) => {
+    console.log("Setting priotiy");
+    setLoading(true);
+    var newNetworks = await MainView.Current.WirelessSettings.SetNetworkPriority(pNetwork, pPriority);
+    setNetworks(newNetworks);
+    setLoading(false);
+  }
+
+  const handleRemoveNetwork = async (pNetwork : IConfiguredNetwork) => {
+    console.log("Setting priotiy");
+    setLoading(true);
+    var newNetworks = await MainView.Current.WirelessSettings.RemoveNetwork(pNetwork);
+    setNetworks(newNetworks);
+    setLoading(false);
+  }
+
+  const  reload = async () => {
+    console.log("Reloading networks");
+   
+    setLoading(true);
+    setNetworks(await MainView.Current.WirelessSettings.GetConfiguredNetworks());
+    setLoading(false);
+   // reloadNetworks();
+  };
+
+  useEffect(() => {
+    reload();
+  }, []);
   return (
     <Box>
       <Header title={t("wireless.networks.title")}/>
@@ -72,22 +83,27 @@ function WirelessNetworks() {
         <Typography sx={{ display: 'flex', alignItems: 'center' , mt: '1em', mb: '1em'}} color="text.primary">
         {t("wireless.networks.description")}
         </Typography>
-        <Box sx={{ height: 400, width: '100%' }}>
-      <DataGrid
-        rows={rows}
-        columns={columns}
-        pageSize={5}
-        rowsPerPageOptions={[5]}
-        disableSelectionOnClick
-        experimentalFeatures={{ newEditingApi: true }}
-      />
+        <Grid container spacing={2}>
+        { networks.map((network, i) => 
+          <Grid item xs={6}>
+            <ConfiguredNetworkCard 
+              network={network} 
+              networks={networks} 
+              onSetPriority={handleSetPriority}
+              onRemoveNetwork={handleRemoveNetwork}/>
+          </Grid> )}
+        <Backdrop
+      sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+      open={loading}>
+      <CircularProgress color="inherit" />
+    </Backdrop>  
+       
+    </Grid>  
      
- 
-
-    </Box>      
       </Container>
-       <Fab color="primary" aria-label="add" sx={{ position: 'fixed', bottom: 70,  right: 10 }} > <AddIcon />
+       <Fab onClick={handleFabClick} color="primary" aria-label="add" sx={{ position: 'fixed', bottom: 70,  right: 10 }} > <AddIcon />
         </Fab>
+        <AddWirelessNetwork onClose={reload} ref={addRef} />
       <Footer/>
     </Box>);
 }

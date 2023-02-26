@@ -53,13 +53,15 @@ function CalibrationManual() {
 
   var tickCount = 0;
   const tick = async () => {
-    updateTimeString();
+    
     if(tickCount % 10 === 0) {
       tickCount++;
       var values = await MainView.Current.CalibrationSettings.GetDisplayValues();
       setDisplayValues(values);
+      
     } else
       tickCount++;
+    updateTimeString();
   }
 
   useEffect(() => {
@@ -88,7 +90,7 @@ function CalibrationManual() {
         return true;
       },
       onShow: () => {},
-      view: 
+      view:  ()=>
     <React.Fragment>
       <Typography>
         <p>{t("calibration.manual.step1.para1")}</p>
@@ -112,7 +114,7 @@ function CalibrationManual() {
         return MainView.Current.CalibrationSettings.GetRemainingSeconds()<=0;
       },
       onShow: () => MainView.Current.CalibrationSettings.ResetWait(),
-      view: 
+      view:  ()=>
     <React.Fragment>
       <Grid wrap='nowrap'  container  spacing={1}>
         <Grid item>
@@ -142,7 +144,7 @@ function CalibrationManual() {
         return result.success;
       },
       onShow: () => {},
-      view: 
+      view:  ()=>
     <React.Fragment>
       <Grid wrap='nowrap'  container  spacing={1}>
         <Grid item>

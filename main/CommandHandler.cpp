@@ -6,10 +6,7 @@
 
 CommandHandler::CommandHandler(Wifi& pWifi, GeneralSettings& pSettings, DataManager& pDataManager): 
     HttpUrlHandler({"/command"}, HTTP_POST ), _wifi(pWifi),  _settings(pSettings) {
-    RegisterCommand(new GetCalibrationInfoCommand());
-    RegisterCommand(new ManualCalibrationCommand());
-    RegisterCommand(new EnableAbcCommand());
-    RegisterCommand(new DisableAbcCommand());
+    RegisterCommand(new CalibrationCommand(pSettings));
     RegisterCommand(new SaveSettingsCommand(pSettings));
     RegisterCommand(new LoadSettingsCommand(pSettings));
     RegisterCommand(new GetAvailableWifiNetworksCommand(pSettings,pWifi));

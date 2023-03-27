@@ -2,7 +2,7 @@
 
 #include "Common.h"
 #include "HttpUrlHandler.h"
-#include "Wifi.h"
+#include "WifiTask.h"
 #include "GeneralSettings.h"
 #include "Json.h"
 #include "DataManager.h"
@@ -34,48 +34,48 @@ class GetSystemInfoCommand : public HttpJsonCommand  {
         std::string GetName() override ;
 };
 
-class GetAvailableWifiNetworksCommand : public HttpJsonCommand  {
-    GeneralSettings& _settings;
-    Wifi& _wifi;
-    public:
-        GetAvailableWifiNetworksCommand(GeneralSettings& pSettings, Wifi& pWifi) ;
-        void Process(Json& pJson,Json& pResult) override ;
-        std::string GetName() override ;
-};
+// class GetAvailableWifiNetworksCommand : public HttpJsonCommand  {
+//     GeneralSettings& _settings;
+//     Wifi& _wifi;
+//     public:
+//         GetAvailableWifiNetworksCommand(GeneralSettings& pSettings, Wifi& pWifi) ;
+//         void Process(Json& pJson,Json& pResult) override ;
+//         std::string GetName() override ;
+// };
 
 
-class GetCurrentWifiNetworkCommand : public HttpJsonCommand  {
-    GeneralSettings& _settings;
-    Wifi& _wifi;
-    public:
-        GetCurrentWifiNetworkCommand(GeneralSettings& pSettings, Wifi& pWifi) ;
-        void Process(Json& pJson,Json& pResult) override ;
-        std::string GetName() override ;
-};
+// class GetCurrentWifiNetworkCommand : public HttpJsonCommand  {
+//     GeneralSettings& _settings;
+//     Wifi& _wifi;
+//     public:
+//         GetCurrentWifiNetworkCommand(GeneralSettings& pSettings, Wifi& pWifi) ;
+//         void Process(Json& pJson,Json& pResult) override ;
+//         std::string GetName() override ;
+// };
 
 
-class SelectWifiNetworkCommandInternal {
-public:
-    virtual void TestConnectToNetwork() = 0;
-    virtual void SetConnectToNetwork() = 0;
-};
+// class SelectWifiNetworkCommandInternal {
+// public:
+//     virtual void TestConnectToNetwork() = 0;
+//     virtual void SetConnectToNetwork() = 0;
+// };
 
-class SelectWifiNetworkCommand : public HttpJsonCommand, private SelectWifiNetworkCommandInternal  {
-    GeneralSettings& _settings;
-    Wifi& _wifi;
-    int _lastId = 0;
-    bool _testingConnect = false;
-    bool _applyingConnect = false;
-    bool _testSucceeded = false;
-    wifi_ap_record_t * _network = nullptr;
-    std::string _password;
-    void TestConnectToNetwork() override;
-    void SetConnectToNetwork() override;
-public:
-    SelectWifiNetworkCommand(GeneralSettings& pSettings, Wifi& pWifi) ;
-    void Process(Json& pJson,Json& pResult) override ;
-    std::string GetName() override ;
-};
+// class SelectWifiNetworkCommand : public HttpJsonCommand, private SelectWifiNetworkCommandInternal  {
+//     GeneralSettings& _settings;
+//     WifiTask& _wifi;
+//     int _lastId = 0;
+//     bool _testingConnect = false;
+//     bool _applyingConnect = false;
+//     bool _testSucceeded = false;
+//     wifi_ap_record_t * _network = nullptr;
+//     std::string _password;
+//     void TestConnectToNetwork() override;
+//     void SetConnectToNetwork() override;
+// public:
+//     SelectWifiNetworkCommand(GeneralSettings& pSettings, WifiTask& pWifi) ;
+//     void Process(Json& pJson,Json& pResult) override ;
+//     std::string GetName() override ;
+// };
 
 
 class DataManagementCommand : public HttpJsonCommand  {

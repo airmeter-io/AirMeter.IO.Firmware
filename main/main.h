@@ -3,7 +3,7 @@
 #include "Common.h"
 #include "SensorManager.h"
 #include "MonitorDisplay.h"
-#include "Wifi.h"
+#include "WifiTask.h"
 #include "GeneralSettings.h"
 #include "ButtonManager.h"
 #include "BME280.h"
@@ -30,7 +30,7 @@ class MainLogicLoop : private StringValueSource, private ScreenManagerNotifier {
     DataManager *_dataManager = nullptr;
     ScreenManager *_screenManager = nullptr;
     BatteryManager *_battery = nullptr;
-    Wifi* _wifi = nullptr;
+    WifiTask* _wifi = nullptr;
     ScreenDrivers  *_screenDrivers = nullptr;
     char _voltageStr[10];
     I2C* _i2c;

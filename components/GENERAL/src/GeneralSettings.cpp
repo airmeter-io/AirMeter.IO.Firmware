@@ -19,7 +19,7 @@ GeneralSettings::GeneralSettings() {
 }
 
 const char * GeneralSettings::GetFilePath() {
-    return "/spiffs/device.json";
+    return "/spiffs/settings.json";
 }
 
 void GeneralSettings::LoadSettingsFromJson(Json& pJson) {

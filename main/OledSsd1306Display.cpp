@@ -4,7 +4,7 @@
 #define DISPLAY_WIDTH 128
 #define DISPLAY_HEIGHT 64
 
-Oledssd1306Display::Oledssd1306Display(GeneralSettings& pSettings, Wifi& pWifi, I2C& pI2C) : CO2MonitorDisplay(pSettings), _wifi(pWifi), _i2c(pI2C) {
+Oledssd1306Display::Oledssd1306Display(GeneralSettings& pSettings, WifiTask& pWifi, I2C& pI2C) : CO2MonitorDisplay(pSettings), _wifi(pWifi), _i2c(pI2C) {
     auto count = pI2C.GetNumDevices();
     memset(_lastPPM,0, sizeof(_lastPPM));
     memset(_lastTemp, 0, sizeof(_lastTemp));

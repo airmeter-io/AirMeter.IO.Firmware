@@ -75,6 +75,7 @@ export const en = {
         card: {
           moveUpPriority: "Move up to priority {{priority}}",
           moveDownPriority: "Move down to priority {{priority}}",
+          setPriority: "Priority {{priority}}"
         }
 
 

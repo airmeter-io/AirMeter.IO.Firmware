@@ -15,6 +15,23 @@ static void WifiManageEventHandler(void* pArg, esp_event_base_t pEventBase, int3
         ((WifiManagerInternal*)pArg)->ProcessIPEvent((ip_event_t)pEventId, pEventData);
 }
 
+WifiAvailableNetworks::WifiAvailableNetworks(bool pFreeOnDispose) : _freeOnDispose(pFreeOnDispose) {
+
+}
+
+WifiAvailableNetworks::~WifiAvailableNetworks() {
+    if(_freeOnDispose)
+        for(auto network : *this) 
+            delete network;
+}
+
+void WifiAvailableNetworks::clearAndFree() {
+    for(auto network : *this) 
+        delete network;
+    
+    clear();
+}
+
 
 void WifiManager::ProcessWifiEvent(wifi_event_t pEventId, void *pEvent) {
     printf("Processing wifi event %d\n", (int)pEventId);
@@ -121,14 +138,16 @@ void WifiManager::ProcessGotIPEvent(ip_event_got_ip_t* pEvent) {
     char ipBuf[32];
     printf("ProcessGotIPEvent\n");
     snprintf(ipBuf, sizeof(ipBuf), IPSTR, IP2STR(&pEvent->ip_info.ip));
-    _ipAddress = ipBuf;
-    
-    snprintf(ipBuf, sizeof(ipBuf), IPSTR, IP2STR(&pEvent->ip_info.netmask));
-    _netmask = ipBuf;
 
-    snprintf(ipBuf, sizeof(ipBuf), IPSTR, IP2STR(&pEvent->ip_info.gw));
     
-    _gateway = ipBuf;    
+    char nmBuf[32];
+    snprintf(nmBuf, sizeof(nmBuf), IPSTR, IP2STR(&pEvent->ip_info.netmask));
+
+
+    char gwBuf[32];
+    snprintf(gwBuf, sizeof(gwBuf), IPSTR, IP2STR(&pEvent->ip_info.gw));
+    
+    _callbacks.OnStationGotIP(ipBuf, nmBuf, gwBuf);
     printf("ProcessGotIPEvent-Exit\n");
 }
 
@@ -155,10 +174,15 @@ void WifiManager::ProcessWifiReadyEvent() {
 
 void WifiManager::ProcessScanDoneEvent(wifi_event_sta_scan_done_t* pEvent) {
     ESP_LOGI(TAG, "Scan Done: %d, Succeeded: %s", pEvent->number, !pEvent->status ? "Yes" : "No");
+    if(!pEvent->status)
+        _callbacks.OnScanComplete();
+    else 
+        ESP_LOGI(TAG, "Scan Done: %d, FAILED", pEvent->number);
+
 }
 
 void WifiManager::ProcessWifiStationStartEvent(){
-    ESP_LOGI(TAG, "Wifi Station Started");
+    _callbacks.OnWifiStarted();
 }
 
 void WifiManager::ProcessWifiStationStopEvent(){
@@ -167,10 +191,11 @@ void WifiManager::ProcessWifiStationStopEvent(){
 
 void WifiManager::ProcessWifiStationConnectedEvent(wifi_event_sta_connected_t* pEvent){
     printf("Wifi Station Connected to: %s", (char*)pEvent->ssid);
-    _ssid = (char*)pEvent->ssid;
-    _channel = pEvent->channel;
-    _isStaConnected = true;
-    _authMode = pEvent->authmode;
+    _callbacks.OnStationConnected(
+        std::string((char*)pEvent->ssid, pEvent->ssid_len),
+        pEvent->channel,
+        pEvent->bssid,
+        GetAuthModeText(pEvent->authmode));
 }
 
 void WifiManager::ProcessWifiStationDisconnectedEvent() {
@@ -214,39 +239,52 @@ void WifiManager::ProcessWifiAccessPointProbeReqRecievedEvent(wifi_event_ap_prob
         (int)pEvent->rssi);
 }
 
+typedef struct {
+    wifi_auth_mode_t mode;
+    std::string name;
+} AuthModeMapping;
+
+
+
+const AuthModeMapping AuthModeMappings[11] = {
+    {.mode = WIFI_AUTH_OPEN,
+     .name = "WIFI_AUTH_OPEN"},
+    {.mode = WIFI_AUTH_WEP,
+     .name = "WIFI_AUTH_WEP"},     
+    {.mode = WIFI_AUTH_WPA_PSK,
+     .name = "WIFI_AUTH_WPA_PSK"},   
+    {.mode = WIFI_AUTH_WPA2_PSK,
+     .name = "WIFI_AUTH_WPA2_PSK"},   
+    {.mode = WIFI_AUTH_WPA_WPA2_PSK,
+     .name = "WIFI_AUTH_WPA_WPA2_PSK"},   
+    {.mode = WIFI_AUTH_WPA2_ENTERPRISE,
+     .name = "WIFI_AUTH_WPA2_ENTERPRISE"},   
+    {.mode = WIFI_AUTH_WPA3_PSK,
+     .name = "WIFI_AUTH_WPA3_PSK"},   
+    {.mode = WIFI_AUTH_WPA2_WPA3_PSK,
+     .name = "WIFI_AUTH_WPA2_WPA3_PSK"},   
+    {.mode = WIFI_AUTH_WAPI_PSK,
+     .name = "WIFI_AUTH_WAPI_PSK"},   
+    {.mode = WIFI_AUTH_WAPI_PSK,
+     .name = "WIFI_AUTH_WAPI_PSK"},   
+    {.mode = WIFI_AUTH_OWE,
+     .name = "WIFI_AUTH_OWE"}                                               
+};
+
 std::string WifiManager::GetAuthModeText(wifi_auth_mode_t pAuthMode) {
-    switch(pAuthMode) {
-        case WIFI_AUTH_WPA_PSK :
-            return "WPA_PSK";
-        case WIFI_AUTH_WPA2_PSK :
-            return "WPA2_PSK";       
-        case WIFI_AUTH_WPA_WPA2_PSK :
-            return "WPA_WPA2_PSK";       
-        case WIFI_AUTH_WPA3_PSK :
-            return "WPA3_PSK";
-        case WIFI_AUTH_WPA2_WPA3_PSK :
-            return "WPA2_WPA3_PSK";
-        case WIFI_AUTH_OPEN:
-            return "OPEN";        
-        case WIFI_AUTH_WEP:
-            return "WEP";       
-        case WIFI_AUTH_WPA2_ENTERPRISE:
-            return "WPA2_ENT";   
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)
-        case WIFI_AUTH_WAPI_PSK :      
-            return "WAPI_PSK";
-#endif 
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
-        case WIFI_AUTH_OWE :      
-            return "OWE";
-#endif 
-        case WIFI_AUTH_MAX:
-            break;                  
-    }
-    return "UNKNOWN"; 
+    if(pAuthMode>= wifi_auth_mode_t::WIFI_AUTH_MAX)
+        return "UNKNOWN";
+    return AuthModeMappings[((int)pAuthMode)].name;
 }
 
-WifiManager::WifiManager() {
+wifi_auth_mode_t WifiManager::GetAuthModeFromText(std::string pAuthMode) {
+    for(auto mode : AuthModeMappings)
+        if(mode.name == pAuthMode)
+            return mode.mode;
+    return wifi_auth_mode_t::WIFI_AUTH_MAX; 
+}
+
+WifiManager::WifiManager(WifiManagerCallBacks& pCallbacks) : _callbacks(pCallbacks) {
     uint8_t mac[6];
 
 
@@ -267,19 +305,6 @@ WifiManager::~WifiManager() {
     ESP_ERROR_CHECK(esp_event_handler_unregister(IP_EVENT, ESP_EVENT_ANY_ID, &WifiManageEventHandler));
 }
 
-
-void WifiManager::PushStaConfig() {
-    wifi_config_t config;
-    ESP_ERROR_CHECK(esp_wifi_get_config((wifi_interface_t)ESP_IF_WIFI_STA, &config));
-    _staConfigStack.push_back(config);
-}
-
-void WifiManager::PopStaConfig() {
-    wifi_config_t config = _staConfigStack.back();
-    ESP_ERROR_CHECK(esp_wifi_set_config((wifi_interface_t)ESP_IF_WIFI_STA, &config));
-    _staConfigStack.pop_back();
-}
-
 bool WifiManager::HasStationConfiguration() {
     wifi_config_t config;
     if(esp_wifi_get_config((wifi_interface_t)ESP_IF_WIFI_STA, &config) != ESP_OK) {
@@ -295,36 +320,28 @@ bool WifiManager::HasStationConfiguration() {
 }
 
 
-
-void WifiManager::SetMemoryMode() {
-    esp_wifi_set_storage(WIFI_STORAGE_RAM);
-}
-void WifiManager::SetFlashMode() {
-    esp_wifi_set_storage(WIFI_STORAGE_FLASH);
-}
-
-bool WifiManager::EnableAP(const std::string& pApName, const std::string& pPassword, uint8_t pMaxConnections) {
+bool WifiManager::EnableAP(const ApDescription& pAp, uint8_t pMaxConnections) {
     if(_isApStarted) return false;
     
-    auto *ap = esp_netif_create_default_wifi_ap();
-    esp_netif_dhcps_stop(ap);  
+    _apIf = esp_netif_create_default_wifi_ap();
+    esp_netif_dhcps_stop(_apIf);  
 
     esp_netif_ip_info_t ip_info;
-    IP4_ADDR(&ip_info.ip, 192, 168, 4, 4);
-    IP4_ADDR(&ip_info.gw, 192, 168, 4, 1);
-    IP4_ADDR(&ip_info.netmask, 255, 255, 255, 0);
-    ESP_ERROR_CHECK(esp_netif_set_ip_info(ap, &ip_info));
-    ESP_ERROR_CHECK(esp_netif_dhcps_start(ap));
+    inet_aton(pAp.startIP.c_str(),&ip_info.ip);
+    inet_aton(pAp.gatewayIP.c_str(),&ip_info.gw);
+    inet_aton(pAp.netmask.c_str(), &ip_info.netmask);    
+    ESP_ERROR_CHECK(esp_netif_set_ip_info(_apIf, &ip_info));
+    ESP_ERROR_CHECK(esp_netif_dhcps_start(_apIf));
 
     wifi_config_t config;
     memset(&config, 0, sizeof(config));
 
     config.ap.max_connection = pMaxConnections;
-    strlcpy((char *)config.ap.ssid, pApName.c_str(), sizeof(config.ap.ssid));
-    config.ap.ssid_len = pApName.length();
-    if(pPassword.length()>0) 
+    strlcpy((char *)config.ap.ssid,pAp.ssid.c_str(), sizeof(config.ap.ssid));
+    config.ap.ssid_len = pAp.ssid.length();
+    if(pAp.password.length()>0) 
     {
-        strlcpy((char *)config.ap.password, pPassword.c_str(), sizeof(config.ap.password));
+        strlcpy((char *)config.ap.password, pAp.password.c_str(), sizeof(config.ap.password));
         printf("Set AP PW = '%s'", (char*)config.ap.password);
         config.ap.authmode = WIFI_AUTH_WPA2_PSK;
     } else 
@@ -350,23 +367,22 @@ bool WifiManager::EnableAP(const std::string& pApName, const std::string& pPassw
     return true;
 }
 
-bool WifiManager::EnableStationOnly() {
+
+bool WifiManager::DisableAP() {
     auto err = esp_wifi_set_mode(WIFI_MODE_STA);
     if(err != ESP_OK) {
         ESP_LOGE(TAG, "Failed to enable STA mode: %d", err);
         return false;
     }
-   
-
-    ESP_ERROR_CHECK(esp_wifi_start());
-
     return true;
+
 }
+
 
 bool WifiManager::DisableWifi(){
     auto err = esp_wifi_set_mode(WIFI_MODE_NULL);
     if(err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to enable STA mode: %d", err);
+        ESP_LOGE(TAG, "Failed to set NULL mode: %d", err);
         return false;
     }
     return true;
@@ -380,13 +396,14 @@ void WifiManager::Scan() {
     scanCfg.scan_time.active.min = 120;
     scanCfg.scan_time.active.max = 120;
     scanCfg.channel = 0;
-    
-
-    
-    if (esp_wifi_scan_start(&scanCfg, true) != ESP_OK) {
+    if (esp_wifi_scan_start(&scanCfg, false) != ESP_OK) {
         ESP_LOGE(TAG, "Failed to start scan");
         return;
     }
+}
+
+void WifiManager::GetScanResults(WifiAvailableNetworks& pAvailableNetworks) {    
+
     
     uint16_t numRecords;
     if (esp_wifi_scan_get_ap_num(&numRecords)!= ESP_OK) {
@@ -394,39 +411,47 @@ void WifiManager::Scan() {
         return;
     }
 
-    if(_availableAps!=nullptr) free(_availableAps);
-    _availableApCount = numRecords;
-    _availableAps = (wifi_ap_record_t*)calloc(sizeof(wifi_ap_record_t),numRecords);
-    if(_availableAps==NULL){
-        _availableApCount =0;
+
+    auto availableAps = (wifi_ap_record_t*)calloc(sizeof(wifi_ap_record_t),numRecords);
+    if(availableAps==NULL){        
         ESP_LOGE(TAG, "Failed to allocate memory for Wifi records");
         return;
     }
 
-    if (esp_wifi_scan_get_ap_records(&numRecords, _availableAps)!= ESP_OK) {
-        _availableApCount =0;
-        free(_availableAps);
+    if (esp_wifi_scan_get_ap_records(&numRecords, availableAps)!= ESP_OK) {
+        
+        free(availableAps);
         ESP_LOGE(TAG, "Failed to get Wifi records");
         return;
     }
+
+    for(auto i = 0; i < numRecords; i++){
+        WifiAvailableNetwork* network = new WifiAvailableNetwork();
+        memcpy(network->bssid, availableAps[i].bssid, sizeof(network->bssid));
+        network->ssid = (char *)availableAps[i].ssid;
+        network->channel = availableAps[i].primary;
+        network->rssi = availableAps[i].rssi;
+        network->authmode = GetAuthModeText(availableAps[i].authmode);
+        pAvailableNetworks.push_back(network);
+    }
+
+    free(availableAps);
 }
 
-wifi_ap_record_t* WifiManager::GetAvailableAps() {
-    return _availableAps;
-}
+bool WifiManager::ConnectStation(const WifiAvailableNetwork* pNetwork, const std::string& pPassword) {
+    if(!_wifiIsStarted) {
+        esp_wifi_start();
+        _wifiIsStarted = true;
+    }
 
-uint32_t WifiManager::GetAvailableApCount() {
-    return _availableApCount;
-}
-
-bool  WifiManager::ConfigureStationAP(const wifi_ap_record_t * pAp, const std::string& pPassword) {
+    esp_wifi_set_storage(WIFI_STORAGE_RAM);
     memset(&_wifiConfig,0, sizeof(_wifiConfig));
 
     memset(_wifiConfig.sta.bssid,0, sizeof(_wifiConfig.sta.bssid));
- //   strncpy((char *)_wifiConfig.sta.bssid, (const char *)pAp->bssid, sizeof(_wifiConfig.sta.bssid));
-    _wifiConfig.sta.bssid_set = false;
+    memcpy(_wifiConfig.sta.bssid, pNetwork->bssid, sizeof(_wifiConfig.sta.bssid));
+    _wifiConfig.sta.bssid_set = true;
     _wifiConfig.sta.btm_enabled = false;
-  //  _wifiConfig.sta.channel = pAp->primary;
+    _wifiConfig.sta.channel = pNetwork->channel;
     _wifiConfig.sta.listen_interval  = 0; //6;
     memset(_wifiConfig.sta.password,0, sizeof(_wifiConfig.sta.password));
     strncpy((char *)_wifiConfig.sta.password, pPassword.c_str(), sizeof(_wifiConfig.sta.password));
@@ -436,65 +461,17 @@ bool  WifiManager::ConfigureStationAP(const wifi_ap_record_t * pAp, const std::s
   //  _wifiConfig.sta.scan_method = WIFI_FAST_SCAN;
  //   _wifiConfig.sta.sort_method = WIFI_CONNECT_AP_BY_SIGNAL;
     memset(_wifiConfig.sta.ssid,0, sizeof(_wifiConfig.sta.ssid));
-    strncpy((char *)_wifiConfig.sta.ssid, (char *)pAp->ssid, sizeof(_wifiConfig.sta.ssid));
+    strncpy((char *)_wifiConfig.sta.ssid, (char *)pNetwork->ssid.c_str(), sizeof(_wifiConfig.sta.ssid));
     _wifiConfig.sta.threshold.rssi = 0;
-    _wifiConfig.sta.threshold.authmode = pAp->authmode; 
+    _wifiConfig.sta.threshold.authmode = GetAuthModeFromText(pNetwork->authmode); 
 
 
     auto err = esp_wifi_set_config((wifi_interface_t)ESP_IF_WIFI_STA, &_wifiConfig);
     if(err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to enable AP mode: %d", err);
+        ESP_LOGE(TAG, "Failed to enable STA wifi config: %d", err);
         return false;
     }
 
-    return true;
-}
-
-
-
-
-const std::string WifiManager::GetApPassword() {
-    return _apPassword;
-}
-
-const std::string WifiManager::GetApName() {
-    return _softApName;
-
-}
-
-std::string& WifiManager::GetIPAddress() {
-    return _ipAddress;
-}
-
-std::string& WifiManager::GetNetmask() {
-    return _netmask;
-}
-
-std::string& WifiManager::GetGateway() {
-    return _gateway;
-}
-
-std::string& WifiManager::GetSSID() {
-    return _ssid;
-}
-
-int WifiManager::GetChannel() {
-    return _channel;
-}
-
-wifi_auth_mode_t WifiManager::GetAuthMode() {
-    return _authMode;
-}
-
-bool WifiManager::IsStationConnected(){
-    return _isStaConnected;
-}
-
-bool WifiManager::ConnectStation() {
-    if(!_wifiIsStarted) {
-        esp_wifi_start();
-        _wifiIsStarted = true;
-    }
    // esp_wifi_set_ps(WIFI_PS_MAX_MODEM);
     ESP_ERROR_CHECK(esp_wifi_connect());
     printf("Connecting...\n");

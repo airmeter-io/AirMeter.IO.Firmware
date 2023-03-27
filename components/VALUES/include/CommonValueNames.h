@@ -29,3 +29,31 @@ const std::string GROUP_ATMOSPHERE = "Atmosphere";
 const ValueIdentifier TEMPERATURE = { .Id = 200, .Grouping = GROUP_ATMOSPHERE, .Name = "Temp" };
 const ValueIdentifier HUMIDITY =    { .Id = 201, .Grouping = GROUP_ATMOSPHERE, .Name = "Humidity" };
 const ValueIdentifier PRESSURE =    { .Id = 202, .Grouping = GROUP_ATMOSPHERE, .Name = "Pressure" };
+
+const std::string GROUP_WIFI = "Wifi";
+
+const ValueIdentifier WIFI_CHANNEL          = { .Id = 300, .Grouping = GROUP_WIFI, .Name = "Channel" };
+
+
+const ValueIdentifier WIFI_STA_ACTIVE       = { .Id = 301, .Grouping = GROUP_WIFI, .Name = "Active" };
+const ValueIdentifier WIFI_STA_CONNNECTED   = { .Id = 302, .Grouping = GROUP_WIFI, .Name = "StaConnected" };
+const ValueIdentifier WIFI_STA_SSID         = { .Id = 303, .Grouping = GROUP_WIFI, .Name = "StaSSID" };
+const ValueIdentifier WIFI_STA_AUTH         = { .Id = 304, .Grouping = GROUP_WIFI, .Name = "StaAuth" };
+const ValueIdentifier WIFI_STA_IPV4_ADDR    = { .Id = 305, .Grouping = GROUP_WIFI, .Name = "StaIPv4Addr" };
+const ValueIdentifier WIFI_STA_IPV4_MASK    = { .Id = 306, .Grouping = GROUP_WIFI, .Name = "StaIPv4Mask" };
+const ValueIdentifier WIFI_STA_IPV4_GATEWAY = { .Id = 307, .Grouping = GROUP_WIFI, .Name = "StaIPv4Gateway" };
+const ValueIdentifier WIFI_STA_RSSI         = { .Id = 308, .Grouping = GROUP_WIFI, .Name = "StaRssi" };
+
+
+const ValueIdentifier WIFI_AP_ACTIVE        = { .Id = 320, .Grouping = GROUP_WIFI, .Name = "ApActive" };
+const ValueIdentifier WIFI_AP_CONNECTED     = { .Id = 321, .Grouping = GROUP_WIFI, .Name = "ApConnected" };
+const ValueIdentifier WIFI_AP_SSID          = { .Id = 322, .Grouping = GROUP_WIFI, .Name = "ApSSID" };
+const ValueIdentifier WIFI_AP_AUTH          = { .Id = 323, .Grouping = GROUP_WIFI, .Name = "ApAuth" };
+const ValueIdentifier WIFI_AP_PASSWORD      = { .Id = 324, .Grouping = GROUP_WIFI, .Name = "ApPassword" };
+const ValueIdentifier WIFI_AP_IPV4_ADDR     = { .Id = 325, .Grouping = GROUP_WIFI, .Name = "ApIPv4Addr" };
+const ValueIdentifier WIFI_AP_IPV4_MASK     = { .Id = 326, .Grouping = GROUP_WIFI, .Name = "ApIPv4Mask" };
+
+
+
+
+

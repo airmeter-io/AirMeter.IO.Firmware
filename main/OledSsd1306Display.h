@@ -3,7 +3,7 @@
 #include "GeneralSettings.h"
 #include "MonitorDisplay.h"
 #include "I2C.h"
-#include "Wifi.h"
+#include "WifiTask.h"
 
 class Oledssd1306Display : public CO2MonitorDisplay {
     enum LastRenderType {None, Readings, AccessPoint};
@@ -14,12 +14,12 @@ class Oledssd1306Display : public CO2MonitorDisplay {
     char _lastHumdity[10];
     char _lastPressure[10];
     
-    Wifi& _wifi;
+    WifiTask& _wifi;
     I2C& _i2c;
 
    // SsdDisplay *_ssd = nullptr;
 public:
-    Oledssd1306Display(GeneralSettings& pSettings, Wifi& pWifi, I2C& pI2C);
+    Oledssd1306Display(GeneralSettings& pSettings, WifiTask& pWifi, I2C& pI2C);
 
     void RenderReadings() override;
     void RenderAccessPointInfo(const std::string& pSSID, const std::string& pPassword) override;

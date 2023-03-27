@@ -72,7 +72,7 @@ MainLogicLoop::MainLogicLoop() {
 bool MainLogicLoop::ProcessOnUIThread() {
     bool requiresRedraw = false;
 
-    if(_waitingForProvisioning && _wifi->IsProvisioned()) {
+    if(_waitingForProvisioning && _wifi->HasConfiguredNetworks()) {
         _waitingForProvisioning = false;
         _screenManager->ChangeScreen("HOME");
     }
@@ -118,7 +118,10 @@ void MainLogicLoop::Run() {
         _generalSettings->SetApPassword(pwGen.Generate(24));
         _generalSettings->Save();
     }
-    _wifi = new Wifi(_generalSettings->GetDeviceName(), _generalSettings->GetApPassword());
+    auto apName = _generalSettings->GetDeviceName();
+    auto apPasword = _generalSettings->GetApPassword();
+    _wifi = new WifiTask(apName,apPasword);
+    _wifi->Init();
     CommandHandler *command = nullptr;
     CaptiveRedirectHandler* captiveRedirect = nullptr;
     WebContentHandler *webContent = nullptr;
@@ -130,15 +133,13 @@ void MainLogicLoop::Run() {
     httpServer->AddUrlHandler(webContent);
     httpServer->AddUrlHandler(command);
     SntpManager *sntp = nullptr;
-    if(!_wifi->IsProvisioned()) {
+    if(!_wifi->HasConfiguredNetworks()) {
         printf("Provisioning...\n");
         _screenManager->ChangeScreen("CAPTIVE");
         vTaskDelay(200 / portTICK_PERIOD_MS);
         captiveRedirect = new CaptiveRedirectHandler ();
         httpServer->AddUrlHandler(captiveRedirect);
-        printf("Started provisioning-1\n");
-        _wifi->StartProvisioning();
-        
+        printf("Started provisioning-1\n");      
         _waitingForProvisioning = true;
         printf("Started provisioning-2 (delay)\n");
         vTaskDelay(5000 / portTICK_PERIOD_MS);
@@ -149,7 +150,7 @@ void MainLogicLoop::Run() {
 
         sntp = new SntpManager(_generalSettings->GetNtpServers(), _generalSettings->GetEnableDhcpNtp());
         sntp->Init();
-        _wifi->Start();
+     
 
         if(_generalSettings->GetEnableMqtt()) {
             printf("Starting Mqtt...\n");

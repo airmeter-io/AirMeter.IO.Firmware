@@ -17,25 +17,72 @@ class WifiManagerInternal {
 };
 
 
+class WifiAvailableNetwork {
+public:
+    uint8_t bssid[6];
+    std::string ssid;
+    uint8_t channel;
+    std::string authmode;
+    int rssi;
+} ;
+
+
+enum WifiMode {
+    Disabled,
+    Station,
+    StationAP
+};
+
+typedef struct {
+    std::string ssid;
+    std::string password;
+    std::string startIP;
+    std::string gatewayIP;
+    std::string netmask;    
+} ApDescription;
+
+enum WifiDisconnectReason {
+    AuthFailed,
+    ConnectionFailed,
+    LostConnection
+};
+
+class WifiAvailableNetworks : public std::vector<WifiAvailableNetwork*> {
+private:
+    bool _freeOnDispose  = true;
+public:
+    WifiAvailableNetworks(bool freeOnDispose = true);
+    ~WifiAvailableNetworks();
+
+    void clearAndFree();
+};
+
+class WifiManagerCallBacks {
+public:
+    virtual void OnWifiStarted() = 0;
+    virtual void OnStationConnected(std::string pSSID, uint8_t pChanel, uint8_t pBSSID[6], std::string pAuthMode) = 0;
+    virtual void OnStationDisconnected(WifiDisconnectReason pReason)  = 0;
+    virtual void OnStationGotIP(std::string pIp, std::string pNetmask, std::string pGateway) = 0;
+    virtual void OnStationLostIP() = 0;
+    virtual void OnScanComplete() = 0;
+};
+
+
 class WifiManager : private WifiManagerInternal {
+    WifiMode _mode = WifiMode::Disabled;
+
     bool _isApStarted = false;
     bool _isStaConnected = false;
     wifi_config_t _wifiConfig;
     wifi_init_config_t _initConfig = WIFI_INIT_CONFIG_DEFAULT();
     const std::string _softApName;
     esp_netif_t *_staIf;
-    std::string _apPassword;
-    std::string _ipAddress;
+    esp_netif_t *_apIf;
     std::string _netmask;
     std::string _gateway;
-    std::string _ssid;
     bool _wifiIsStarted = false;
-    int _channel;
-    wifi_auth_mode_t _authMode;
-    wifi_ap_record_t* _availableAps = nullptr;
-    uint32_t _availableApCount = 0;
-    
-    std::vector<wifi_config_t> _staConfigStack;
+    WifiManagerCallBacks& _callbacks;
+   
     void ProcessWifiEvent(wifi_event_t pEvent, void *pEventData) override;
     void ProcessIPEvent(ip_event_t pEvent, void *pEventData) override;
     void ProcessGotIPEvent(ip_event_got_ip_t* pEvent);
@@ -57,38 +104,22 @@ class WifiManager : private WifiManagerInternal {
     void ProcessWifiAccessPointProbeReqRecievedEvent(wifi_event_ap_probe_req_rx_t* pEvent);    
 
    
-        
+    static std::string GetAuthModeText(wifi_auth_mode_t pAuthMode);    
+    static wifi_auth_mode_t GetAuthModeFromText(std::string pAuthMode);
 public:
-    WifiManager();
+    WifiManager(WifiManagerCallBacks& pCallbacks);
     ~WifiManager();
-
-    void PushStaConfig();
-    void PopStaConfig();
-    void SetMemoryMode();
-    void SetFlashMode();
+  
     bool HasStationConfiguration();
-    bool EnableAP(const std::string& pApName, const std::string& pPassword, uint8_t pMaxConnections = 5);
-    bool EnableStationOnly();
+    bool EnableAP(const ApDescription& pAp, uint8_t pMaxConnections = 5);
+    bool DisableAP();  
+    bool EnableWifi();  
     bool DisableWifi();
-    bool IsStationConnected();
-    bool ConnectStation();
+    bool ConnectStation(const WifiAvailableNetwork* pNetwork, const std::string& pPassword);
     bool DisconnectStation();
 
-
     void Scan();
-    bool ConfigureStationAP(const wifi_ap_record_t * pAp, const std::string& pPassword);
-    wifi_ap_record_t* GetAvailableAps();
-    uint32_t GetAvailableApCount();
-    const std::string GetApPassword();
-    const std::string GetApName();
-    std::string& GetIPAddress();
-    std::string& GetNetmask();
-    std::string& GetGateway();
-    bool GetIsProvisioning();
-    
-    std::string& GetSSID();
-    int GetChannel();
-    wifi_auth_mode_t GetAuthMode();
+    void GetScanResults(WifiAvailableNetworks& pAvailableNetworks);
 
-    static std::string GetAuthModeText(wifi_auth_mode_t pAuthMode);
+
 };

@@ -1,7 +1,9 @@
 idf_component_register(
   SRCS "src/CaptiveDNS.cpp"
     "src/Wifi.cpp"
+    "src/WifiTask.cpp"    
     "src/WifiManager.cpp"
+    "src/WifiSettings.cpp"
   INCLUDE_DIRS "include"
               "../../common"
   REQUIRES "json"
@@ -13,4 +15,5 @@ idf_component_register(
           "esp_http_server"
           "driver"
           "esp_wifi"
+          "VALUES"
 )

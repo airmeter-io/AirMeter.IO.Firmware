@@ -12,7 +12,7 @@ export default class CommandManager {
         };
 
         try {
-            var response = await fetch('http://192.168.90.30/command', requestOptions);
+            var response = await fetch('/command', requestOptions);
             var json = await response.json();
             return json;
         } catch(e) {

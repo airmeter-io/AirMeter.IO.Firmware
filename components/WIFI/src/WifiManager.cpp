@@ -69,18 +69,23 @@ void WifiManager::ProcessWifiEvent(wifi_event_t pEventId, void *pEvent) {
         case WIFI_EVENT_STA_WPS_ER_PIN :
             break;
         case WIFI_EVENT_AP_START :
+            printf("Ap start\n");
             ProcessAccessPointStartEvent();
             break;
         case WIFI_EVENT_AP_STOP :
+            printf("Ap stop\n");
             ProcessAccessPointStopEvent();
             break;
         case WIFI_EVENT_AP_STACONNECTED :
+            printf("Ap sta connected\n");
             ProcessWifiAccessPointStationConnectedEvent((wifi_event_ap_staconnected_t*)pEvent);
             break;
         case WIFI_EVENT_AP_STADISCONNECTED :
+            printf("Ap sta disnnected\n");
             ProcessWifiAccessPointStationDisconnectedEvent((wifi_event_ap_stadisconnected_t*)pEvent);
             break;
         case WIFI_EVENT_AP_PROBEREQRECVED :
+            printf("Ap probe\n");
             ProcessWifiAccessPointProbeReqRecievedEvent((wifi_event_ap_probe_req_rx_t*)pEvent);
             break;
 
@@ -321,6 +326,7 @@ bool WifiManager::HasStationConfiguration() {
 
 
 bool WifiManager::EnableAP(const ApDescription& pAp, uint8_t pMaxConnections) {
+    printf("Enabling AP\n");
     if(_isApStarted) return false;
     
     _apIf = esp_netif_create_default_wifi_ap();
@@ -369,6 +375,7 @@ bool WifiManager::EnableAP(const ApDescription& pAp, uint8_t pMaxConnections) {
 
 
 bool WifiManager::DisableAP() {
+    printf("Disabling AP\n");
     auto err = esp_wifi_set_mode(WIFI_MODE_STA);
     if(err != ESP_OK) {
         ESP_LOGE(TAG, "Failed to enable STA mode: %d", err);

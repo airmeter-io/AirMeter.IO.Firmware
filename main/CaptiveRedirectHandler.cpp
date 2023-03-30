@@ -3,7 +3,7 @@
 
 
 
-CaptiveRedirectHandler::CaptiveRedirectHandler() : HttpUrlHandler({"/redirect","/connecttest.txt", "/generate_204" }, HTTP_GET) {
+CaptiveRedirectHandler::CaptiveRedirectHandler() : HttpUrlHandler({"/redirect","/connecttest.txt", "/generate_204", "/nsci.txt" }, HTTP_GET) {
 
 }
 

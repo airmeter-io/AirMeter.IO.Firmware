@@ -33,7 +33,6 @@ interface IAddWirelessNetworkState {
     open : boolean;
     networks: IWirelessNetwork[];
     index : number;
-    connectAfter: boolean;
     makeDefault: boolean;
     password: string |undefined;
 }
@@ -43,7 +42,7 @@ interface IAddWirelessNetworkProps {
 }
 
 class AddWirelessNetwork extends React.Component<IAddWirelessNetworkProps,IAddWirelessNetworkState> {
-  state = { open: false , networks: [], index: 0, connectAfter: true, makeDefault: true, password: undefined };
+  state = { open: false , networks: [], index: 0, makeDefault: true, password: undefined };
 
   public handleClickOpen()  {
     this.setState({
@@ -58,6 +57,14 @@ class AddWirelessNetwork extends React.Component<IAddWirelessNetworkProps,IAddWi
       [event.target.name]: event.target.checked,
     });
   };
+
+  handlePasswordChange(event: React.ChangeEvent<HTMLInputElement>) {
+    this.setState({
+      ...this.state,
+      password: event.target.value,
+    });
+  };
+  
 
   private handleClose() {
     this.setState({
@@ -132,7 +139,7 @@ class AddWirelessNetwork extends React.Component<IAddWirelessNetworkProps,IAddWi
       executeNext: async ()=> {
         if(!await MainView.Current.WirelessSettings.TestNetwork(this.state.networks[this.state.index], this.state.password)) 
           return false;
-        await MainView.Current.WirelessSettings.AddNetwork(this.state.networks[this.state.index],this.state.connectAfter, this.state.makeDefault, this.state.password);
+        await MainView.Current.WirelessSettings.AddNetwork(this.state.networks[this.state.index], this.state.makeDefault, this.state.password);
         return true;
       },
       onShow: () => {},
@@ -151,19 +158,9 @@ class AddWirelessNetwork extends React.Component<IAddWirelessNetworkProps,IAddWi
               fullWidth
               variant="standard"
               value={this.state.password}
+              onChange={this.handlePasswordChange.bind(this)}
             />
       <Grid wrap='nowrap'  container  spacing={1} sx={{mt: "1em"}}>
-        <Grid item >
-          
-        <FormGroup sx={{mt: "1em"}}>
-            <FormControlLabel
-              control={
-                <Switch color="secondary" checked={this.state.connectAfter} onChange={this.handleCheckedChange.bind(this)} name="enablePowerSave" />
-              }
-              label={t("wireless.add.step3.connectAfter.label")}/>        
-          </FormGroup> 
-        </Grid>
-
         <Grid item>
         <FormGroup sx={{mt: "1em"}}>
             <FormControlLabel

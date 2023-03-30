@@ -1,4 +1,7 @@
 import Delay from './Delay';
+import ConnectionManager from '../Protocol/RestApi'
+
+const connection = new ConnectionManager();
 
 export interface IWirelessNetwork {
     ssid : string;
@@ -54,37 +57,8 @@ class WirelessSettingsView {
     }
 
     public async ScanForNetworks() {
-        await Delay(1000);
-        this._networks =  [
-            {
-                ssid: "TestNet1",
-                apMacAddr: "00-15-5D-2E-36-7E",
-                channel: 5,
-                signalStrength: -45,
-                authMode: "WPA"
-            },
-            {
-                ssid: "TestNet2",
-                apMacAddr: "00-15-5D-2E-36-7B",
-                channel: 5,
-                signalStrength: -35,
-                authMode: "WPA"
-            },
-            {
-                ssid: "CheeseNetAE4",
-                apMacAddr: "00-15-5D-2E-36-7E",
-                channel: 5,
-                signalStrength: -45,
-                authMode: "WPA"
-            },
-            {
-                ssid: "EIRCOME43",
-                apMacAddr: "00-15-5D-2E-36-7B",
-                channel: 5,
-                signalStrength: -35,
-                authMode: "WPA"
-            }
-        ];
+        var result = await connection.executeCommand("GETNETWORKS");
+        this._networks = result.Networks;
         this._networks.sort((net1,net2) => 
             net1.signalStrength < net2.signalStrength ? 1 :
             net1.signalStrength > net2.signalStrength ? -1 : 0);
@@ -95,53 +69,72 @@ class WirelessSettingsView {
     }
 
     public async GetConfiguredNetworks() : Promise<IConfiguredNetwork[]> {
-        await Delay(1000);
-        this._configuredNetworks.sort((net1,net2) => 
+        var result = await connection.executeCommand("SELECTNETWORK", pCmd=>{
+            pCmd.Mode = "List";            
+        });   
+        result.Networks.sort((net1 : IConfiguredNetwork,net2 : IConfiguredNetwork) => 
             net1.priority > net2.priority ? 1 :
             net1.priority < net2.priority ? -1 : 0);
-        return this._configuredNetworks;
+        this._configuredNetworks = result.Networks;
+        return result.Networks;
     }
 
     public async TestNetwork(pNetwork : IWirelessNetwork, pCredential : string | undefined) {
-        await Delay(1000);
+        var first = true;
+    
+        while(true) {
+            try {
+                if(first) {
+                    first = false;
+                    await connection.executeCommand("SELECTNETWORK", pCmd=>{
+                        pCmd.Mode = "Test";
+                        pCmd.Ssid = pNetwork.ssid;
+                        pCmd.Password = pCredential;
+                        pCmd.Auth = pNetwork.authMode;
+                        pCmd.Id = Math.floor(Math.random() * 1000000);
+                    });        
+                } else {
+                    var result = await connection.executeCommand("SELECTNETWORK");
+
+                    if(result.Testing==="false") {
+                        return result.TestSuccess==="true";
+                    }
+                }
+
+            } catch {
+
+            }
+            await Delay(2500);
+        }
         return true;
     }
 
-    public async AddNetwork(pNetwork : IWirelessNetwork, pSwitch : boolean, pMakeDefault : boolean, pCredential : string | undefined) {
-        await Delay(1000);
-        var network : IConfiguredNetwork | undefined;
-        if(pSwitch) {
-            for(var i = 0; i < this._configuredNetworks.length;i++)
-                this._configuredNetworks[i].connection = undefined;
-        }
-        if(pMakeDefault) {
-            network = {
-                ssid: pNetwork.ssid,
-                authMode: pNetwork.authMode,
-                priority: 0,
-                connection: pSwitch ? {
-                    channel: 5,
-                    ip4Address: "192.168.90.43",
-                    ip4Netmask: "255.255.255.0",
-                    ip4Gateway: "192.168.90.1"
-                } : undefined              
-            };
-            this._configuredNetworks.splice(0,0, network);
-            for(var i = 1; i < this._configuredNetworks.length; i++)
-                this._configuredNetworks[i].priority = i;
-        } else {
-            network = {
-                ssid: pNetwork.ssid,
-                authMode: pNetwork.authMode,
-                priority: this._configuredNetworks.length,
-                connection: pSwitch ? {
-                    channel: 5,
-                    ip4Address: "192.168.90.43",
-                    ip4Netmask: "255.255.255.0",
-                    ip4Gateway: "192.168.90.1"
-                } : undefined          
+    public async AddNetwork(pNetwork : IWirelessNetwork, pMakeDefault : boolean, pCredential : string | undefined) {
+        var first = true;
+        while(true) {
+            try {
+                if(first) {
+                    first = false;
+                    await connection.executeCommand("SELECTNETWORK", pCmd=>{
+                        pCmd.Mode = "Apply";
+                        pCmd.Ssid = pNetwork.ssid;
+                        pCmd.Password = pCredential;
+                        pCmd.Auth = pNetwork.authMode;
+                        pCmd.MakeDefault = pMakeDefault.toString();
+                        pCmd.Id = Math.floor(Math.random() * 1000000);
+                    });        
+                } else {
+                    var result = await connection.executeCommand("SELECTNETWORK");
+
+                    if(result.Applying==="false") {
+                        return true;
+                    }
+                }
+
+            } catch {
+
             }
-            this._configuredNetworks.push(network);
+            await Delay(2500);
         }
        
     }
@@ -179,15 +172,17 @@ class WirelessSettingsView {
 
     public async RemoveNetwork(pNetwork : IConfiguredNetwork) {
         console.log("Remove: "+ pNetwork.ssid);
-        await Delay(1000);
-
-        this._configuredNetworks.splice(pNetwork.priority,1);
-
-        for(var i = pNetwork.priority; i < this._configuredNetworks.length; i++) 
-            if(this._configuredNetworks[i].ssid!==pNetwork.ssid) {
-                this._configuredNetworks[i].priority--;
-            }                
-            
+        var removeResult = await connection.executeCommand("SELECTNETWORK", pCmd=>{
+            pCmd.Mode = "Remove";            
+            pCmd.Ssid= pNetwork.ssid;
+        });   
+        var result = await connection.executeCommand("SELECTNETWORK", pCmd=>{
+            pCmd.Mode = "List";            
+        });   
+        result.Networks.sort((net1 : IConfiguredNetwork,net2 : IConfiguredNetwork) => 
+            net1.priority > net2.priority ? 1 :
+            net1.priority < net2.priority ? -1 : 0);
+        this._configuredNetworks = result.Networks;
         return this._configuredNetworks;
     }
 }

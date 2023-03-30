@@ -100,110 +100,164 @@ std::string GetSystemInfoCommand::GetName() {
 }
 
 
-// GetAvailableWifiNetworksCommand::GetAvailableWifiNetworksCommand(GeneralSettings& pSettings, Wifi& pWifi) : _settings(pSettings), _wifi(pWifi) {
+GetAvailableWifiNetworksCommand::GetAvailableWifiNetworksCommand(GeneralSettings& pSettings, WifiTask& pWifi) : _settings(pSettings), _wifi(pWifi) {
 
-// }
-// void GetAvailableWifiNetworksCommand::Process(Json& pJson,Json& pResult) {
-//     pResult.CreateStringProperty("Status","true");
-//     std::vector<Json*> networks;
-//     _wifi.GetManager().Scan();
-//     auto aps = _wifi.GetManager().GetAvailableAps();
-//     auto apCount = _wifi.GetManager().GetAvailableApCount();
-//     for(auto i = 0; i < apCount; i++)
-//     {
-//         auto network = new Json();
-//         network->CreateStringProperty("WifiSSID", (char*)(aps[i].ssid));
-//         char apMacAddr[20];
-//         snprintf(apMacAddr, sizeof(apMacAddr), "%.2X:%.2X:%.2X:%.2X:%.2X:%.2X",aps[i].bssid[0],aps[i].bssid[1],aps[i].bssid[2],aps[i].bssid[3],aps[i].bssid[4],aps[i].bssid[5]);
-//         network->CreateStringProperty("WifiApMacAddr",      apMacAddr);
-//         network->CreateNumberProperty("WifiChannel",        aps[i].primary);
-//         network->CreateNumberProperty("WifiSignalStrength", aps[i].rssi);
-//         network->CreateStringProperty("WifiAuthMode",           WifiManager::GetAuthModeText(aps[i].authmode));        
-//         networks.push_back(network);
-//     }
-//     pResult.CreateArrayProperty("Networks", networks);
-// }
+}
+void GetAvailableWifiNetworksCommand::Process(Json& pJson,Json& pResult) {
+    pResult.CreateStringProperty("Status","true");
+    std::vector<Json*> networks;
+    WifiAvailableNetworks availableNetworks;
+    _wifi.ScanForAvailableNetworks(availableNetworks);
+    auto configured = _wifi.GetNetworks();
+    for(auto availableNetwork : availableNetworks)
+    {
+        if(configured.contains(availableNetwork->ssid)) continue;
+        auto network = new Json();
+        network->CreateStringProperty("ssid", availableNetwork->ssid.c_str());
+        char apMacAddr[20];
+        snprintf(apMacAddr, sizeof(apMacAddr), "%.2X:%.2X:%.2X:%.2X:%.2X:%.2X",
+                availableNetwork->bssid[0],
+                availableNetwork->bssid[1],
+                availableNetwork->bssid[2],
+                availableNetwork->bssid[3],
+                availableNetwork->bssid[4],
+                availableNetwork->bssid[5]);
+        network->CreateStringProperty("apMacAddr",      apMacAddr);
+        network->CreateNumberProperty("channel",       availableNetwork->channel);
+        network->CreateNumberProperty("signalStrength", availableNetwork->rssi);
+        network->CreateStringProperty("authMode",       availableNetwork->authmode);        
+        networks.push_back(network);
+    }
+    pResult.CreateArrayProperty("Networks", networks);
+}
 
-// std::string GetAvailableWifiNetworksCommand::GetName() {
-//     return "GETNETWORKS";
-// }
+std::string GetAvailableWifiNetworksCommand::GetName() {
+    return "GETNETWORKS";
+}
 
-// GetCurrentWifiNetworkCommand::GetCurrentWifiNetworkCommand(GeneralSettings& pSettings, Wifi& pWifi) : _settings(pSettings), _wifi(pWifi) {
+GetCurrentWifiNetworkCommand::GetCurrentWifiNetworkCommand(GeneralSettings& pSettings) : _settings(pSettings) {
 
-// }
+}
 
-// void GetCurrentWifiNetworkCommand::Process(Json& pJson,Json& pResult) {
-//     pResult.CreateStringProperty("Status","true");
-//     pResult.CreateStringProperty("WifiSSID",_wifi.GetManager().GetSSID());
-//     pResult.CreateNumberProperty("WifiChannel",_wifi.GetManager().GetChannel());
-//     pResult.CreateStringProperty("WifiAuthMode", WifiManager::GetAuthModeText(_wifi.GetManager().GetAuthMode()));
-//     pResult.CreateStringProperty("WifiIP4Address",_wifi.GetManager().GetIPAddress());
-//     pResult.CreateStringProperty("WifiIP4Netmask",_wifi.GetManager().GetNetmask());    
-//     pResult.CreateStringProperty("WifiIP4Gateway",_wifi.GetManager().GetGateway());        
-// }
+void GetCurrentWifiNetworkCommand::Process(Json& pJson,Json& pResult) {
+    pResult.CreateStringProperty("Status","true");
+    for(auto groupPair : ValueController::GetCurrent().GetGroups()) {
+        Json* groupJson = nullptr;
+        for(auto keyPair : groupPair.second->SourcesByName) {
+            auto source = keyPair.second->DefaultSource;
+            if(source->GetFlags() & NETWORK_INFO ) {
+                if(groupJson == nullptr) 
+                    groupJson = pResult.CreateObjectProperty(groupPair.first);
+                source->SerialiseToJsonProperty(*groupJson);
+            }            
+        }   
+        if(groupJson!=nullptr)
+            delete groupJson; 
+    }   
+}
 
-// std::string GetCurrentWifiNetworkCommand::GetName() {
-//     return "GETNETWORKINFO";
-// }
+std::string GetCurrentWifiNetworkCommand::GetName() {
+    return "GETNETWORKINFO";
+}
 
 
-// SelectWifiNetworkCommand::SelectWifiNetworkCommand(GeneralSettings& pSettings, Wifi& pWifi) : _settings(pSettings), _wifi(pWifi) {
+SelectWifiNetworkCommand::SelectWifiNetworkCommand(GeneralSettings& pSettings, WifiTask& pWifi) : _settings(pSettings), _wifi(pWifi) {
     
-// }
+}
 
-// void SelectWifiNetworkCommand::TestConnectToNetwork() {
-//     _testingConnect = true;  
-//     _testSucceeded= _wifi.TestStationCredentialsWPA(_network, _password);
-//     _testingConnect = false;
-// }
+void SelectWifiNetworkCommand::TestConnectToNetwork() {
+    printf("testing network\n");
+    _testingConnect = true;  
+    _testSucceeded= _wifi.TestConfiguration(_ssid, _auth, _password);
+    _testingConnect = false;
+}
 
-// void SelectWifiNetworkCommand::SetConnectToNetwork() {
-//     _applyingConnect = true;    
-//      _wifi.SetStationCredentialsWPA(_network, _password);   
-//     _applyingConnect = false;
-// }
+void SelectWifiNetworkCommand::SetConnectToNetwork() {
+    printf("Applying network\n");
+    _applyingConnect = true;    
+     _wifi.AddConfiguration(_ssid, _auth, _password, _makeDefault);   
+    _applyingConnect = false;
+}
 
-// void SelectWifiNetworkCommand::Process(Json& pJson,Json& pResult) {
-//     if(pJson.HasProperty("Mode")) {
-//         auto mode = pJson.GetStringProperty("Mode");
-//         if(mode=="Test" || mode == "Apply") {      
-//             if(!pJson.HasProperty("Ssid") || !pJson.HasProperty("Password") || !pJson.HasProperty("Id") ) {
-//                 pResult.CreateBoolProperty("Status", false);
-//                 return;
-//             }      
-//             auto lastId = pJson.GetIntProperty("Id");
-//             if(lastId == _lastId) return;
-//             _lastId = lastId;
+void SelectWifiNetworkCommand::Process(Json& pJson,Json& pResult) {
+    if(pJson.HasProperty("Mode")) {
+        auto mode = pJson.GetStringProperty("Mode");
+        if(mode=="Test" || mode == "Apply") {   
+            if(_testingConnect || _applyingConnect) {
+                printf("already testing\n");
+                return;   
+            }
+            if(!pJson.HasProperty("Ssid") || !pJson.HasProperty("Password")  || !pJson.HasProperty("Auth") || !pJson.HasProperty("Id") || 
+               (mode=="Apply" && !pJson.HasProperty("MakeDefault") ) ) {
+                pResult.CreateBoolProperty("Status", false);
+                return;
+            }      
+            auto lastId = pJson.GetIntProperty("Id");
+            if(lastId == _lastId) return;
+            _lastId = lastId;
 
-//             auto ssid = pJson.GetStringProperty("Ssid");
-//             _password = pJson.GetStringProperty("Password");
-//             _network = _wifi.FindNetwork(ssid);
+            _ssid = pJson.GetStringProperty("Ssid");
+            _password = pJson.GetStringProperty("Password");
+            _auth = pJson.GetStringProperty("Auth");
 
-//             if(_network == nullptr) {
-//                 pResult.CreateStringProperty("ConnectStatus", "NetworkNotFound");
-//             } else if(mode=="Test") {
-//                 TestConnectToNetwork();
-//                 pResult.CreateStringProperty("ConnectStatus",  "Testing");
-//             } else {
-//                 SetConnectToNetwork();
-//                 pResult.CreateStringProperty("ConnectStatus",  "Applying");
+            if(mode=="Test") {
+                TestConnectToNetwork();
+                pResult.CreateStringProperty("ConnectStatus",  "Testing");
+            } else {
+                _makeDefault = pJson.GetBoolProperty("MakeDefault");
+                SetConnectToNetwork();
+                pResult.CreateStringProperty("ConnectStatus",  "Applying");
                         
-//             }
-//         } else {
-//             pResult.CreateBoolProperty("Testing", _testingConnect);
-//             pResult.CreateBoolProperty("TestSuccess", _testSucceeded);
-//             pResult.CreateBoolProperty("Applying", _applyingConnect);
-//         }                
+            }
+        } if (mode == "List") {
+            std::vector<Json*> networks;
+            auto connectionInfo = _wifi.GetConnectionInfo();
+            for(auto configuredNetwork : _wifi.GetNetworks()) {
+                auto network = new Json();
+                network->CreateStringProperty("ssid", configuredNetwork.second->ssid);
+                network->CreateStringProperty("authMode", configuredNetwork.second->authMode);
+                network->CreateNumberProperty("priority", (int)configuredNetwork.second->priority); 
+                if(configuredNetwork.second->ssid == connectionInfo->ssid) {
+                    auto connectionJson = network->CreateObjectProperty("connection");
+                    network->CreateNumberProperty("channel", (int)connectionInfo->channel); 
+                    network->CreateStringProperty("ipv4Address", connectionInfo->ipv4Address);
+                    network->CreateStringProperty("ipv4Gateway", connectionInfo->ipv4Gateway);
+                    network->CreateStringProperty("ipv4Netmask", connectionInfo->ipv4Netmask);
+                    delete connectionJson;
+                }              
+                networks.push_back(network);
+            }
+            delete connectionInfo;
+            pResult.CreateArrayProperty("Networks", networks);                        
+        } else if (mode == "Remove") {
+            if(!pJson.HasProperty("Ssid"))
+            {
+                pResult.CreateBoolProperty("Status", false);
+                return;
+            }
+            auto ssid = pJson.GetStringProperty("ssid");
+            auto connectionInfo = _wifi.GetConnectionInfo();
+            if(ssid == connectionInfo->ssid ||! _wifi.RemoveConfiguration(ssid)) {
+                delete connectionInfo;
+                pResult.CreateBoolProperty("Status", false);
+                return;
+            }
+            delete connectionInfo;
+        } else {
+            pResult.CreateBoolProperty("Testing", _testingConnect);
+            pResult.CreateBoolProperty("TestSuccess", _testSucceeded);
+            pResult.CreateBoolProperty("Applying", _applyingConnect);
+        }                
 
-//         pResult.CreateBoolProperty("Status", true);
-//     } else {
-//         pResult.CreateBoolProperty("Status", false);
-//     }
-// }
+        pResult.CreateBoolProperty("Status", true);
+    } else {
+        pResult.CreateBoolProperty("Status", false);
+    }
+}
 
-// std::string SelectWifiNetworkCommand::GetName() {
-//     return "SELECTNETWORK";   
-// }
+std::string SelectWifiNetworkCommand::GetName() {
+    return "SELECTNETWORK";   
+}
 
 DataManagementCommand::DataManagementCommand(DataManager& pManager) : _manager(pManager) {
 

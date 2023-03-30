@@ -48,7 +48,8 @@ enum ValueSourceFlags {
     DEFAULT_DATALOG = 1, 
     DEFAULT_MQTT = 2,
     GET_LATEST_DATA = 4,
-    CALIBRATION_INFO = 8
+    CALIBRATION_INFO = 8,
+    NETWORK_INFO = 16
 };
 
 MAKE_ENUM_FLAGS(ValueSourceFlags);

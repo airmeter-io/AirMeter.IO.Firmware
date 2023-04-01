@@ -42,7 +42,7 @@ function Ntp() {
   return (
     <Box>
       <Header title={t("ntp.title")}/>
-      <Container maxWidth="sm" sx={{ width: '100%', m: '2rem' }}>
+      <Container sx={{ width: 'auto', m: '1rem' }}>
         <AppBreadcrumb breadcrumbs={[
             {
               title: t("breadcrumb"),

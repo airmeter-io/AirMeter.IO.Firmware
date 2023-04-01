@@ -68,13 +68,11 @@ void ScreenManager::LoadScreens(Json& pJson) {
     screensProp->GetAsArrayElements(elements);
     delete screensProp;
     for(auto json : elements) {
-        printf("Got a screen %X\n", (uint)json);
         if(json->HasProperty("Name")) {
             auto name = json->GetStringProperty("Name");
-            printf("Name = %s\n",name.c_str());
+          
             auto screen = new ScreenDefinition(name);
-            if(name == defaultScreen) {
-                printf("Setting default screen\n");                
+            if(name == defaultScreen) {          
                 _default = screen;
             }
 
@@ -119,7 +117,7 @@ void ScreenManager::Run(TickType_t pNotifyPeriod) {
    
     
     auto screen = GetCurrent();
-    printf("screen = %x\n", (uint)screen);
+
 
     auto gfx = _drawControl->GetDrawTarget();
     gfx->SetRotation(1);
@@ -130,11 +128,9 @@ void ScreenManager::Run(TickType_t pNotifyPeriod) {
             .Sensors = _sensorManager,
             .Screens = *this
         };
-        printf("Executing first draw\n");
         _powerLock->Aquire();
         screen->ExecuteDraw(ctx);
         _powerLock->Release();
-        printf("Executing first update");
         _drawControl->RenderToDisplay(false);
 
        
@@ -166,12 +162,10 @@ void ScreenManager::Run(TickType_t pNotifyPeriod) {
                 _powerLock->Release();
                 _drawControl->RenderToDisplay(true);
                 _powerLock->Aquire();
-                //printf("Redrawn\n");
                 _buttons->GetGpioGroup()->Enable();
                 
             }
             _powerLock->Release();
-        //    printf("Looping\n");
             esp_task_wdt_reset();
         }
     }
@@ -184,21 +178,15 @@ void ScreenManager::ChangeScreen(DrawContext& pContext, std::string pScreen) {
         if(screen->GetName() == pScreen) {
             _current = screen;
             screen->ExecuteDraw(pContext);
-            printf("Switched to %s screen and redrawed\n", pScreen.c_str());
             return;
         }
     }
-
-    printf("Tried to switch to %s screen and failed\n", pScreen.c_str());
 }
 
 void ScreenManager::ChangeScreen(std::string pScreen) {
-    printf("changing screen\n");
     for(auto screen : _screens) {
         if(screen->GetName() == pScreen) {
             _current = screen;
-           
-            printf("Switched to %s screen \n", pScreen.c_str());
             return;
         }
     }

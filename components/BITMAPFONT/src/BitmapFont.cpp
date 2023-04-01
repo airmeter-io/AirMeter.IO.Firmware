@@ -10,18 +10,15 @@ BitmapFont::BitmapFont(const std::string& pPath) : BitmapFont(pPath.c_str()) {
 BitmapFont::BitmapFont(const char *pPath) : _groups(nullptr) {
     FILE* f=fopen(pPath, "rb");
     if(!f) {
-        printf("Failed to open font file\n");
         fclose(f);
         return;
     }
     if(fread(&_header,sizeof(_header), 1 , f)!=1)  {
-        printf("Failed to read font header\n");
         fclose(f);
         return;
     }
 
     if(_header.magic!=MAGIC) {
-         printf("Font has invalid magic\n");
          fclose(f);
         return;
     }
@@ -30,7 +27,6 @@ BitmapFont::BitmapFont(const char *pPath) : _groups(nullptr) {
     _groups = (BitmapFontCharacterGroup*)calloc(sizeof(BitmapFontCharacterGroup), _header.numGroups);
     for(auto i = 0; i < _header.numGroups; i++) {
         if(fread(&_groups[i].groupHeader,sizeof(_groups[i].groupHeader), 1 , f)!=1)  {
-            printf("Failed to read font group header\n");
             fclose(f);
             return;
         }
@@ -42,7 +38,6 @@ BitmapFont::BitmapFont(const char *pPath) : _groups(nullptr) {
         for(auto j = 0; j < _groups[i].groupHeader.numCodePoints;j++) {
 
             if(fread(&_groups[i].glyphs[j].glyph,sizeof(_groups[i].glyphs[j].glyph), 1 , f)!=1)  {
-                printf("Failed to read font gklyph header\n");
                 fclose(f);
                 return;
             }
@@ -53,7 +48,6 @@ BitmapFont::BitmapFont(const char *pPath) : _groups(nullptr) {
         }
         _groups[i].data = (uint8_t*)calloc(1, _groups[i].groupHeader.dataLength);
         if(fread(_groups[i].data, _groups[i].groupHeader.dataLength, 1 , f)!=1)  {
-            printf("Failed to read font glyph data\n");
             fclose(f);
             return;
         }
@@ -67,7 +61,6 @@ BitmapFont::BitmapFont(const char *pPath) : _groups(nullptr) {
     }
 
     _header.yAdvance = maxY - minY;
-    printf("minY = %d, MaxY=%d\n", minY, maxY);
     _yOffset = minY;
     fclose(f);
 }

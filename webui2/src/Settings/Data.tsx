@@ -47,7 +47,7 @@ function Data() {
   return (
     <Box>
       <Header title={t("data.title")}/>
-      <Container maxWidth="md" sx={{ width: '100%', m: '2rem' }}>
+      <Container sx={{  width: 'auto', m: '1rem' }}>
       <AppBreadcrumb breadcrumbs={[
           {
             title: t("breadcrumb"),

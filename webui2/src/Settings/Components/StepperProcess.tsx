@@ -88,7 +88,7 @@ function StepperProcess(props : IStepperProcessProps) {
   const getStepView = (step : number) => props.steps[step].view();
   
   return (
-        <Box sx={{ width: '100%', minWidth: "600px", mt: "2em" }}>
+        <Box sx={{ width: '100%', minWidth: "60%", mt: "2em" }}>
           <Stepper activeStep={activeStep}>
             {props.steps.map((step, index) => {
               const stepProps: { completed?: boolean } = {};

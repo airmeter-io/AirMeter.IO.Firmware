@@ -86,6 +86,7 @@ class Header extends React.Component<IHeaderProps,IHeaderState> {
         anchor="left"
         onClose={this.handleOnClose.bind(this)}
         open={this.state.open}
+        onClick={this.handleOnClose.bind(this)}
       >
        
         <Divider />

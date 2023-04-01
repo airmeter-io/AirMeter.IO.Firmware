@@ -45,7 +45,7 @@ export default function ConfiguredNetworkCard(props : IConfiguredNetworkProps) {
   
     return (
       <React.Fragment>
-        <Card sx={{  height: "100%", display: "flex", flexDirection: "column",minWidth: 275, minHeight: 150,m: 2, backgroundColor:props.network.connection===undefined ? undefined :  "#f0f7f1"}}>
+        <Card sx={{  height: "100%", display: "box", flexDirection: "column",minWidth: 200, minHeight: 150, backgroundColor:props.network.connection===undefined ? undefined :  "#f0f7f1"}}>
           {props.network.connection!==undefined ?
             <CardContent sx={{ width: "100%"}}>
               <Grid wrap='nowrap'  container  spacing={1} style={{ flexGrow: "1" , minWidth: "100%"}} >
@@ -92,7 +92,6 @@ export default function ConfiguredNetworkCard(props : IConfiguredNetworkProps) {
                                                           isCurrent={props.network.connection!==undefined}/> }
           <Box sx={{ flex: '1 1 auto' }} />                                                        
           {  props.network.connection===undefined && (<Button size="small" onClick={handleDeleteClickOpen}>{ t("buttons.remove") }</Button>) }
-          {  props.network.connection===undefined && (<Button size="small">{ t("buttons.connect") }</Button>) }
           </CardActions>
         </Card>
         <Dialog

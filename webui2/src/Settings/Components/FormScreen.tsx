@@ -58,7 +58,7 @@ export default function FormScreen(props : IFormScreenProps) {
     navigate(props.closePath);
   };
    return (      
-  <FormControl component="fieldset" variant="standard"  sx={{minWidth: "500px"}}>    
+  <FormControl component="fieldset" variant="standard" >    
     <Backdrop
       sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
       open={state.isLoading}>

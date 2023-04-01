@@ -33,7 +33,6 @@ function WirelessNetworks() {
   };
 
   const handleSetPriority = async (pNetwork : IConfiguredNetwork,pPriority : number) => {
-    console.log("Setting priotiy");
     setLoading(true);
     var newNetworks = await MainView.Current.WirelessSettings.SetNetworkPriority(pNetwork, pPriority);
     setNetworks(newNetworks);
@@ -41,16 +40,13 @@ function WirelessNetworks() {
   }
 
   const handleRemoveNetwork = async (pNetwork : IConfiguredNetwork) => {
-    console.log("Setting priotiy");
     setLoading(true);
     var newNetworks = await MainView.Current.WirelessSettings.RemoveNetwork(pNetwork);
     setNetworks(newNetworks);
     setLoading(false);
   }
 
-  const  reload = async () => {
-    console.log("Reloading networks");
-   
+  const  reload = async () => {   
     setLoading(true);
     setNetworks(await MainView.Current.WirelessSettings.GetConfiguredNetworks());
     setLoading(false);
@@ -63,7 +59,7 @@ function WirelessNetworks() {
   return (
     <Box>
       <Header title={t("wireless.networks.title")}/>
-      <Container maxWidth="md" sx={{ width: '100%', m: '2rem' }}>
+      <Container sx={{ width: 'auto', m: '1rem' }}>
       <AppBreadcrumb breadcrumbs={[
           {
             title: t("breadcrumb"),
@@ -83,9 +79,9 @@ function WirelessNetworks() {
         <Typography sx={{ display: 'flex', alignItems: 'center' , mt: '1em', mb: '1em'}} color="text.primary">
         {t("wireless.networks.description")}
         </Typography>
-        <Grid container spacing={2}>
+        <Grid container spacing={{ xs: 2, md: 3}} columns={{ xs: 4, md: 8 }}>
         { networks.map((network, i) => 
-          <Grid item xs={6}>
+          <Grid item xs={4} md={4}  >
             <ConfiguredNetworkCard 
               network={network} 
               networks={networks} 
@@ -101,7 +97,7 @@ function WirelessNetworks() {
     </Grid>  
      
       </Container>
-       <Fab onClick={handleFabClick} color="primary" aria-label="add" sx={{ position: 'fixed', bottom: 70,  right: 10 }} > <AddIcon />
+       <Fab onClick={handleFabClick} color="primary" aria-label="add" sx={{ position: 'fixed', bottom: 70,  right: 70 }} > <AddIcon />
         </Fab>
         <AddWirelessNetwork onClose={reload} ref={addRef} />
       <Footer/>

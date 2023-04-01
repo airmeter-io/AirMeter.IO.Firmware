@@ -137,7 +137,6 @@ void EpdSpi::testRead() {
     t.tx_buffer=&cmd;               //The data is the cmd itself
     t.user=(void*)0;                //D/C needs to be set to 0
     ret=spi_device_transmit(spi, &t);  //Transmit!
-    printf("Before assert 1\n");
     assert(ret==ESP_OK);            //Should have had no issues.
 
 while(true) {
@@ -154,17 +153,8 @@ while(true) {
     t.user = (void*)1;
 
     ret = spi_device_transmit(spi, &t);
-    printf("Before assert 2\n");
-    if(ret==ESP_OK) printf("Success\n");
-    else printf("Failed %d\n", ret);
     assert( ret == ESP_OK );
-    printf("Hmmm.. ");
-    // for(auto i =0; i < sizeof(t.rx_data); i++)
-    //     printf("%d ", (int)t.rx_data[i]);
-    for(auto i =0; i < sizeof(buf); i++)
-        printf("%d ", (int)buf[i]);
-    
-    printf("\n");
+
 }
 
 
@@ -187,13 +177,7 @@ void EpdSpi::dataBuffer(uint8_t data)
 void EpdSpi::data(const uint8_t *data, int len)
 {
   if (len==0) return; 
-    if (debug_enabled && false) {
-        printf("D\n");
-        for (int i = 0; i < len; i++)  {
-            printf("%x ",data[i]);
-        }
-        printf("\n");
-    }
+
     esp_err_t ret;
     spi_transaction_t t;
                 

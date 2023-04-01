@@ -156,12 +156,12 @@ class WirelessSettingsView {
                         pCmd.Password = pCredential;
                         pCmd.Auth = pNetwork.authMode;
                         pCmd.Id = Math.floor(Math.random() * 1000000);
-                    });  
+                    }, 2500);  
                        
                 } else {
                     var result = await connection.executeCommand("SELECTNETWORK", pCmd=>{
                         pCmd.Mode = "Status";                        
-                    });
+                    }, 2500);
 
                     if(result.Testing==="false") {
                         return result.TestSuccess==="true";
@@ -189,11 +189,11 @@ class WirelessSettingsView {
                         pCmd.Auth = pNetwork.authMode;
                         pCmd.MakeDefault = pMakeDefault.toString();
                         pCmd.Id = Math.floor(Math.random() * 1000000);
-                    });        
+                    }, 2500);        
                 } else {
                     var result = await connection.executeCommand("SELECTNETWORK", pCmd=>{
                         pCmd.Mode = "Status";                        
-                    });
+                    }, 2500);
                     if(result.Applying==="false") {
                         return true;
                     }

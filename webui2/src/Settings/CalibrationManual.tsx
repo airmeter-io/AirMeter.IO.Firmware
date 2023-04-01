@@ -195,7 +195,7 @@ function CalibrationManual() {
   return (
     <Box>
       <Header title={t("calibration.manual.title")}/>
-      <Container maxWidth="md" sx={{ width: '100%', m: '2rem' }}>
+      <Container maxWidth="md" sx={{ width: 'auto', m: '1rem' }}>
       <AppBreadcrumb breadcrumbs={[
           {
             title: t("breadcrumb"),

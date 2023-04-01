@@ -2,7 +2,7 @@ import { namespaces } from "./i18n.constants";
 
 export const en = {
   [namespaces.settings]: {
-    title: "Manage Device Settings",
+    title: "Device Settings",
     breadcrumb: "Settings",
     buttons: {
        save: "Save",

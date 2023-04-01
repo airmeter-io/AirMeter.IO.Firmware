@@ -52,7 +52,7 @@ function General() {
   return (
     <Box>
       <Header title={t("general.title")}/>
-      <Container maxWidth="sm" sx={{ width: '100%', m: '2rem' }}>
+      <Container sx={{ width: 'auto', m: '1rem' }}>
         <AppBreadcrumb breadcrumbs={[
             {
               title: t("breadcrumb"),

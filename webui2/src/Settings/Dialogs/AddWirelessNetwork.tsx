@@ -160,13 +160,13 @@ class AddWirelessNetwork extends React.Component<IAddWirelessNetworkProps,IAddWi
               value={this.state.password}
               onChange={this.handlePasswordChange.bind(this)}
             />
-      <Grid wrap='nowrap'  container  spacing={1} sx={{mt: "1em"}}>
-        <Grid item>
-        <FormGroup sx={{mt: "1em"}}>
+      <Grid  container  spacing={1} sx={{mt: "1em"}} >
+        <Grid item xs>
+        <FormGroup sx={{mt: "1em"}} >
             <FormControlLabel
                
               control={
-                <Switch color="secondary" checked={this.state.makeDefault} onChange={this.handleCheckedChange.bind(this)} name="enablePowerSave" />
+                <Switch color="secondary" checked={this.state.makeDefault} onChange={this.handleCheckedChange.bind(this)} name="makeDefault" />
               }
               label={t("wireless.add.step3.makeDefault.label")}/>        
           </FormGroup>   

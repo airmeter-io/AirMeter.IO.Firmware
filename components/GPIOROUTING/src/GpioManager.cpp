@@ -18,7 +18,6 @@ void GpioManager::gpio_isr_handler(gpio_num_t pGpio) {
         ets_printf("GPIO fired %d, level %d but no handler available\n",(int)pGpio, (int)level);
         return;
     }
-    ets_printf("G%d \n",(int)level);
     auto group = _gpioMap[pGpio];
      auto interuptType = group.Group->GetInteruptType();
     auto now = esp_timer_get_time();  

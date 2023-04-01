@@ -73,9 +73,22 @@ export const en = {
           para1: "This will perminantly remove this network configuration and therefore this device will no longer attempt to connect to this network.",          
         },
         card: {
+          currentPriority: "Priority {{priority}}",
           moveUpPriority: "Move up to priority {{priority}}",
           moveDownPriority: "Move down to priority {{priority}}",
           setPriority: "Priority {{priority}}"
+        },
+        authModes: {
+          WIFI_AUTH_OPEN: "Open",
+          WIFI_AUTH_WEP: "WEP",
+          WIFI_AUTH_WPA_PSK: "WPA Personal",
+          WIFI_AUTH_WPA2_PSK: "WPA2 Personal",
+          WIFI_AUTH_WPA_WPA2_PSK: "WPA/WPA2 Personal",
+          WIFI_AUTH_WPA2_ENTERPRISE: "WPA2 Enterprise",
+          WIFI_AUTH_WPA3_PSK: "WPA3 Personal",
+          WIFI_AUTH_WPA2_WPA3_PSK: "WPA2/WPA3 Personal",
+          WIFI_AUTH_WAPI_PSK: "WAPI Personal",
+          WIFI_AUTH_OWE: "Enhanced Open (OWE)"
         }
 
 

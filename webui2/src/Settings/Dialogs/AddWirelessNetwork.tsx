@@ -124,7 +124,7 @@ class AddWirelessNetwork extends React.Component<IAddWirelessNetworkProps,IAddWi
           <ListItem>
             <ListItemButton selected={this.state.index === i} onClick={this.handleSelect.bind(this, i)}>
               <ListItemIcon><CheckCircleIcon /></ListItemIcon>
-              <ListItemText primary={network.ssid} secondary={"MAC: "+network.apMacAddr+", Channel: "+network.channel+", Signal Strength: "+ network.signalStrength+ ", Auth Mode: "+network.authMode}/>
+              <ListItemText primary={network.ssid} secondary={"MAC: "+network.apMacAddr+", Channel: "+network.channel+", Signal Strength: "+ network.signalStrength+ ", Auth Mode: "+MainView.Current.WirelessSettings.GetAuthModeFriendlyName(network.authMode)}/>
             </ListItemButton>
 
           </ListItem>)}         
@@ -148,7 +148,7 @@ class AddWirelessNetwork extends React.Component<IAddWirelessNetworkProps,IAddWi
       <Typography sx={{mt: 5}}>
         {t("wireless.add.step3.para1", {
           network: (this.state.networks[this.state.index] as IWirelessNetwork).ssid,
-          authMode: (this.state.networks[this.state.index] as IWirelessNetwork).authMode, })}
+          authMode: MainView.Current.WirelessSettings.GetAuthModeFriendlyName((this.state.networks[this.state.index] as IWirelessNetwork).authMode), })}
       </Typography>     
       <TextField
               margin="dense"

@@ -54,7 +54,7 @@ export default function ConfiguredNetworkCard(props : IConfiguredNetworkProps) {
                     { props.network.ssid}
                   </Typography>
                   <Typography sx={{ mb: 1.5 }} color="text.secondary">
-                    {props.network.authMode}
+                    {MainView.Current.WirelessSettings.GetAuthModeFriendlyName(props.network.authMode)}
                   </Typography>   
                   </Grid>
   
@@ -83,7 +83,7 @@ export default function ConfiguredNetworkCard(props : IConfiguredNetworkProps) {
               { props.network.ssid}
               </Typography>
               <Typography sx={{ mb: 1.5 }} color="text.secondary">
-                {props.network.authMode}
+                {MainView.Current.WirelessSettings.GetAuthModeFriendlyName(props.network.authMode)}
               </Typography>            
             </CardContent> }
           <CardActions sx={{ mt: "auto" }}>

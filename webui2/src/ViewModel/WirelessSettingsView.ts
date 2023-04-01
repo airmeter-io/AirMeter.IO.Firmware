@@ -1,7 +1,10 @@
 import Delay from './Delay';
 import ConnectionManager from '../Protocol/RestApi'
+import {i18n} from "../i18n/i18n";
+import { namespaces } from "../i18n/i18n.constants";
 
 const connection = new ConnectionManager();
+const t = i18n.getFixedT(null, namespaces.settings);
 
 export interface IWirelessNetwork {
     ssid : string;
@@ -34,6 +37,59 @@ export interface IAvailableNetworkPriority {
     up : boolean;
     priority : number;
 }
+
+
+interface IAuthModeMapping {
+    code : string;
+    friendlyName : string
+}''
+
+const AuthModeMappings : IAuthModeMapping[] = [
+    {   
+        code: "WIFI_AUTH_OPEN",
+        friendlyName: t("wireless.authModes.WIFI_AUTH_OPEN")
+    },
+    {   
+        code: "WIFI_AUTH_WEP",
+        friendlyName: t("wireless.authModes.WIFI_AUTH_WEP")
+    },
+    {   
+        code: "WIFI_AUTH_WPA_PSK",
+        friendlyName: t("wireless.authModes.WIFI_AUTH_WPA_PSK")
+    },
+    {   
+        code: "WIFI_AUTH_WPA2_PSK",
+        friendlyName: t("wireless.authModes.WIFI_AUTH_WPA2_PSK")
+    },
+    {   
+        code: "WIFI_AUTH_WPA_WPA2_PSK",
+        friendlyName: t("wireless.authModes.WIFI_AUTH_WPA_WPA2_PSK")
+    },            
+    {   
+        code: "WIFI_AUTH_WPA2_ENTERPRISE",
+        friendlyName: t("wireless.authModes.WIFI_AUTH_WPA2_ENTERPRISE")
+    }, 
+    {   
+        code: "WIFI_AUTH_WPA3_PSK",
+        friendlyName: t("wireless.authModes.WIFI_AUTH_WPA3_PSK")
+    }, 
+    {   
+        code: "WIFI_AUTH_WPA2_WPA3_PSK",
+        friendlyName: t("wireless.authModes.WIFI_AUTH_WPA2_WPA3_PSK")
+    }, 
+    {   
+        code: "WIFI_AUTH_WAPI_PSK",
+        friendlyName: t("wireless.authModes.WIFI_AUTH_WAPI_PSK")
+    }, 
+    {   
+        code: "WIFI_AUTH_WAPI_PSK",
+        friendlyName: t("wireless.authModes.WIFI_AUTH_WAPI_PSK")
+    }, 
+    {   
+        code: "WIFI_AUTH_OWE",
+        friendlyName: t("wireless.authModes.WIFI_AUTH_OWE")
+    },                                                               
+];
 
 
 class WirelessSettingsView {
@@ -70,7 +126,7 @@ class WirelessSettingsView {
         return this._networks.filter(pNetwork=>this._configuredNetworks.find(pCfg=>pCfg.ssid===pNetwork.ssid)===undefined);
     }
 
-    public async GetConfiguredNetworks() : Promise<IConfiguredNetwork[]> {
+    private async UpdateConfiguredNetworks() {
         var result = await connection.executeCommand("SELECTNETWORK", pCmd=>{
             pCmd.Mode = "List";            
         });   
@@ -81,6 +137,10 @@ class WirelessSettingsView {
             net1.priority < net2.priority ? -1 : 0);
         this._configuredNetworks = result.Networks;
         return result.Networks;
+    }
+
+    public async GetConfiguredNetworks() : Promise<IConfiguredNetwork[]> {        
+        return await this.UpdateConfiguredNetworks();
     }
 
     public async TestNetwork(pNetwork : IWirelessNetwork, pCredential : string | undefined) {
@@ -161,21 +221,13 @@ class WirelessSettingsView {
 
     public async SetNetworkPriority(pNetwork : IConfiguredNetwork, pNewPriority : number) {
         console.log(pNetwork.ssid+": "+ pNetwork.priority+ " -> "+pNewPriority)
-        await Delay(1000);
-        for(var i = 0; i < this._configuredNetworks.length; i++) 
-            if(this._configuredNetworks[i].ssid!==pNetwork.ssid) {
-                if(this._configuredNetworks[i].priority>pNetwork.priority)
-                    this._configuredNetworks[i].priority--;
-                if(this._configuredNetworks[i].priority>=pNewPriority)
-                    this._configuredNetworks[i].priority++;
-            }
         
-        pNetwork.priority = pNewPriority;
-        this._configuredNetworks.sort((net1,net2) => 
-            net1.priority > net2.priority ? 1 :
-            net1.priority < net2.priority ? -1 : 0); 
-            
-        return this._configuredNetworks;
+        var priorityResult = await connection.executeCommand("SELECTNETWORK", pCmd=>{
+            pCmd.Mode = "Priority";            
+            pCmd.Ssid= pNetwork.ssid;
+            pCmd.Priority = pNewPriority;
+        });   
+        return await this.UpdateConfiguredNetworks(); 
     }
 
     public async RemoveNetwork(pNetwork : IConfiguredNetwork) {
@@ -184,14 +236,11 @@ class WirelessSettingsView {
             pCmd.Mode = "Remove";            
             pCmd.Ssid= pNetwork.ssid;
         });   
-        var result = await connection.executeCommand("SELECTNETWORK", pCmd=>{
-            pCmd.Mode = "List";            
-        });   
-        result.Networks.sort((net1 : IConfiguredNetwork,net2 : IConfiguredNetwork) => 
-            net1.priority > net2.priority ? 1 :
-            net1.priority < net2.priority ? -1 : 0);
-        this._configuredNetworks = result.Networks;
-        return this._configuredNetworks;
+        return await this.UpdateConfiguredNetworks();
+    }
+
+    public GetAuthModeFriendlyName(pAuthMode : string) {
+        return AuthModeMappings.find(pItem => pItem.code == pAuthMode)?.friendlyName;
     }
 }
 

@@ -450,6 +450,29 @@ bool WifiTask::RemoveConfiguration(std::string pSSID) {
     return true;
 }
 
+bool WifiTask::SetConfigurationPriority(std::string pSSID, uint32_t pPriority) {
+    xSemaphoreTake(_uiMutex, portMAX_DELAY);
+    auto network = GetConfiguredNetwork(pSSID, "");
+    if(network == nullptr) {
+        xSemaphoreGive(_uiMutex);
+        return false; 
+    }
+
+    for(auto existingNetwork : _wifiSettings->GetNetworks()) 
+        if(existingNetwork.second!=network) {
+            if(existingNetwork.second->priority>network->priority)
+                existingNetwork.second->priority--;
+            if(existingNetwork.second->priority>=pPriority)
+                existingNetwork.second->priority++;
+        }
+
+    network->priority = pPriority;
+
+    _wifiSettings->Save();    
+    xSemaphoreGive(_uiMutex);
+    return true;
+}
+
     
 WifiConnectionInfo* WifiTask::GetConnectionInfo() {
     auto result = new WifiConnectionInfo();

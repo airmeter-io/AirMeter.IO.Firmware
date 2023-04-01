@@ -245,6 +245,16 @@ void SelectWifiNetworkCommand::Process(Json& pJson,Json& pResult) {
                 return;
             }
             delete connectionInfo;
+        } else if (mode == "Priority") {
+            if(!pJson.HasProperty("Ssid") || !pJson.HasProperty("Priority"))
+            {
+                pResult.CreateBoolProperty("Status", false);
+                return;
+            }
+            auto ssid = pJson.GetStringProperty("Ssid");
+            auto priority = pJson.GetUIntProperty("Priority");
+            auto result = _wifi.SetConfigurationPriority(ssid, priority);
+            pResult.CreateBoolProperty("Status", result);            
         } else {
             pResult.CreateBoolProperty("Testing", _testingConnect);
             pResult.CreateBoolProperty("TestSuccess", _testSucceeded);

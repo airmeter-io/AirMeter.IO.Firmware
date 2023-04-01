@@ -101,6 +101,7 @@ public:
     bool TestConfiguration(const std::string& pSSID, const std::string& pAuthMode, const std::string& pPassword);
     bool AddConfiguration(const std::string& pSSID, const std::string& pAuthMode, const std::string& pPassword, bool pMakePriority);
     bool RemoveConfiguration(std::string pSSID);
+    bool SetConfigurationPriority(std::string pSSID, uint32_t pPriority);
     inline std::map<std::string, PWifiConfiguredNetwork>& GetNetworks() { return _wifiSettings->GetNetworks(); };
     WifiConnectionInfo* GetConnectionInfo();
 };

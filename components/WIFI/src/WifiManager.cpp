@@ -251,7 +251,7 @@ typedef struct {
 
 
 
-const AuthModeMapping AuthModeMappings[11] = {
+const AuthModeMapping AuthModeMappings[10] = {
     {.mode = WIFI_AUTH_OPEN,
      .name = "WIFI_AUTH_OPEN"},
     {.mode = WIFI_AUTH_WEP,
@@ -268,8 +268,6 @@ const AuthModeMapping AuthModeMappings[11] = {
      .name = "WIFI_AUTH_WPA3_PSK"},   
     {.mode = WIFI_AUTH_WPA2_WPA3_PSK,
      .name = "WIFI_AUTH_WPA2_WPA3_PSK"},   
-    {.mode = WIFI_AUTH_WAPI_PSK,
-     .name = "WIFI_AUTH_WAPI_PSK"},   
     {.mode = WIFI_AUTH_WAPI_PSK,
      .name = "WIFI_AUTH_WAPI_PSK"},   
     {.mode = WIFI_AUTH_OWE,

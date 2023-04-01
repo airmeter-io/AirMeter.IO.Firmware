@@ -84,7 +84,7 @@ export default function SetNetworkPriorityMenu(props : ISetNetworkPriorityMenuPr
         disableElevation
         onClick={handleClick}
         endIcon={<KeyboardArrowDownIcon />}>
-        {t("wireless.card.moveUpPriority", {priority: props.currentPriority+1})}
+        {t("wireless.card.currentPriority", {priority: props.currentPriority+1})}
       </Button>
       <StyledMenu
         id="demo-customized-menu"

@@ -7,11 +7,6 @@
 #include <string>
 #include "freertos/semphr.h"
 
-class WifiManagerPrivate {
-public:
-    virtual void ApTaskMain() = 0;
-    virtual void StationConnectLoop() = 0;
-};
 
 class WifiConnectionInfo {
 public:
@@ -38,7 +33,7 @@ enum WifiTaskConnectPhase {
     TestFailure
 };
 
-class WifiTask:  public ValuesSource, private WifiManagerPrivate, private WifiManagerCallBacks {
+class WifiTask:  public ValuesSource, private WifiManagerCallBacks {
 private:
     std::string _apSSID = "";
     std::string _apAuth = "";
@@ -79,9 +74,7 @@ private:
     SemaphoreHandle_t _stationSemaphore = nullptr;
     SemaphoreHandle_t _searchSemaphore = nullptr;
     SemaphoreHandle_t _uiMutex = nullptr;
-    void ApTaskMain() override;
-    void StationConnectLoop() override;
-
+    
     void CreateAPTaskIfNotRunning();
     void SetPhase(WifiTaskConnectPhase pPhase);
     static bool CompareAvailableNetworks(WifiAvailableNetwork* pNetwork1, WifiAvailableNetwork* pNetwork2);
@@ -95,8 +88,11 @@ private:
     void OnScanComplete() override;
    
 public:
-     WifiTask(const std::string& pDeviceName, const std::string& pApPassword);
-     ~WifiTask();
+    WifiTask(const std::string& pDeviceName, const std::string& pApPassword);
+    ~WifiTask();
+    void ApTaskMain();
+    void StationConnectLoop();
+
      const std::string& GetValuesSourceName() const override;   
      void Init();   
      bool HasConfiguredNetworks();

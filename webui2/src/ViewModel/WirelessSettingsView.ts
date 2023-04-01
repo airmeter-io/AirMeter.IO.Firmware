@@ -20,9 +20,9 @@ export interface IConfiguredNetwork {
 
 export interface IConnectedWirelessNetwork {
     channel : number;
-    ip4Address : string;
-    ip4Netmask : string;
-    ip4Gateway : string;
+    ipv4Address : string;
+    ipv4Netmask : string;
+    ipv4Gateway : string;
 }
 
 export interface IGeneralSettingsValues {
@@ -59,6 +59,8 @@ class WirelessSettingsView {
     public async ScanForNetworks() {
         var result = await connection.executeCommand("GETNETWORKS");
         this._networks = result.Networks;
+        for(var i = 0; i<this._networks.length; i++)
+            this._networks[i].signalStrength = parseInt(result.Networks[i].signalStrength);
         this._networks.sort((net1,net2) => 
             net1.signalStrength < net2.signalStrength ? 1 :
             net1.signalStrength > net2.signalStrength ? -1 : 0);
@@ -72,6 +74,8 @@ class WirelessSettingsView {
         var result = await connection.executeCommand("SELECTNETWORK", pCmd=>{
             pCmd.Mode = "List";            
         });   
+        for(var i = 0; i<result.Networks.length; i++)
+            result.Networks[i].priority = parseInt(result.Networks[i].priority);
         result.Networks.sort((net1 : IConfiguredNetwork,net2 : IConfiguredNetwork) => 
             net1.priority > net2.priority ? 1 :
             net1.priority < net2.priority ? -1 : 0);
@@ -86,15 +90,18 @@ class WirelessSettingsView {
             try {
                 if(first) {
                     first = false;
-                    await connection.executeCommand("SELECTNETWORK", pCmd=>{
+                    connection.executeCommand("SELECTNETWORK", pCmd=>{
                         pCmd.Mode = "Test";
                         pCmd.Ssid = pNetwork.ssid;
                         pCmd.Password = pCredential;
                         pCmd.Auth = pNetwork.authMode;
                         pCmd.Id = Math.floor(Math.random() * 1000000);
-                    });        
+                    });  
+                       
                 } else {
-                    var result = await connection.executeCommand("SELECTNETWORK");
+                    var result = await connection.executeCommand("SELECTNETWORK", pCmd=>{
+                        pCmd.Mode = "Status";                        
+                    });
 
                     if(result.Testing==="false") {
                         return result.TestSuccess==="true";
@@ -115,7 +122,7 @@ class WirelessSettingsView {
             try {
                 if(first) {
                     first = false;
-                    await connection.executeCommand("SELECTNETWORK", pCmd=>{
+                    connection.executeCommand("SELECTNETWORK", pCmd=>{
                         pCmd.Mode = "Apply";
                         pCmd.Ssid = pNetwork.ssid;
                         pCmd.Password = pCredential;
@@ -124,8 +131,9 @@ class WirelessSettingsView {
                         pCmd.Id = Math.floor(Math.random() * 1000000);
                     });        
                 } else {
-                    var result = await connection.executeCommand("SELECTNETWORK");
-
+                    var result = await connection.executeCommand("SELECTNETWORK", pCmd=>{
+                        pCmd.Mode = "Status";                        
+                    });
                     if(result.Applying==="false") {
                         return true;
                     }

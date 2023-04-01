@@ -169,6 +169,7 @@ void SelectWifiNetworkCommand::TestConnectToNetwork() {
     printf("testing network\n");
     _testingConnect = true;  
     _testSucceeded= _wifi.TestConfiguration(_ssid, _auth, _password);
+    printf("Test success? == %s\n", _testSucceeded ? "yes" : "no");
     _testingConnect = false;
 }
 
@@ -209,7 +210,7 @@ void SelectWifiNetworkCommand::Process(Json& pJson,Json& pResult) {
                 pResult.CreateStringProperty("ConnectStatus",  "Applying");
                         
             }
-        } if (mode == "List") {
+        } else if (mode == "List") {
             std::vector<Json*> networks;
             auto connectionInfo = _wifi.GetConnectionInfo();
             for(auto configuredNetwork : _wifi.GetNetworks()) {
@@ -217,12 +218,13 @@ void SelectWifiNetworkCommand::Process(Json& pJson,Json& pResult) {
                 network->CreateStringProperty("ssid", configuredNetwork.second->ssid);
                 network->CreateStringProperty("authMode", configuredNetwork.second->authMode);
                 network->CreateNumberProperty("priority", (int)configuredNetwork.second->priority); 
+                printf("Configured SSID = %s, current SSID=%s\n", configuredNetwork.second->ssid.c_str(), connectionInfo->ssid.c_str());
                 if(configuredNetwork.second->ssid == connectionInfo->ssid) {
                     auto connectionJson = network->CreateObjectProperty("connection");
-                    network->CreateNumberProperty("channel", (int)connectionInfo->channel); 
-                    network->CreateStringProperty("ipv4Address", connectionInfo->ipv4Address);
-                    network->CreateStringProperty("ipv4Gateway", connectionInfo->ipv4Gateway);
-                    network->CreateStringProperty("ipv4Netmask", connectionInfo->ipv4Netmask);
+                    connectionJson->CreateNumberProperty("channel", (int)connectionInfo->channel); 
+                    connectionJson->CreateStringProperty("ipv4Address", connectionInfo->ipv4Address);
+                    connectionJson->CreateStringProperty("ipv4Gateway", connectionInfo->ipv4Gateway);
+                    connectionJson->CreateStringProperty("ipv4Netmask", connectionInfo->ipv4Netmask);
                     delete connectionJson;
                 }              
                 networks.push_back(network);
@@ -235,7 +237,7 @@ void SelectWifiNetworkCommand::Process(Json& pJson,Json& pResult) {
                 pResult.CreateBoolProperty("Status", false);
                 return;
             }
-            auto ssid = pJson.GetStringProperty("ssid");
+            auto ssid = pJson.GetStringProperty("Ssid");
             auto connectionInfo = _wifi.GetConnectionInfo();
             if(ssid == connectionInfo->ssid ||! _wifi.RemoveConfiguration(ssid)) {
                 delete connectionInfo;

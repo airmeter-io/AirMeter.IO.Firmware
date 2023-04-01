@@ -195,7 +195,7 @@ void WifiManager::ProcessWifiStationStopEvent(){
 }
 
 void WifiManager::ProcessWifiStationConnectedEvent(wifi_event_sta_connected_t* pEvent){
-    printf("Wifi Station Connected to: %s", (char*)pEvent->ssid);
+    printf("Wifi Station Connected to: %s\n", (char*)pEvent->ssid);
     _callbacks.OnStationConnected(
         std::string((char*)pEvent->ssid, pEvent->ssid_len),
         pEvent->channel,
@@ -205,7 +205,7 @@ void WifiManager::ProcessWifiStationConnectedEvent(wifi_event_sta_connected_t* p
 
 void WifiManager::ProcessWifiStationDisconnectedEvent() {
     ESP_LOGI(TAG, "Wifi Station Disconnected");
-    _isStaConnected = false;
+    _callbacks.OnStationDisconnected(WifiDisconnectReason::LostConnection);
 }
 
 void WifiManager::ProcessWifiStationAuthmodeChangeEvent(wifi_event_sta_authmode_change_t *pEvent){
@@ -303,6 +303,7 @@ WifiManager::WifiManager(WifiManagerCallBacks& pCallbacks) : _callbacks(pCallbac
     esp_wifi_set_ps(WIFI_PS_MAX_MODEM);
     ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &WifiManageEventHandler, this));
     ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, ESP_EVENT_ANY_ID, &WifiManageEventHandler, this));
+    ESP_ERROR_CHECK(esp_wifi_start());
 }
 
 WifiManager::~WifiManager() {
@@ -368,7 +369,7 @@ bool WifiManager::EnableAP(const ApDescription& pAp, uint8_t pMaxConnections) {
     }
     
    
-    ESP_ERROR_CHECK(esp_wifi_start());
+   
     _wifiIsStarted = true;
     return true;
 }

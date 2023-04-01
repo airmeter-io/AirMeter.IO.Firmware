@@ -66,13 +66,13 @@ export default function ConfiguredNetworkCard(props : IConfiguredNetworkProps) {
                         Channel: {props.network.connection.channel}
                       </Typography>                                       
                       <Typography variant="caption">
-                        IPv4 Address: {props.network.connection.ip4Address}
+                        IPv4 Address: {props.network.connection.ipv4Address}
                       </Typography>                                                               
                       <Typography variant="caption">
-                        IPv4 Netmask: {props.network.connection.ip4Netmask}
+                        IPv4 Netmask: {props.network.connection.ipv4Netmask}
                       </Typography>                                                                      
                       <Typography variant="caption">
-                        IPv4 Gateway: {props.network.connection.ip4Gateway}
+                        IPv4 Gateway: {props.network.connection.ipv4Gateway}
                       </Typography>  
                   </Grid>                                    
                 </Grid>

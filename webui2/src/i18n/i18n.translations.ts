@@ -33,12 +33,12 @@ export const en = {
         networks: {
           title: "Manage Networks",
           description: "Manage the list of wireless networks that this device will attempt to connect to.",
-          breadcrumb: "Manage Networks"
+          breadcrumb: "Networks"
         },
         options: {
           title: "Configure Options",
           description: "Configure options that control how and when this device will attempt to connect to available networks.",
-          breadcrumb: "Configure Options"
+          breadcrumb: "Options"
         },
         add: {
           title: "Add Wireless Network",
@@ -138,7 +138,7 @@ export const en = {
         },
         options: {
           title: "Configure Calibration Options",
-          breadcrumb: "Configure Options",
+          breadcrumb: "Options",
           description: "Configure options including automatic (ABC) calibration and the baseline CO2 value.",
           frequencies: {
             hours: "{{hours}} hours",

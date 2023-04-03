@@ -14,7 +14,7 @@ function WirelessOptions() {
   return (
     <Box>
       <Header title={t("wireless.options.title")}/>
-      <Container sx={{ width: 'auto', m: '1rem' }}>
+      <Container sx={{ width: 'auto', m: '1rem', mb: '4rem' }}>
       <AppBreadcrumb breadcrumbs={[
           {
             title: t("breadcrumb"),

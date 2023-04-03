@@ -47,7 +47,7 @@ function Data() {
   return (
     <Box>
       <Header title={t("data.title")}/>
-      <Container sx={{  width: 'auto', m: '1rem' }}>
+      <Container sx={{  width: 'auto', m: '1rem', mb: '4rem' }}>
       <AppBreadcrumb breadcrumbs={[
           {
             title: t("breadcrumb"),
@@ -69,7 +69,6 @@ function Data() {
             </FormLabel>
           <Box sx={{ width: "100%" }}>            
             <Slider
-              sx={{minWidth: "600px"}}
               value={state.frequency}
               min={0}
               step={1}

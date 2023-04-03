@@ -19,10 +19,15 @@ import { ReactNode } from 'react';
 import MenuIcon from '@mui/icons-material/Menu';
 import Drawer from '@mui/material/Drawer';
 import Divider from '@mui/material/Divider';
+import MenuList from '@mui/material/MenuList';
+import MenuItem from '@mui/material/MenuItem';
+import ListItemText from '@mui/material/ListItemText';
+import ListItemIcon from '@mui/material/ListItemIcon';
 
 interface IHeaderProps {
   title: string;
   children?: ReactNode[] | ReactNode;
+  titleArea?: ReactNode[] | ReactNode;
 }
 
 interface IHeaderState {
@@ -58,7 +63,7 @@ class Header extends React.Component<IHeaderProps,IHeaderState> {
         <Box sx={{ flexGrow: 1 }}>
           <AppBar position="static">
             <Toolbar>  
-              { this.props.children!==undefined &&              
+                
               <IconButton
                 color="inherit"
                 aria-label="open drawer"
@@ -66,15 +71,17 @@ class Header extends React.Component<IHeaderProps,IHeaderState> {
                 edge="start"
                 sx={{ mr: 2, ...(this.state.open && { display: 'none' }) }}>
                  <MenuIcon />
-              </IconButton> }
+              </IconButton> 
+             
+              { this.props.titleArea === undefined ?
               <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
                 { this.props.title }
-              </Typography>
-              <IconButton color="inherit" onClick={this.handleClickOpen.bind(this)} ><LoginIcon /></IconButton>
+              </Typography> : this.props.titleArea}            
             </Toolbar>
           </AppBar>
         </Box>
-        { this.props.children!==undefined && <Drawer
+       
+        <Drawer
         sx={{
           width: drawerWidth,
           flexShrink: 0,
@@ -86,13 +93,19 @@ class Header extends React.Component<IHeaderProps,IHeaderState> {
         anchor="left"
         onClose={this.handleOnClose.bind(this)}
         open={this.state.open}
-        onClick={this.handleOnClose.bind(this)}
-      >
-       
-        <Divider />
-         { this.props.children }
-      </Drawer>}
-        <Login ref={this.loginRef}/>
+        onClick={this.handleOnClose.bind(this)}>
+        <MenuList>
+          { this.props.children!==undefined && this.props.children }
+          { this.props.children!==undefined && <Divider /> }
+          <MenuItem>
+            <ListItemIcon>
+            <LoginIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>Login</ListItemText>
+          </MenuItem>      
+        </MenuList>
+      </Drawer>
+      <Login ref={this.loginRef}/>
     </div>);
   }
 }

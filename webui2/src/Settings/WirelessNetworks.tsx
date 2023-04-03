@@ -13,7 +13,12 @@ import Fab from '@mui/material/Fab';
 import AddIcon from '@mui/icons-material/Add';
 import AddWirelessNetwork from './Dialogs/AddWirelessNetwork';
 import * as React from 'react';
-
+import Divider from '@mui/material/Divider';
+import Paper from '@mui/material/Paper';
+import MenuList from '@mui/material/MenuList';
+import MenuItem from '@mui/material/MenuItem';
+import ListItemText from '@mui/material/ListItemText';
+import ListItemIcon from '@mui/material/ListItemIcon';
 import {IConfiguredNetwork} from '../ViewModel/WirelessSettingsView';
 import Button from '@mui/material/Button';
 import MainView from '../ViewModel/MainView';
@@ -58,8 +63,15 @@ function WirelessNetworks() {
   }, []);
   return (
     <Box>
-      <Header title={t("wireless.networks.title")}/>
-      <Container sx={{ width: 'auto', m: '1rem' }}>
+      <Header title={t("wireless.networks.title")}>
+        <MenuItem>
+          <ListItemIcon>
+            <AddIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Add Network</ListItemText>
+        </MenuItem>
+      </Header>
+      <Container sx={{ width: 'auto', m: '1rem', mb: '4rem' }}>
       <AppBreadcrumb breadcrumbs={[
           {
             title: t("breadcrumb"),
@@ -96,9 +108,7 @@ function WirelessNetworks() {
        
     </Grid>  
      
-      </Container>
-       <Fab onClick={handleFabClick} color="primary" aria-label="add" sx={{ position: 'fixed', bottom: 70,  right: 70 }} > <AddIcon />
-        </Fab>
+      </Container>    
         <AddWirelessNetwork onClose={reload} ref={addRef} />
       <Footer/>
     </Box>);

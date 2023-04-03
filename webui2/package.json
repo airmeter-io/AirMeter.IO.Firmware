@@ -24,6 +24,7 @@
     "@types/react-dom": "^18.0.10",
     "@types/react-router": "^5.1.20",
     "@types/react-router-dom": "^5.3.3",
+    "@types/react-swipeable-views": "^0.13.1",
     "canvas-gauges": "^2.1.7",
     "css-loader": "^6.7.3",
     "i18next": "^22.4.9",
@@ -32,6 +33,7 @@
     "react-dom": "^18.2.0",
     "react-i18next": "^12.1.5",
     "react-router-dom": "^6.8.1",
+    "react-swipeable-views": "^0.14.0",
     "style-loader": "^3.3.1",
     "ts-loader": "^9.4.2",
     "typescript": "^4.9.5"

@@ -11,21 +11,77 @@ import {IMeterValues, IMeterValueGroup} from '../ViewModel/MeterView';
 import MainView from '../ViewModel/MainView';
 import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
+import Tabs from '@mui/material/Tabs';
+import Tab from '@mui/material/Tab';
+import SwipeableViews from 'react-swipeable-views';
 
-class Live extends React.Component<{},IMeterValues> {
-  state = {
-    temp: 10,
-    humidity: 50,
-    pressure: 1000,
-    co2: 400,
-    groups: []
+interface TabPanelProps {
+  children?: React.ReactNode;
+  dir?: string;
+  index: number;
+  value: number;
+}
+
+function TabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`full-width-tabpanel-${index}`}
+      aria-labelledby={`full-width-tab-${index}`}
+      {...other}
+    >
+      {value === index && (
+        <Box sx={{ p: 3 }}>
+          <Typography>{children}</Typography>
+        </Box>
+      )}
+    </div>
+  );
+}
+
+function a11yProps(index: number) {
+  return {
+    id: `full-width-tab-${index}`,
+    'aria-controls': `full-width-tabpanel-${index}`,
+  };
+}
+
+interface ILiveState {
+  values : IMeterValues | undefined;
+  tabIndex : number;
+}
+
+class Live extends React.Component<{},ILiveState> {
+  state : ILiveState = {
+    values: undefined,
+    tabIndex: 0
   }
 
   private interval : ReturnType<typeof setInterval>;
 
   private async fetchData() {
     var values = await MainView.Current.MeterView.GetLatest();
-    this.setState(values);
+    this.setState({
+      ...this.state,
+      values: values,
+    });
+  }
+
+  private handleTabChange(event: React.SyntheticEvent, newValue: number) {
+    this.setState({
+      ...this.state,
+      tabIndex: newValue,
+    });
+  }
+
+  private handleTabChangeIndex(index: number) {
+    this.setState({
+      ...this.state,
+      tabIndex: index,
+    });
   }
 
   componentDidMount () {   
@@ -39,22 +95,23 @@ class Live extends React.Component<{},IMeterValues> {
   render() {
     return (
       <Box>
-        <Header title="Live">
-        { this.state.groups.map((group : IMeterValueGroup ,i) => 
-          <React.Fragment>
-            <Box sx={ i === this.state.groups.length? {ml: 5, mr: 5, mt: 5, mb:5 } : {ml: 5, mr: 5, mt: 5, mb:0 }}>           
-              <Typography paragraph variant="h5">{group.name}</Typography>            
-                {group.values.map((value) => (
-                  <Typography>
-                    {value.name}: <strong>{value.value}</strong>
-                  </Typography>                
-                ))}
-              <Divider/>
-            </Box>
-          </React.Fragment>) }
-        </Header>
-        <CssBaseline />
-        <Container maxWidth={false} sx={{ height: '90vh' }} disableGutters>
+        <Header title="Live" titleArea={<Tabs
+          value={this.state.tabIndex}
+          onChange={this.handleTabChange.bind(this)}
+          indicatorColor="secondary"
+          textColor="inherit"
+          variant="fullWidth"
+          aria-label="full width tabs example"
+        >
+          <Tab label="Meter" {...a11yProps(0)} />
+          <Tab label="Chart" {...a11yProps(1)} />
+          <Tab label="Values" {...a11yProps(2)} />
+        </Tabs>}/>
+
+        <SwipeableViews axis={'x'} index={this.state.tabIndex} onChangeIndex={this.handleTabChangeIndex.bind(this)}>
+          <TabPanel value={this.state.tabIndex} index={0} >
+          <Container maxWidth={false} sx={{ height: '90vh' }} disableGutters>
+          { this.state.values === undefined ? <div/> :
           <div className="gaugeContainer">
             <div className="tempGaugeContainer">
                 <MinorRadialGauge
@@ -65,10 +122,10 @@ class Live extends React.Component<{},IMeterValues> {
                     MajorTicks={["-20","","-10","","0","","10","","20","","30","","40","","50"]} 
                     MinorTicks={2} 
                     Decimals={2} 
-                    Value={this.state.temp} />
+                    Value={this.state.values.temp} />
             </div>               
             <div className="co2GaugeContainer" >
-                <CO2RadialGauge Value={this.state.co2}/>
+                <CO2RadialGauge Value={this.state.values.co2}/>
             </div>
             <div className="humidityGaugeContainer">
                 <MinorRadialGauge
@@ -79,7 +136,7 @@ class Live extends React.Component<{},IMeterValues> {
                     MajorTicks={["0","","25","","50","","75","","100"]} 
                     MinorTicks={5} 
                     Decimals={2} 
-                    Value={this.state.humidity} />
+                    Value={this.state.values.humidity} />
             </div>	
             <div  className="pressureGaugeContainer">
                 <MinorRadialGauge
@@ -90,10 +147,34 @@ class Live extends React.Component<{},IMeterValues> {
                     MajorTicks={["","980","","990","","1000","","1010","","1020","","1030","","1040",""]} 
                     MinorTicks={10} 
                     Decimals={1} 
-                    Value={this.state.pressure} />
+                    Value={this.state.values.pressure} />
             </div>	
-          </div>
+          </div> }
         </Container>
+          </TabPanel>
+          <TabPanel value={this.state.tabIndex} index={1} >
+            Item Two
+          </TabPanel>
+          <TabPanel value={this.state.tabIndex} index={2} >
+
+            { this.state.values!==undefined && this.state.values.groups.map((group : IMeterValueGroup ,i) => 
+          <React.Fragment>
+           
+            <Box sx={ i === this.state.values?.groups.length? {ml: 5, mr: 5, mt: 5, mb:5 } : {ml: 5, mr: 5, mt: 5, mb:0 }}>           
+              <Typography paragraph variant="h5">{group.name}</Typography>            
+                {group.values.map((value) => (
+                  <Typography>
+                    {value.name}: <strong>{value.value}</strong>
+                  </Typography>                
+                ))}
+              <Divider/>
+            </Box> 
+          </React.Fragment>) }
+          </TabPanel>
+        </SwipeableViews>
+
+        <CssBaseline />
+        
         
         <Footer/>
       </Box>);

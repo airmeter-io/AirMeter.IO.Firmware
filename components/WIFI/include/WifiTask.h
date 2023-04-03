@@ -5,6 +5,7 @@
 #include "GeneralSettings.h"
 #include "WifiManager.h"
 #include <string>
+#include <vector>
 #include "freertos/semphr.h"
 
 
@@ -16,6 +17,8 @@ public:
     std::string ipv4Address;
     std::string ipv4Gateway;
     std::string ipv4Netmask;
+    std::vector<std::string> ntpServers;
+    std::vector<std::string> dnsServers;
 };
 
 enum WifiTaskConnectPhase {

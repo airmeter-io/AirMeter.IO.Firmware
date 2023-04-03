@@ -38,7 +38,7 @@ function Calibration() {
   return (
     <Box>
       <Header title={t("calibration.title")}/>
-      <Container maxWidth="sm" sx={{ width: 'auto', m: '1rem' }}>
+      <Container maxWidth="sm" sx={{ width: 'auto', m: '1rem', mb: '4rem' }}>
       <AppBreadcrumb breadcrumbs={[
           {
             title: t("breadcrumb"),

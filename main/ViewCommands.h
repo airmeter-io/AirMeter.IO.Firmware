@@ -2,7 +2,6 @@
 
 #include "Common.h"
 #include "HttpUrlHandler.h"
-#include "Wifi.h"
 #include "DataManager.h"
 #include "Json.h"
 

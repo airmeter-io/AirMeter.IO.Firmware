@@ -43,7 +43,7 @@
                     "H": 122,
                     "Justify": "Center",
                     "VerticalAlign": "Top",
-                    "Text": "{BatVolts}"
+                    "Text": "{System.BatteryVolts}V"
                 },
                 {
                     "Type": "Text",
@@ -79,7 +79,7 @@
                     "H": 122,
                     "Justify": "Right",
                     "VerticalAlign": "Bottom",
-                    "Text": "{Time}"
+                    "Text": "{System.TimeString}"
                 }
                
             ],
@@ -108,6 +108,93 @@
                 }
             ],
             "ButtonVeryLongReleased": [
+                {
+                    "Type": "ChangeScreen",
+                    "Screen": "WIFISTATUS"
+                }                
+            ]
+        },
+        {
+            "Name": "WIFISTATUS",
+            "Draw": [
+                {
+                    "Type": "Clear",
+                    "Color": "White"
+                },
+                {
+                    "Type": "Text",
+                    "Color": "Black",
+                    "Font": "Small",
+                    "X": 0,
+                    "Y": 0,
+                    "W": 250,
+                    "H": 122,
+                    "Justify": "Left",
+                    "VerticalAlign": "Top",
+                    "Text": "IP: {Wifi.StaIPv4Addr}"
+                },
+                {
+                    "Type": "Text",
+                    "Color": "Black",
+                    "Font": "Small",
+                    "X": 22,
+                    "Y": 0,
+                    "W": 250,
+                    "H": 100,
+                    "Justify": "Left",
+                    "VerticalAlign": "Top",
+                    "Text": "IP: {Wifi.StaIPv4Mask}"
+                },                
+                {
+                    "Type": "Text",
+                    "Color": "Black",
+                    "Font": "Small",
+                    "X": 0,
+                    "Y": 0,
+                    "W": 250,
+                    "H": 122,
+                    "Justify": "Left",
+                    "VerticalAlign": "Bottom",
+                    "Text": "HOME"
+                },
+                {
+                    "Type": "Text",
+                    "Color": "Black",
+                    "Font": "Small",
+                    "X": 0,
+                    "Y": 0,
+                    "W": 250,
+                    "H": 102,
+                    "Justify": "Left",
+                    "VerticalAlign": "Bottom",
+                    "Text": "Short"
+                },
+                {
+                    "Type": "Text",
+                    "Color": "Black",
+                    "Font": "Small",
+                    "X": 0,
+                    "Y": 0,
+                    "W": 250,
+                    "H": 122,
+                    "Justify": "Right",
+                    "VerticalAlign": "Bottom",
+                    "Text": "PAIR"
+                },
+                {
+                    "Type": "Text",
+                    "Color": "Black",
+                    "Font": "Small",
+                    "X": 0,
+                    "Y": 0,
+                    "W": 250,
+                    "H": 102,
+                    "Justify": "Right",
+                    "VerticalAlign": "Bottom",
+                    "Text": "Long"
+                }
+            ],
+            "ButtonReleased": [
                 {
                     "Type": "ChangeScreen",
                     "Screen": "CALIBRATE"
@@ -167,7 +254,7 @@
                     "H": 122,
                     "Justify": "Left",
                     "VerticalAlign": "Bottom",
-                    "Text": "CANCEL"
+                    "Text": "HOME"
                 },
                 {
                     "Type": "Text",
@@ -191,7 +278,7 @@
                     "H": 122,
                     "Justify": "Right",
                     "VerticalAlign": "Bottom",
-                    "Text": "CONFIRM"
+                    "Text": "CALIBRATE"
                 },
                 {
                     "Type": "Text",
@@ -344,7 +431,7 @@
                     "Y": 2,
                     "W": 122,
                     "H": 122,                   
-                    "Text": "WIFI:T:WPA;S:{AccessPointSSID};P:{AccessPointPassword};H:;"
+                    "Text": "WIFI:T:WPA;S:{Wifi.ApSSID};P:{Wifi.ApPassword};H:;"
                    
                 },
                 {
@@ -405,7 +492,7 @@
                     "H": 122,
                     "Justify": "Left",
                     "VerticalAlign": "Bottom",
-                    "Text": "{BatVolts}"
+                    "Text": "{System.BatteryVolts}V"
                 }                          
             ],
             "ButtonReleased": [

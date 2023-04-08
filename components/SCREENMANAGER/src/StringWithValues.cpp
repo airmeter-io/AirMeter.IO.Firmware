@@ -1,4 +1,5 @@
 #include "StringWithValues.h"
+#include "ValueController.h"
 
 StringWithValues::StringWithValues() {
 
@@ -38,11 +39,24 @@ StringWithValues::StringWithValues(const std::string& pString) {
     }
 }
 
-void StringWithValues::Generate(StringValueSource& pValueSource, std::string& pOutput) {
+std::string StringWithValues::ResolveValue(std::string pName) {
+    auto  pos = pName.find (".");
+    if(pos!=std::string::npos) {
+        auto group =  pName.substr(0, pos);
+        auto name = pName.substr(pos+1,std::string::npos);
+        auto source = ValueController::GetCurrent().GetDefault(group, name);
+        if(source) return source->GetValueAsString();
+    }
+   
+    
+    return "ERR";
+ }
+
+void StringWithValues::Generate(std::string& pOutput) {
     pOutput = "";
     for(auto part : _parts) 
         if(part.isValue)
-            pOutput+=pValueSource.ResolveValue(part.content);
+            pOutput+=ResolveValue(part.content);
         else
             pOutput+=part.content;
 }

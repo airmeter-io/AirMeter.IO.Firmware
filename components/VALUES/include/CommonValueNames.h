@@ -2,6 +2,12 @@
 
 #include<string>
 #include "ValueController.h"
+const std::string GROUP_SYSTEM = "System";
+const ValueIdentifier SYSTEM_UNIXTIME =         { .Id = 1, .Grouping = GROUP_SYSTEM, .Name = "UnixTime"} ;
+const ValueIdentifier SYSTEM_TIMESTRING         { .Id = 2, .Grouping = GROUP_SYSTEM, .Name = "TimeString"} ;
+const ValueIdentifier SYSTEM_VERSION =          { .Id = 3, .Grouping = GROUP_SYSTEM, .Name = "Version"};
+const ValueIdentifier SYSTEM_BUILD =            { .Id = 4, .Grouping = GROUP_SYSTEM, .Name = "Build"};
+const ValueIdentifier SYSTEM_BATTERYVOLTS =     { .Id = 5, .Grouping = GROUP_SYSTEM, .Name = "BatteryVolts"};
 
 const std::string GROUP_CO2 = "Co2";
 const ValueIdentifier CO2VALUE =                          { .Id = 100, .Grouping = GROUP_CO2, .Name = "PPM" };

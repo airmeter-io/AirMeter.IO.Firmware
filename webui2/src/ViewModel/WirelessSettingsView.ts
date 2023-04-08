@@ -26,6 +26,8 @@ export interface IConnectedWirelessNetwork {
     ipv4Address : string;
     ipv4Netmask : string;
     ipv4Gateway : string;
+    dnsServers : string;
+    ntpServers : string;
 }
 
 export interface IGeneralSettingsValues {

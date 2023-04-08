@@ -43,6 +43,7 @@ enum SENSEAIR_I2C_RERISTERS
 SenseairI2CSensor::SenseairI2CSensor(I2CDeviceSession* pSession, ISensorManager* pSensorManager) : _session(pSession), _sensorManager(pSensorManager) {
     _deviceName = "Senseair I2C";
     _valCalibWaitTime.i = 2;
+    ReadFirmwareType();
     ReadFirmwareVersion();
     ReadSensorID();
     ReadCalibrationStatus();
@@ -165,6 +166,13 @@ void SenseairI2CSensor::ManualCalibration(int pBaseLinePPM) {
 
 void SenseairI2CSensor::EnableABC(int pBaseLinePPM, int pNumberOfHoursPerCycle) {
     _valIsAbcEnabled.b = true;
+}
+
+void SenseairI2CSensor::ReadFirmwareType() {
+    uint8_t type;
+    if(ReadRegister((uint8_t )SENSEAIR_I2C_RERISTERS::FIRMWARE_TYPE,&type, sizeof(type))) {
+        _valFirmwareType.i =  (int)type;    
+    }
 }
 
 void SenseairI2CSensor::ReadFirmwareVersion() {

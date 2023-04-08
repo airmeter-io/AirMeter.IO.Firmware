@@ -1,6 +1,5 @@
 idf_component_register(
   SRCS "src/CaptiveDNS.cpp"
-    "src/Wifi.cpp"
     "src/WifiTask.cpp"    
     "src/WifiManager.cpp"
     "src/WifiSettings.cpp"

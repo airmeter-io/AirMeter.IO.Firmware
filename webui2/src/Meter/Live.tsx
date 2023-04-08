@@ -1,6 +1,7 @@
 import './Live.css';
 import * as React from 'react';
 import Box from '@mui/material/Box';
+import Grid from '@mui/material/Grid';
 import Header from '../Header';
 import Footer from '../Footer';
 import MinorRadialGauge from './MinorRadialGauge';
@@ -10,10 +11,10 @@ import CssBaseline from '@mui/material/CssBaseline';
 import {IMeterValues, IMeterValueGroup} from '../ViewModel/MeterView';
 import MainView from '../ViewModel/MainView';
 import Typography from '@mui/material/Typography';
-import Divider from '@mui/material/Divider';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import SwipeableViews from 'react-swipeable-views';
+import ValueGroupCard from './ValueGroupCard';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -156,20 +157,12 @@ class Live extends React.Component<{},ILiveState> {
             Item Two
           </TabPanel>
           <TabPanel value={this.state.tabIndex} index={2} >
-
-            { this.state.values!==undefined && this.state.values.groups.map((group : IMeterValueGroup ,i) => 
-          <React.Fragment>
-           
-            <Box sx={ i === this.state.values?.groups.length? {ml: 5, mr: 5, mt: 5, mb:5 } : {ml: 5, mr: 5, mt: 5, mb:0 }}>           
-              <Typography paragraph variant="h5">{group.name}</Typography>            
-                {group.values.map((value) => (
-                  <Typography>
-                    {value.name}: <strong>{value.value}</strong>
-                  </Typography>                
-                ))}
-              <Divider/>
-            </Box> 
-          </React.Fragment>) }
+            <Grid container spacing={{ xs: 2, md: 3}} columns={{ xs: 4, md: 8, lg: 12}}>
+              { this.state.values!==undefined && this.state.values.groups.map((group : IMeterValueGroup ,i)  => 
+                <Grid item xs={4} md={4}  >
+                  <ValueGroupCard  group={group}/>
+                </Grid> )}         
+            </Grid>           
           </TabPanel>
         </SwipeableViews>
 

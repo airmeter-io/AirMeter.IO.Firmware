@@ -2,7 +2,7 @@
 
 #include "Common.h"
 #include "HttpUrlHandler.h"
-#include "Wifi.h"
+
 
 
 class CaptiveRedirectHandler : public HttpUrlHandler {  

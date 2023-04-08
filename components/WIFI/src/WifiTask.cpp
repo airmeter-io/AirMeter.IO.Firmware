@@ -4,15 +4,12 @@
 
 static void WifiStationTaskEntry(void *arg)
 {
-    printf("*******************EntryP point wifi station task %d\n", (int)arg);
     (((WifiTask*)arg))->StationConnectLoop();
-     printf("*******************Exit point wifi station task\n");
 	vTaskDelete(NULL);
 }
 
 static void WifiApTaskEntry(void *arg)
 {
-    printf("*******************Entry point wifi AP task %d\n", (int)arg);
     ((WifiTask *)arg)->ApTaskMain();
 	vTaskDelete(NULL);
 }
@@ -43,7 +40,6 @@ bool WifiTask::CompareAvailableNetworks(WifiAvailableNetwork* pNetwork1, WifiAva
 }
 
 void WifiTask::ApTaskMain() {
-    printf("****************AP Task Main loop\n");
     CaptiveDns dns;
     ApDescription ap;
     ap.gatewayIP = _apIPv4Gateway;
@@ -90,7 +86,6 @@ WifiTask::~WifiTask() {
 }
 
 void WifiTask::Init() {
-    printf("****************Starting wifi station task\n");
     xTaskCreate(WifiStationTaskEntry, "wifista", 4096, this, 10, NULL);
 }
 
@@ -105,86 +100,35 @@ void WifiTask::CreateAPTaskIfNotRunning() {
 #define CONNECTED_SLEEP_INTERVAL 7500
 
 void WifiTask::StationConnectLoop() {
-    printf("****************Connect loop\n");
     WifiAvailableNetworks* foundNetworks = new WifiAvailableNetworks();
     WifiAvailableNetworks* matchingNetworks = new WifiAvailableNetworks(false);
     auto connectIndex = 0;
-    auto lastPhase = _phase;
     if(_wifiSettings->GetNetworks().size() == 0 ) {
             CreateAPTaskIfNotRunning();
     }
 
         
     while(true) {
-        if(lastPhase!=_phase) {
-            switch(_phase) {
-                case WifiTaskConnectPhase::Starting :
-                    ets_printf("Entered Starting Phase");
-                    break;
-                case WifiTaskConnectPhase::StartConnectSequence :
-                    ets_printf("Entered StartConnectSequence Phase");
-                    break;
-                case WifiTaskConnectPhase::Searching :
-                    ets_printf("Entered Searching Phase");
-                    break;
-                case WifiTaskConnectPhase::SearchResults :
-                    ets_printf("Entered SearchResults Phase");
-                    break;
-                
-                case WifiTaskConnectPhase::TryConnect :
-                    ets_printf("Entered TryConnect Phase");
-                    break;
-                case WifiTaskConnectPhase::Connecting :
-                    ets_printf("Entered Connecting Phase");
-                    break;
-                case WifiTaskConnectPhase::WaitingForIP :
-                    ets_printf("Entered WaitingForIP Phase");
-                    break;
-                case WifiTaskConnectPhase::Failed :
-                    ets_printf("Entered Failed Phase");
-                    break;
-                case WifiTaskConnectPhase::Connected :
-                    ets_printf("Entered Connected Phase");
-                    break;
-                case WifiTaskConnectPhase::Disconnected :
-                    ets_printf("Entered Disconnected Phase");
-                    break;
-                case WifiTaskConnectPhase::TestFailure :
-                ets_printf("Entered TestFailure Phase");
-                    break;
-                case WifiTaskConnectPhase::TestSuccess :
-                    ets_printf("Entered TestSuccess Phase");
-                    break;
-                }
-
-        }   
-
-        lastPhase = _phase; 
+        
         switch(_phase) {
             case WifiTaskConnectPhase::Starting :
                 xSemaphoreTake(_stationSemaphore, STARTING_SLEEP_INTERVAL / portTICK_PERIOD_MS);  
                 break;
             case WifiTaskConnectPhase::StartConnectSequence :
-                ets_printf("StationConnectLoop8\n");
                 if(_testConfiguration == nullptr && _wifiSettings->GetNetworks().size() == 0 ) {
                     vTaskDelay(STARTING_SLEEP_INTERVAL / portTICK_PERIOD_MS);  
                     continue;
                 }
-                ets_printf("StationConnectLoop9\n");
                 _gotIP = false;
                 foundNetworks->clearAndFree();    
                 matchingNetworks->clear();       
                 _manager->Scan();
                 SetPhase(WifiTaskConnectPhase::Searching);
-                ets_printf("StationConnectLoop10\n");
                 break;
             case WifiTaskConnectPhase::Searching :
-                ets_printf("StationConnectLoop11\n");
                 xSemaphoreTake(_stationSemaphore, CONNECTING_SLEEP_INTERVAL / portTICK_PERIOD_MS);  
-                ets_printf("StationConnectLoop12\n");
                 break;
             case WifiTaskConnectPhase::SearchResults :
-                ets_printf("StationConnectLoop13\n");
                 _manager->GetScanResults(*foundNetworks);
                 std::sort(foundNetworks->begin(), foundNetworks->end(), CompareAvailableNetworks);
                 
@@ -196,11 +140,9 @@ void WifiTask::StationConnectLoop() {
                 }
                 connectIndex = 0;
                 SetPhase(WifiTaskConnectPhase::TryConnect);
-                ets_printf("StationConnectLoop14\n");
                 break;
             
             case WifiTaskConnectPhase::TryConnect :
-                ets_printf("StationConnectLoop15\n");
                 if(connectIndex<matchingNetworks->size()) {
                     auto networkToTry = (*matchingNetworks)[connectIndex];
                     auto configuredNetworkToTry = GetConfiguredNetwork(networkToTry->ssid, networkToTry->authmode);
@@ -209,49 +151,34 @@ void WifiTask::StationConnectLoop() {
                     SetPhase(WifiTaskConnectPhase::Connecting);
                 } else 
                     SetPhase(WifiTaskConnectPhase::Disconnected);
-                ets_printf("StationConnectLoop16\n");
                 break;
             case WifiTaskConnectPhase::Connecting :
-                ets_printf("StationConnectLoop17\n");
                 xSemaphoreTake(_stationSemaphore, CONNECTING_SLEEP_INTERVAL / portTICK_PERIOD_MS); 
-                ets_printf("StationConnectLoop18\n");
                 break;
             case WifiTaskConnectPhase::WaitingForIP :
-                ets_printf("StationConnectLoop19\n");
                 xSemaphoreTake(_stationSemaphore, CONNECTING_SLEEP_INTERVAL / portTICK_PERIOD_MS); 
-                ets_printf("StationConnectLoop20\n");
                 break;
             case WifiTaskConnectPhase::Failed :
-                ets_printf("StationConnectLoop21\n");
                 xSemaphoreTake(_stationSemaphore, WifiTaskConnectPhase::TryConnect);
-                ets_printf("StationConnectLoop22\n");
                 break;
             case WifiTaskConnectPhase::Connected :
-                ets_printf("StationConnectLoop23\n");
                 xSemaphoreTake(_stationSemaphore, CONNECTED_SLEEP_INTERVAL / portTICK_PERIOD_MS);  
-                ets_printf("StationConnectLoop24\n");
                 break;
             case WifiTaskConnectPhase::Disconnected :
                 {
-                    ets_printf("StationConnectLoop25\n");
                     time_t elapsedSinceDisconnect = (time(nullptr) - _phaseStart);    
                     if(elapsedSinceDisconnect<_wifiSettings->GetWaitOnDisconnectTime()) {          
                         xSemaphoreTake(_stationSemaphore, ((_wifiSettings->GetWaitOnDisconnectTime()- elapsedSinceDisconnect )*1000) / portTICK_PERIOD_MS);  
                     } else {
                         SetPhase(WifiTaskConnectPhase::StartConnectSequence);
                     }
-                    ets_printf("StationConnectLoop26\n");
                     break;
                 }
             case WifiTaskConnectPhase::TestFailure :
-                ets_printf("StationConnectLoop27\n");
                 xSemaphoreTake(_stationSemaphore, CONNECTING_SLEEP_INTERVAL / portTICK_PERIOD_MS); 
-                ets_printf("StationConnectLoop28\n");
                 break;
             case WifiTaskConnectPhase::TestSuccess :
-                ets_printf("StationConnectLoop29\n");
                 xSemaphoreTake(_stationSemaphore, CONNECTING_SLEEP_INTERVAL / portTICK_PERIOD_MS); 
-                ets_printf("StationConnectLoop30\n");
                 break;
         }
     }
@@ -321,8 +248,9 @@ bool WifiTask::HasConfiguredNetworks() {
     return _wifiSettings->GetNetworks().size()>0;
 }
 
+const std::string WifiSourceName = "Wifi";
 const std::string& WifiTask::GetValuesSourceName() const {
-    return "Wifi";
+    return WifiSourceName;
 }
 
 
@@ -335,18 +263,13 @@ void WifiTask::ScanForAvailableNetworks(WifiAvailableNetworks& pNetworks) {
 }
 
 bool WifiTask::TestConfiguration(const std::string& pSSID, const std::string& pAuthMode, const std::string& pPassword) {
-    ets_printf("Test 1\n");
     xSemaphoreTake(_uiMutex, portMAX_DELAY);
-    
-    ets_printf("Test 2\n");
     auto network = GetConfiguredNetwork(pSSID, pAuthMode);
     if(network != nullptr) {
         xSemaphoreGive(_uiMutex);
-        ets_printf("Test 3\n");
         return false; 
     }
 
-    ets_printf("Test 4\n");
     _testConfiguration = new WifiConfiguredNetwork();
     _testConfiguration->ssid = pSSID;
     _testConfiguration->authMode = pAuthMode;
@@ -360,15 +283,15 @@ bool WifiTask::TestConfiguration(const std::string& pSSID, const std::string& pA
             }
         }
     }
-    ets_printf("Test 5\n");
+
 
     SetPhase(WifiTaskConnectPhase::StartConnectSequence);
-    ets_printf("test 5 - Waiting\n");
+
     while(_phase!=WifiTaskConnectPhase::TestFailure && _phase!=WifiTaskConnectPhase::TestSuccess) {
         esp_task_wdt_reset();
         taskYIELD();
     }
-    ets_printf("Test 6\n");
+
     auto result = _phase == WifiTaskConnectPhase::TestSuccess;
     delete _testConfiguration;
     _testConfiguration = nullptr;
@@ -382,29 +305,26 @@ bool WifiTask::TestConfiguration(const std::string& pSSID, const std::string& pA
         }
     }
 
-    ets_printf("Test 7\n");
     SetPhase(WifiTaskConnectPhase::StartConnectSequence);
 
     xSemaphoreGive(_uiMutex);
-    ets_printf("Test 8 result is %s\n", result? "true" :  "false");
     return result;
 }
 
 bool WifiTask::AddConfiguration(const std::string& pSSID, const std::string& pAuthMode, const std::string& pPassword, bool pMakePriority) {
     xSemaphoreTake(_uiMutex, portMAX_DELAY);
-     ets_printf("Add Wifi 1\n");
     const std::string authMode = "";
     auto network = GetConfiguredNetwork(pSSID, authMode);
     if(network != nullptr) {
         xSemaphoreGive(_uiMutex);
         return false; 
     }
-    ets_printf("Add Wifi 2\n");
+
     auto newNetwork = new WifiConfiguredNetwork();
     newNetwork->ssid = pSSID;
     newNetwork->authMode = pAuthMode;
     newNetwork->password = pPassword;
-    ets_printf("Add Wifi 3\n");
+
     if(pMakePriority) {
         newNetwork->priority = 0; 
         for(auto existingNetwork : _wifiSettings->GetNetworks())
@@ -414,7 +334,7 @@ bool WifiTask::AddConfiguration(const std::string& pSSID, const std::string& pAu
     }
     _wifiSettings->GetNetworks()[pSSID] = newNetwork;
     _wifiSettings->Save();
-    ets_printf("Add Wifi 4\n");
+
     if(pMakePriority) {
         if(_valIsStaConnected.b) {
             if(_manager->DisconnectStation()) {
@@ -426,7 +346,7 @@ bool WifiTask::AddConfiguration(const std::string& pSSID, const std::string& pAu
         }
         SetPhase(WifiTaskConnectPhase::StartConnectSequence);
     }
-    ets_printf("Add Wifi 6\n");
+
     xSemaphoreGive(_uiMutex);
     return true;
 }
@@ -483,10 +403,12 @@ WifiConnectionInfo* WifiTask::GetConnectionInfo() {
         result->ipv4Address = _staIPv4Addr;
         result->ipv4Gateway = _staIPv4Gateway;
         result->ipv4Netmask = _staIPv4Mask;
+        _manager->GetNTPServers(result->ntpServers);
+        _manager->GetDNSServers(result->dnsServers);
     } else {
         result->ssid = "";
         result->authMode = "";
-         result->channel = 0;
+        result->channel = 0;
         result->ipv4Address = "";
         result->ipv4Gateway = "";
         result->ipv4Netmask = "";

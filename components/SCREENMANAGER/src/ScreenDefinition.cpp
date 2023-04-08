@@ -116,7 +116,7 @@ DrawTextAction::DrawTextAction(Json& pJson, FontManager& pFontManager) {
 
 void DrawTextAction::Execute(DrawContext& pContext) {
     std::string text;
-    _text.Generate(pContext.ValueSource, text);
+    _text.Generate(text);
     Rectangle rect =  { .pos = { .x = _x, .y =_y }, .size = {.width = _w, .height = _h } };
     _font->DrawUtf8(text, pContext.Target,rect, _color, _justify, _verticalAlign,2);
 }
@@ -308,7 +308,7 @@ DrawQRCodeAction::DrawQRCodeAction(Json& pJson) {
 
 void DrawQRCodeAction::Execute(DrawContext& pContext) {
     std::string text;
-    _text.Generate(pContext.ValueSource, text);
+    _text.Generate(text);
     Rectangle rect =  { .pos = { .x = _x, .y =_y }, .size = {.width = _w, .height = _h } };
     QRCodeGenerator qrCode;
     qrCode.Draw(pContext.Target,rect.size, rect.pos, text);

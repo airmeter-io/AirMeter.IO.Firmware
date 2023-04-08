@@ -9,24 +9,18 @@ import { namespaces } from "../i18n/i18n.constants";
 import { useTranslation } from "react-i18next";
 import AppBreadcrumb from '../AppBreadcrumb';
 import WifiFindIcon from '@mui/icons-material/WifiFind';
-import Fab from '@mui/material/Fab';
 import AddIcon from '@mui/icons-material/Add';
 import AddWirelessNetwork from './Dialogs/AddWirelessNetwork';
 import * as React from 'react';
-import Divider from '@mui/material/Divider';
-import Paper from '@mui/material/Paper';
-import MenuList from '@mui/material/MenuList';
 import MenuItem from '@mui/material/MenuItem';
 import ListItemText from '@mui/material/ListItemText';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import {IConfiguredNetwork} from '../ViewModel/WirelessSettingsView';
-import Button from '@mui/material/Button';
 import MainView from '../ViewModel/MainView';
 import { useEffect } from 'react';
 import Backdrop from '@mui/material/Backdrop';
 import CircularProgress from '@mui/material/CircularProgress';
 import Grid from '@mui/material/Grid';
-import SetNetworkPriorityMenu from './Components/SetNetworkPriorityMenu';
 import ConfiguredNetworkCard from './Cards/ConfiguredNetworkCard';
 function WirelessNetworks() {
   const [networks , setNetworks] = React.useState<IConfiguredNetwork[]>([]);
@@ -64,7 +58,7 @@ function WirelessNetworks() {
   return (
     <Box>
       <Header title={t("wireless.networks.title")}>
-        <MenuItem>
+        <MenuItem onClick={handleFabClick}>
           <ListItemIcon>
             <AddIcon fontSize="small" />
           </ListItemIcon>

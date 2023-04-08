@@ -11,25 +11,11 @@
 #include <dirent.h> 
 #include "PasswordGenerator.h"
 #include "DataManagerQuery.h"
-#include "FontManager.h"
-#include <tinyutf8/tinyutf8.h>
-#include "DrawTarget.h"
 #include "PowerManagement.h"
 #include "PowerLock.h"
 
 extern "C" {
-    #include "esp_sleep.h"
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)    
-    #include "soc/rtc.h"
-    #include "soc/rtc_cntl_reg.h"
-    #include "soc/efuse_reg.h"
-    #include "esp_pm.h"
-#endif    
-
-    #include "freertos/xtensa_timer.h"
-    
-    #include "driver/gpio.h"
-    
+    #include "esp_sleep.h" 
 }
 
 #define TAG "CO2 Monitor"
@@ -65,12 +51,29 @@ MainLogicLoop::MainLogicLoop() {
         display = new NullDrawControl();
     _screenManager = new ScreenManager(*_devicePersonality, display, *this, *_sensorManager, *this);   
     
-    _voltageStr[0] = 0;
+
+    AddValueSource(new ValueSource(*this,SYSTEM_UNIXTIME,     Int,    Dimensionless, _valUnixTime,     GET_LATEST_DATA));
+    AddValueSource(new ValueSource(*this,SYSTEM_TIMESTRING,   String, Dimensionless, _valTimeString,   VALUESOURCE_NOFLAGS));
+    AddValueSource(new ValueSource(*this,SYSTEM_VERSION,      String, Dimensionless, _valVersion,      VALUESOURCE_NOFLAGS));
+    AddValueSource(new ValueSource(*this,SYSTEM_BUILD,        String, Dimensionless, _valBuild,        VALUESOURCE_NOFLAGS));
+    AddValueSource(new ValueSource(*this,SYSTEM_BATTERYVOLTS, Fixed,  Dimensionless, _valBatteryVolts, GET_LATEST_DATA));
+
+    RegisterWithValueController();
 
 }
 
 bool MainLogicLoop::ProcessOnUIThread() {
     bool requiresRedraw = false;
+
+    time_t now;
+    time(&now);
+    if(now / 60 != _lastTimeInMinutes) {
+        _lastTimeInMinutes = now / 60;
+        char buf[sizeof "07:07:09Z"];
+        strftime(buf, sizeof buf, "%H:%M", gmtime(&now));
+        _timeString = buf;
+        requiresRedraw = true;
+    }
 
     if(_waitingForProvisioning && _wifi->HasConfiguredNetworks()) {
         _waitingForProvisioning = false;
@@ -80,8 +83,8 @@ bool MainLogicLoop::ProcessOnUIThread() {
     if(_uiProcessCount%5 == 0) {
         auto voltage = _battery->GetBatteryVoltage();
         auto major = (int)voltage;
-        auto minor = (int)((voltage - major)*100);
-        snprintf(_voltageStr, sizeof(_voltageStr)-1, "%d.%dV", major, minor);
+        auto minor = (int)((voltage - major)*100);        
+        _valBatteryVolts.i = major * 100 + minor;
     }
     _uiProcessCount++;
     _sensorManager->UpdateValues();
@@ -121,6 +124,7 @@ void MainLogicLoop::Run() {
     auto apName = _generalSettings->GetDeviceName();
     auto apPasword = _generalSettings->GetApPassword();
     _wifi = new WifiTask(apName,apPasword);
+    _wifi->RegisterWithValueController();
     _wifi->Init();
     CommandHandler *command = nullptr;
     CaptiveRedirectHandler* captiveRedirect = nullptr;
@@ -134,76 +138,26 @@ void MainLogicLoop::Run() {
     httpServer->AddUrlHandler(command);
     SntpManager *sntp = nullptr;
     if(!_wifi->HasConfiguredNetworks()) {
-        printf("Provisioning...\n");
         _screenManager->ChangeScreen("CAPTIVE");
-        vTaskDelay(200 / portTICK_PERIOD_MS);
         captiveRedirect = new CaptiveRedirectHandler ();
-        httpServer->AddUrlHandler(captiveRedirect);
-        printf("Started provisioning-1\n");      
+        httpServer->AddUrlHandler(captiveRedirect); 
         _waitingForProvisioning = true;
-        printf("Started provisioning-2 (delay)\n");
-        vTaskDelay(5000 / portTICK_PERIOD_MS);
-        printf("Provisioning started\n");
     } else {
-    
-        printf("Already provisioned starting WiFi...\n");
-
         sntp = new SntpManager(_generalSettings->GetNtpServers(), _generalSettings->GetEnableDhcpNtp());
         sntp->Init();
-     
-
         if(_generalSettings->GetEnableMqtt()) {
-            printf("Starting Mqtt...\n");
             _mqtt = new MqttManager(*_generalSettings);
         }
     }
-
-    
 
     _sensorManager->UpdateValues();
    
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)    
     esp_sleep_enable_wifi_wakeup();
 #endif
-
    _screenManager->Run(5000 / portTICK_PERIOD_MS);
 
 }
-
- std::string MainLogicLoop::ResolveValue(std::string pName) {
-    if(pName == "Time") {
-        
-        time_t now;
-        time(&now);
-        char buf[sizeof "07:07:09Z"];
-        strftime(buf, sizeof buf, "%H:%M", gmtime(&now));
-        return buf;
-    }
-    if(pName == "BatVolts") {
-        return _voltageStr;
-    }
-
-    if(pName == "AccessPointSSID") {
-        return _generalSettings->GetDeviceName();
-    }
-
-    if(pName == "AccessPointPassword") {
-        return _generalSettings->GetApPassword();
-    }
-
-    auto  pos = pName.find (".");
-    if(pos!=std::string::npos) {
-        auto group =  pName.substr(0, pos);
-        auto name = pName.substr(pos+1,std::string::npos);
-        auto source = ValueController::GetCurrent().GetDefault(group, name);
-        if(source) return source->GetValueAsString();
-    }
-   
-    
-    return "ERR";
- }
-
-
 
 std::vector<int> MainLogicLoop::ResolveTimeSeries(std::string pName, uint32_t pSecondsInPast, uint32_t pSteps) {
     std::vector<int> result(pSteps,0);
@@ -264,6 +218,11 @@ std::vector<int> MainLogicLoop::ResolveTimeSeries(std::string pName, uint32_t pS
     free(entries);
     delete query;
     return result;
+}
+
+const std::string SystemSourceName = "System";
+const std::string& MainLogicLoop::GetValuesSourceName() const {
+    return SystemSourceName;
 }
 
 

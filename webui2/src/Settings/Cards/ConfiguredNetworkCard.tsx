@@ -74,7 +74,7 @@ export default function ConfiguredNetworkCard(props : IConfiguredNetworkProps) {
                         <Typography variant="caption">
                           IPv4 Address
                         </Typography> 
-                        <Typography variant="body2">
+                        <Typography variant="body2" color="secondary">
                           {props.network.connection.ipv4Address}
                         </Typography> 
                       </Stack>        
@@ -84,7 +84,7 @@ export default function ConfiguredNetworkCard(props : IConfiguredNetworkProps) {
                         <Typography variant="caption">
                         IPv4 Netmask
                         </Typography> 
-                        <Typography variant="body2">
+                        <Typography variant="body2" color="secondary">
                           {props.network.connection.ipv4Netmask}
                         </Typography> 
                       </Stack>        
@@ -96,6 +96,26 @@ export default function ConfiguredNetworkCard(props : IConfiguredNetworkProps) {
                         </Typography> 
                         <Typography variant="body2" color="secondary">
                           {props.network.connection.ipv4Gateway}
+                        </Typography> 
+                      </Stack>        
+                    </Grid>  
+                    <Grid item xs={2} md={2} textAlign={{xs: "right", md: "left"}}  >
+                      <Stack>
+                        <Typography variant="caption">
+                        DNS Servers
+                        </Typography> 
+                        <Typography variant="body2" color="secondary">
+                          {props.network.connection.dnsServers}
+                        </Typography> 
+                      </Stack>        
+                    </Grid>
+                    <Grid item xs={2} md={2}  textAlign={{xs: "left", md: "center"}}>
+                      <Stack>
+                        <Typography variant="caption">
+                        NTP Servers
+                        </Typography> 
+                        <Typography variant="body2" color="secondary">
+                          {props.network.connection.ntpServers}
                         </Typography> 
                       </Stack>        
                     </Grid>  

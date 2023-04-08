@@ -166,10 +166,8 @@ SelectWifiNetworkCommand::SelectWifiNetworkCommand(GeneralSettings& pSettings, W
 }
 
 void SelectWifiNetworkCommand::TestConnectToNetwork() {
-    printf("testing network\n");
     _testingConnect = true;  
     _testSucceeded= _wifi.TestConfiguration(_ssid, _auth, _password);
-    printf("Test success? == %s\n", _testSucceeded ? "yes" : "no");
     _testingConnect = false;
 }
 
@@ -185,7 +183,6 @@ void SelectWifiNetworkCommand::Process(Json& pJson,Json& pResult) {
         auto mode = pJson.GetStringProperty("Mode");
         if(mode=="Test" || mode == "Apply") {   
             if(_testingConnect || _applyingConnect) {
-                printf("already testing\n");
                 return;   
             }
             if(!pJson.HasProperty("Ssid") || !pJson.HasProperty("Password")  || !pJson.HasProperty("Auth") || !pJson.HasProperty("Id") || 
@@ -218,13 +215,29 @@ void SelectWifiNetworkCommand::Process(Json& pJson,Json& pResult) {
                 network->CreateStringProperty("ssid", configuredNetwork.second->ssid);
                 network->CreateStringProperty("authMode", configuredNetwork.second->authMode);
                 network->CreateNumberProperty("priority", (int)configuredNetwork.second->priority); 
-                printf("Configured SSID = %s, current SSID=%s\n", configuredNetwork.second->ssid.c_str(), connectionInfo->ssid.c_str());
                 if(configuredNetwork.second->ssid == connectionInfo->ssid) {
                     auto connectionJson = network->CreateObjectProperty("connection");
                     connectionJson->CreateNumberProperty("channel", (int)connectionInfo->channel); 
                     connectionJson->CreateStringProperty("ipv4Address", connectionInfo->ipv4Address);
                     connectionJson->CreateStringProperty("ipv4Gateway", connectionInfo->ipv4Gateway);
                     connectionJson->CreateStringProperty("ipv4Netmask", connectionInfo->ipv4Netmask);
+                    std::string dnsServers = "";
+                    std::string ntpServers = "";
+                    for(auto server : connectionInfo->dnsServers) {
+                        if(dnsServers.size()!=0)
+                            dnsServers+=", ";
+                        dnsServers+=server;
+                    }
+                    for(auto server : connectionInfo->ntpServers) {
+                        if(ntpServers.size()!=0)
+                            ntpServers+=", ";
+                        ntpServers+=server;
+                    }
+                    connectionJson->CreateStringProperty("dnsServers", dnsServers);
+                    connectionJson->CreateStringProperty("ntpServers", ntpServers);
+
+                    
+                            
                     delete connectionJson;
                 }              
                 networks.push_back(network);

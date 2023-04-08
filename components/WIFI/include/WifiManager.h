@@ -120,6 +120,7 @@ public:
 
     void Scan();
     void GetScanResults(WifiAvailableNetworks& pAvailableNetworks);
-
+    void GetDNSServers(std::vector<std::string>& pResult);
+    void GetNTPServers(std::vector<std::string>& pResult);
 
 };

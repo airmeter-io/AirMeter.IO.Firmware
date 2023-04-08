@@ -7,7 +7,6 @@
 
 class StringValueSource {
 public:
-    virtual std::string ResolveValue(std::string pName) = 0;
     virtual std::vector<int> ResolveTimeSeries(std::string pName, uint32_t pSecondsInPast, uint32_t pSteps) = 0;
 };
 
@@ -19,9 +18,10 @@ typedef struct {
 
 class StringWithValues {
     std::vector<StringValueItem> _parts;
+    std::string ResolveValue(std::string pName);
 public:
     StringWithValues();
     StringWithValues(const std::string& pString);
 
-    void Generate(StringValueSource& pValueSource, std::string& pOutput);
+    void Generate(std::string& pOutput);
 };

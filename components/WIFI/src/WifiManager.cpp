@@ -299,6 +299,10 @@ WifiManager::WifiManager(WifiManagerCallBacks& pCallbacks) : _callbacks(pCallbac
     _initConfig  = WIFI_INIT_CONFIG_DEFAULT();
     esp_wifi_init(&_initConfig);
     esp_wifi_set_ps(WIFI_PS_MAX_MODEM);
+    auto err = esp_wifi_set_mode(WIFI_MODE_STA);
+    if(err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to enable STA mode: %d", err);        
+    }
     ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &WifiManageEventHandler, this));
     ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, ESP_EVENT_ANY_ID, &WifiManageEventHandler, this));
     ESP_ERROR_CHECK(esp_wifi_start());
@@ -478,7 +482,7 @@ bool WifiManager::ConnectStation(const WifiAvailableNetwork* pNetwork, const std
         return false;
     }
 
-   // esp_wifi_set_ps(WIFI_PS_MAX_MODEM);
+    esp_wifi_set_ps(WIFI_PS_MAX_MODEM);
     ESP_ERROR_CHECK(esp_wifi_connect());
     printf("Connecting...\n");
 
@@ -490,4 +494,37 @@ bool WifiManager::DisconnectStation() {
     ESP_ERROR_CHECK(esp_wifi_disconnect());
 
     return true;
+}
+
+void WifiManager::GetDNSServers(std::vector<std::string>& pResult) {
+    esp_netif_dns_info_t ip_dns={0,};
+    char buf_ip[16];
+    if (ESP_OK == esp_netif_get_dns_info(_staIf,ESP_NETIF_DNS_MAIN,&ip_dns) && !ip_addr_isany(&ip_dns.ip))
+    {
+        
+        esp_ip4addr_ntoa(&ip_dns.ip.u_addr.ip4,buf_ip,sizeof(buf_ip));
+        pResult.push_back(buf_ip);
+    }
+
+    if (ESP_OK == esp_netif_get_dns_info(_staIf,ESP_NETIF_DNS_BACKUP,&ip_dns) && !ip_addr_isany(&ip_dns.ip))
+    {
+        esp_ip4addr_ntoa(&ip_dns.ip.u_addr.ip4,buf_ip,sizeof(buf_ip));
+        pResult.push_back(buf_ip);
+    }
+
+    if (ESP_OK == esp_netif_get_dns_info(_staIf,ESP_NETIF_DNS_FALLBACK,&ip_dns) && !ip_addr_isany(&ip_dns.ip))
+    {
+        esp_ip4addr_ntoa(&ip_dns.ip.u_addr.ip4,buf_ip,sizeof(buf_ip));
+        pResult.push_back(buf_ip);
+    }
+}
+
+void WifiManager::GetNTPServers(std::vector<std::string>& pResult) {
+    for(auto i = 0; i< 2; i++) {
+        auto serverAddr = sntp_getserver(i);
+        if(serverAddr!=nullptr && !ip_addr_isany(serverAddr)) {
+            std::string server = ipaddr_ntoa(serverAddr);
+            pResult.push_back(server);        
+        }    
+    }
 }

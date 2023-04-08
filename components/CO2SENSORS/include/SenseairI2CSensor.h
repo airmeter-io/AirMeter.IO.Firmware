@@ -10,6 +10,7 @@ class SenseairI2CSensor : public SenseairBase {
     ISensorManager *_sensorManager;
     uint8_t _sensorStateData[25] = { 0x1 };
     const std::string SOURCE_NAME = "SenseairI2C";;
+    void ReadFirmwareType();
     void ReadFirmwareVersion();
     void ReadSensorID();
     void ReadCalibrationStatus();

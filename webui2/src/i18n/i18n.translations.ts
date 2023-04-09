@@ -181,7 +181,15 @@ export const en = {
             title: "MQTT Topic Path",
             helper: "Specify where in the hierarchy of topics to publish, '%DEVICE_NAME%' is replaced by the device name. For example 'CO2Monitors/%DEVICE_NAME%'."
           },
-          frequencyLabel: "Readings will be published to the MQTT server every {{frequency}}."
+          frequencyLabel: "Readings will be published to the MQTT server every {{frequency}}.",
+          readingsTopic: {
+            title: "Readings Topic Values",
+            helper: "Specific which values this device should publish regularly to the readings topic."
+          },
+          infoTopic: {
+            title: "Info Topic Values",
+            helper: "Specific which values this device should publish on startup to the info topic."
+          },
         }
     }, 
     ntp: {

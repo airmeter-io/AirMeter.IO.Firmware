@@ -62,20 +62,27 @@ public:
         
     }
 
+    
+
     std::string& GetTopicName() {
         return _topicName;
     }
     std::string& GetCurrentValue() {
         Json json;
         
-        auto deviceNameSource = ValueController::GetCurrent().GetDefault(GROUP_CO2,CO2VALUE_DEVICENAME.Name);              
-        auto serialNoSource = ValueController::GetCurrent().GetDefault(GROUP_CO2,CO2VALUE_SERIALNO.Name);     
-
-        if(deviceNameSource)           
-            json.CreateStringProperty("CO2Name",  deviceNameSource->GetValue().s->c_str()); 
-
-        if(serialNoSource)
-            json.CreateStringProperty("CO2SerialNo", serialNoSource->GetValue().s->c_str());             
+        for(auto groupPair : ValueController::GetCurrent().GetGroups()) {
+            Json* groupJson = nullptr;
+            for(auto keyPair : groupPair.second->SourcesByName) {
+                auto source = keyPair.second->DefaultSource;
+                if(source->IsIncludedInMQTTInfo() ) {
+                    if(groupJson == nullptr) 
+                        groupJson = json.CreateObjectProperty(groupPair.first);
+                    source->SerialiseToJsonProperty(*groupJson);
+                }            
+            }   
+            if(groupJson!=nullptr)
+                delete groupJson; 
+        }             
         
         json.CreateStringProperty("Time", GetCurrentIsoTimeString()); 
         _currentValue = json.Print();

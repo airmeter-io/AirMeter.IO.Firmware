@@ -106,10 +106,8 @@ void WifiTask::StationConnectLoop() {
     if(_wifiSettings->GetNetworks().size() == 0 ) {
             CreateAPTaskIfNotRunning();
     }
-
         
-    while(true) {
-        
+    while(true) {        
         switch(_phase) {
             case WifiTaskConnectPhase::Starting :
                 xSemaphoreTake(_stationSemaphore, STARTING_SLEEP_INTERVAL / portTICK_PERIOD_MS);  

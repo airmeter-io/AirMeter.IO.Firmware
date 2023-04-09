@@ -13,9 +13,7 @@ void SaveSettingsCommand::Process(Json& pJson,Json& pResult)  {
     if(pJson.HasProperty("DeviceName")) 
         _settings.SetDeviceName(pJson.GetStringProperty("DeviceName"));
     
-    if(pJson.HasProperty("EnableMqtt")) 
-        _settings.SetEnableMqtt(pJson.GetBoolProperty("EnableMqtt"));
-    
+
     if(pJson.HasProperty("EnableDhcpNtp")) 
         _settings.SetEnableDhcpNtp(pJson.GetBoolProperty("EnableDhcpNtp"));
 
@@ -27,15 +25,7 @@ void SaveSettingsCommand::Process(Json& pJson,Json& pResult)  {
     
     if(pJson.HasProperty("SecondaryNtpServer")) 
         _settings.SetSecondaryNtpServer(pJson.GetStringProperty("SecondaryNtpServer"));
-
-    if(pJson.HasProperty("MqttServerAddress")) 
-        _settings.SetMqttServerAddress(pJson.GetStringProperty("MqttServerAddress"));
-    
-    if(pJson.HasProperty("MqttTopic")) 
-        _settings.SetMqttTopic(pJson.GetStringProperty("MqttTopic"));
-
-    if(pJson.HasProperty("MqttPublishDelay")) 
-        _settings.SetMqttPublishDelay(pJson.GetIntProperty("MqttPublishDelay"));                
+           
     
     if(pJson.HasProperty("Co2SensorType"))
     {
@@ -66,15 +56,11 @@ LoadSettingsCommand::LoadSettingsCommand(GeneralSettings& pSettings) : _settings
 }
 void LoadSettingsCommand::Process(Json& pJson,Json& pResult)  {
     pResult.CreateStringProperty("Status","true");
-    pResult.CreateStringProperty("DeviceName",_settings.GetDeviceName());
-    pResult.CreateBoolProperty("EnableMqtt",_settings.GetEnableMqtt());
+    pResult.CreateStringProperty("DeviceName",_settings.GetDeviceName());   
     pResult.CreateBoolProperty("EnableDhcpNtp",_settings.GetEnableDhcpNtp());
     pResult.CreateBoolProperty("EnablePowerSave",_settings.GetEnablePowerSave());
     pResult.CreateStringProperty("PrimaryNtpServer",_settings.GetPrimaryNtpServer());
     pResult.CreateStringProperty("SecondaryNtpServer",_settings.GetSecondaryNtpServer());
-    pResult.CreateStringProperty("MqttServerAddress",_settings.GetMqttServerAddress());
-    pResult.CreateStringProperty("MqttTopic",_settings.GetMqttTopic());
-    pResult.CreateNumberProperty("MqttPublishDelay",_settings.GetMqttPublishDelay());
     pResult.CreateNumberProperty("Co2SensorType", (int)_settings.GetCO2SensorType());
     pResult.CreateNumberProperty("SensorUpdateInterval", (int)_settings.GetSensorUpdateInterval());
 
@@ -295,5 +281,124 @@ void DataManagementCommand::Process(Json& pJson,Json& pResult) {
 
 std::string DataManagementCommand::GetName() {
     return "MANAGEDATA";
+}
+
+
+MqttManagementCommand::MqttManagementCommand(GeneralSettings& pSettings) : _settings(pSettings) {
+
+}
+
+void MqttManagementCommand::Process(Json& pJson,Json& pResult) {
+    if(pJson.HasProperty("Mode")) {
+        auto mode = pJson.GetStringProperty("Mode");
+        if(mode=="GetValues") {   
+            std::vector<Json*> availableValues;
+            std::vector<Json*> setReadingsValues;
+            std::vector<Json*> setInfoValues;
+            for(auto groupPair : ValueController::GetCurrent().GetGroups()) {                
+                for(auto keyPair : groupPair.second->SourcesByName) {
+                    auto source = keyPair.second->DefaultSource;
+                    if(source->IsIncludedInMQTTReadings() ) {
+                        Json* setJson = new Json();
+                        setJson->CreateStringProperty("Group", groupPair.first);    
+                        setJson->CreateStringProperty("Name", keyPair.first);
+                        setReadingsValues.push_back(setJson);
+                    }
+                    if(source->IsIncludedInMQTTInfo() ) {
+                        Json* setJson = new Json();
+                        setJson->CreateStringProperty("Group", groupPair.first);    
+                        setJson->CreateStringProperty("Name", keyPair.first);
+                        setInfoValues.push_back(setJson);
+                    }
+
+                    if(source->GetFlags()!=VALUESOURCE_NOFLAGS ) {
+                        Json* availJson = new Json();
+                        availJson->CreateStringProperty("Group", groupPair.first);    
+                        availJson->CreateStringProperty("Name", keyPair.first);
+                        availableValues.push_back(availJson);
+                    }                
+                }   
+            } 
+            pResult.CreateBoolProperty("EnableMqtt",_settings.GetEnableMqtt());
+            pResult.CreateStringProperty("MqttServerAddress",_settings.GetMqttServerAddress());
+            pResult.CreateStringProperty("MqttTopic",_settings.GetMqttTopic());
+            pResult.CreateNumberProperty("MqttPublishDelay",_settings.GetMqttPublishDelay());
+            pResult.CreateArrayProperty("Available", availableValues);
+            pResult.CreateArrayProperty("ReadingsTopic", setReadingsValues);
+            pResult.CreateArrayProperty("InfoTopic", setInfoValues);
+        } else if (mode == "SetValues") {
+            if(pJson.HasArrayProperty("ReadingsTopic") && pJson.HasArrayProperty("InfoTopic")) {
+                for( const auto &group : ValueController::GetCurrent().GetGroups()) {
+                    for(const auto &source : group.second->SourcesByName) {
+                        auto valueByName = source.second;
+                        for(const auto valueSource : valueByName->Sources)
+                        {
+                            valueSource->SetIsIncludedInMQTTReadings(false);
+                            valueSource->SetIsIncludedInMQTTInfo(false);
+                        }                
+                    }
+                }
+                auto readingsProp = pJson.GetObjectProperty("ReadingsTopic");
+                std::vector<Json*> readingsElements;
+                readingsProp->GetAsArrayElements(readingsElements);
+                delete readingsProp;
+                for(auto setElement : readingsElements) {
+                    if(setElement->HasProperty("Group") && setElement->HasProperty("Name")) {
+                        auto group = setElement->GetStringProperty("Group");
+                        auto name = setElement->GetStringProperty("Name");
+                        
+                        if(!ValueController::GetCurrent().GetGroups().contains(group)) {
+                            continue;
+                        }
+                        auto  valueGroup = ValueController::GetCurrent().GetGroups()[group];
+                        if(!valueGroup->SourcesByName.contains(name)) continue;
+                        auto valueContainer = valueGroup->SourcesByName[name];
+                        valueContainer->DefaultSource->SetIsIncludedInMQTTReadings(true);
+                    }
+                }
+                auto infoProp = pJson.GetObjectProperty("InfoTopic");
+                std::vector<Json*> infoElements;
+                infoProp->GetAsArrayElements(infoElements);
+                delete infoProp;
+                for(auto setElement : infoElements) {
+                    if(setElement->HasProperty("Group") && setElement->HasProperty("Name")) {
+                        auto group = setElement->GetStringProperty("Group");
+                        auto name = setElement->GetStringProperty("Name");
+                        
+                        if(!ValueController::GetCurrent().GetGroups().contains(group)) {
+                            continue;
+                        }
+                        auto  valueGroup = ValueController::GetCurrent().GetGroups()[group];
+                        if(!valueGroup->SourcesByName.contains(name)) continue;
+                        auto valueContainer = valueGroup->SourcesByName[name];
+                        valueContainer->DefaultSource->SetIsIncludedInMQTTInfo(true);                    
+                    }
+                }
+                ValueController::GetCurrent().Save();
+            }    
+            
+            if(pJson.HasProperty("EnableMqtt")) 
+                _settings.SetEnableMqtt(pJson.GetBoolProperty("EnableMqtt"));        
+
+            if(pJson.HasProperty("MqttServerAddress")) 
+                _settings.SetMqttServerAddress(pJson.GetStringProperty("MqttServerAddress"));
+            
+            if(pJson.HasProperty("MqttTopic")) 
+                _settings.SetMqttTopic(pJson.GetStringProperty("MqttTopic"));
+
+            if(pJson.HasProperty("MqttPublishDelay")) 
+                _settings.SetMqttPublishDelay(pJson.GetIntProperty("MqttPublishDelay"));        
+
+            _settings.Save(); 
+        }             
+
+        pResult.CreateBoolProperty("Status", true);
+    } else {
+        pResult.CreateBoolProperty("Status", false);
+    }
+}
+
+std::string MqttManagementCommand::GetName() {
+    return "MQTT";
 }
 

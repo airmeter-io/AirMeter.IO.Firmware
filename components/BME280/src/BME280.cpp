@@ -57,9 +57,9 @@ I2C& BME280::GetI2C() const {
 }
 
 BME280::BME280(I2C& pI2C) : _i2c(pI2C) {
-    AddValueSource(new ValueSource(*this,TEMPERATURE,   Fixed, Centigrade, _valTemperature, GET_LATEST_DATA));       
-    AddValueSource(new ValueSource(*this,PRESSURE,      Fixed, hPa,        _valPressure, GET_LATEST_DATA));       
-    AddValueSource(new ValueSource(*this,HUMIDITY,      Fixed, Percent,    _valHumidity, GET_LATEST_DATA));    
+    AddValueSource(new ValueSource(*this,TEMPERATURE,   Fixed, Centigrade, _valTemperature, GET_LATEST_DATA | DEFAULT_MQTT));       
+    AddValueSource(new ValueSource(*this,PRESSURE,      Fixed, hPa,        _valPressure, GET_LATEST_DATA | DEFAULT_MQTT));       
+    AddValueSource(new ValueSource(*this,HUMIDITY,      Fixed, Percent,    _valHumidity, GET_LATEST_DATA | DEFAULT_MQTT));    
     _bme.chip_id = BME280_I2C_ADDR_PRIM;
 	_bme.intf = BME280_I2C_INTF;
 	_bme.read = user_i2c_read;

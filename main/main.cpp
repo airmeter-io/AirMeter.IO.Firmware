@@ -54,9 +54,9 @@ MainLogicLoop::MainLogicLoop() {
 
     AddValueSource(new ValueSource(*this,SYSTEM_UNIXTIME,     Int,    Dimensionless, _valUnixTime,     GET_LATEST_DATA));
     AddValueSource(new ValueSource(*this,SYSTEM_TIMESTRING,   String, Dimensionless, _valTimeString,   VALUESOURCE_NOFLAGS));
-    AddValueSource(new ValueSource(*this,SYSTEM_VERSION,      String, Dimensionless, _valVersion,      VALUESOURCE_NOFLAGS));
-    AddValueSource(new ValueSource(*this,SYSTEM_BUILD,        String, Dimensionless, _valBuild,        VALUESOURCE_NOFLAGS));
-    AddValueSource(new ValueSource(*this,SYSTEM_BATTERYVOLTS, Fixed,  Dimensionless, _valBatteryVolts, GET_LATEST_DATA));
+    AddValueSource(new ValueSource(*this,SYSTEM_VERSION,      String, Dimensionless, _valVersion,      VALUESOURCE_NOFLAGS | DEFAULT_MQTTINFO));
+    AddValueSource(new ValueSource(*this,SYSTEM_BUILD,        String, Dimensionless, _valBuild,        VALUESOURCE_NOFLAGS | DEFAULT_MQTTINFO));
+    AddValueSource(new ValueSource(*this,SYSTEM_BATTERYVOLTS, Fixed,  Dimensionless, _valBatteryVolts, GET_LATEST_DATA  | DEFAULT_MQTT));
 
     RegisterWithValueController();
 
@@ -125,6 +125,7 @@ void MainLogicLoop::Run() {
     auto apPasword = _generalSettings->GetApPassword();
     _wifi = new WifiTask(apName,apPasword);
     _wifi->RegisterWithValueController();
+    ValueController::GetCurrent().Load();
     _wifi->Init();
     CommandHandler *command = nullptr;
     CaptiveRedirectHandler* captiveRedirect = nullptr;

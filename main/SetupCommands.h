@@ -86,3 +86,12 @@ public:
     void Process(Json& pJson,Json& pResult) override ;
     std::string GetName() override ;
 };
+
+
+class MqttManagementCommand : public HttpJsonCommand  {
+    GeneralSettings& _settings;
+    public:
+        MqttManagementCommand(GeneralSettings& pSettings);
+        void Process(Json& pJson,Json& pResult) override ;
+        std::string GetName() override ;
+};

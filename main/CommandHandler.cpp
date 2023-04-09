@@ -16,6 +16,7 @@ CommandHandler::CommandHandler(WifiTask& pWifi, GeneralSettings& pSettings, Data
     RegisterCommand(new GetSystemInfoCommand(pSettings));
     RegisterCommand(new GetHistoricalDataCommand(pDataManager));
     RegisterCommand(new DataManagementCommand(pDataManager));
+    RegisterCommand(new MqttManagementCommand(pSettings));
 }
 
 CommandHandler::~CommandHandler() {

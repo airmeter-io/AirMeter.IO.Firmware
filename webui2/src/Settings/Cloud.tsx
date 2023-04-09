@@ -18,14 +18,19 @@ import Switch from '@mui/material/Switch';
 import Slider from '@mui/material/Slider';
 import MainView from '../ViewModel/MainView';
 import FormScreen from './Components/FormScreen';
-
+import ValueSelect from './Components/ValueSelect';
+import {IMQTTSettingsValues} from '../ViewModel/CloudSettingsView'
+import { IValueReference } from '../ViewModel/ValueModel';
 
 function Cloud() {
-  const [state, setState] = React.useState({
+  const [state, setState] = React.useState<IMQTTSettingsValues>({
     enableMQTT: false,
     frequency: 0,
     serverAddress: "",
-    topicPath: ""
+    topicPath: "",
+    availableValues: [],
+    readingsTopic: [],
+    infoTopic: []
   });
   const { t } = useTranslation(namespaces.settings);
 
@@ -49,6 +54,19 @@ function Cloud() {
     });
   };
 
+  const handleReadingsTopicChange = (values : IValueReference[]) => {
+    setState({
+      ...state,
+      readingsTopic: values,
+    });
+  };
+
+  const handleInfoTopicChange = (values : IValueReference[]) => {
+    setState({
+      ...state,
+      infoTopic: values,
+    });
+  };
   
   const handleSave = async () => {
     await MainView.Current.CloudSettings.SaveMqtt(state);
@@ -126,6 +144,24 @@ function Cloud() {
                 onChange={handleSliderChange}
                 valueLabelDisplay="auto"
                 aria-labelledby="non-linear-slider" />
+            </Box>
+          </FormGroup> 
+          <FormGroup sx={{mt: "1em"}}>
+              <FormLabel id="non-linear-slider"  disabled={ !state.enableMQTT}>
+              {t("cloud.mqtt.readingsTopic.title")}              
+              </FormLabel>
+              <FormHelperText disabled={ !state.enableMQTT} >{t("cloud.mqtt.readingsTopic.helper")}</FormHelperText>
+            <Box sx={{ width: "100%" }}>            
+              <ValueSelect disabled={ !state.enableMQTT} availableValues={state.availableValues} setValues={state.readingsTopic} label="Readings Topic" onChanged={handleReadingsTopicChange} />
+            </Box>
+          </FormGroup>  
+          <FormGroup sx={{mt: "1em"}}>
+              <FormLabel id="non-linear-slider"  disabled={ !state.enableMQTT}>
+              {t("cloud.mqtt.infoTopic.title")}              
+              </FormLabel>
+              <FormHelperText disabled={ !state.enableMQTT} >{t("cloud.mqtt.infoTopic.helper")}</FormHelperText>
+            <Box sx={{ width: "100%" }}>            
+              <ValueSelect disabled={ !state.enableMQTT} availableValues={state.availableValues} setValues={state.infoTopic} label="Info Topic" onChanged={handleReadingsTopicChange} />
             </Box>
           </FormGroup>  
         </FormScreen>                      

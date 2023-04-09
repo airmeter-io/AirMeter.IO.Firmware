@@ -2,7 +2,7 @@ import Delay from './Delay';
 import {i18n} from "../i18n/i18n";
 import { namespaces } from "../i18n/i18n.constants";
 import ConnectionManager from '../Protocol/RestApi'
-
+import { IValueReference } from './ValueModel';
 const connection = new ConnectionManager();
 
 const t = i18n.getFixedT(null, namespaces.settings);
@@ -12,6 +12,9 @@ export interface IMQTTSettingsValues {
     frequency : number;
     serverAddress : string;
     topicPath : string;
+    availableValues : IValueReference[];
+    readingsTopic : IValueReference[];
+    infoTopic : IValueReference[];
 }
 
 interface MQTTFrequency {
@@ -52,7 +55,10 @@ class CloudSettingsView {
         enableMQTT: false,
         frequency: 0,
         serverAddress: "",
-        topicPath: "CO2Monitors/%DEVICE_NAME%"
+        topicPath: "CO2Monitors/%DEVICE_NAME%",
+        availableValues: [],
+        readingsTopic: [],
+        infoTopic: []
     };    
 
     private getFrequencyIndex(pSec : number) {
@@ -65,24 +71,32 @@ class CloudSettingsView {
     }
 
     public async LoadMqtt() {
-        var result = await connection.executeCommand("LOADSETTINGS");
+        var result = await connection.executeCommand("MQTT", pCmd=> {
+           pCmd.Mode = "GetValues";
+        });
 
         this._mqttValues = {
             enableMQTT: result.EnableMqtt === "true",
             frequency: this.getFrequencyIndex(result.MqttPublishDelay),
             serverAddress: result.MqttServerAddress,
-            topicPath: result.MqttTopic
+            topicPath: result.MqttTopic,
+            availableValues: result.Available,
+            readingsTopic: result.ReadingsTopic,
+            infoTopic: result.InfoTopic
         };
       
         return structuredClone(this._mqttValues);
     }
 
     public async SaveMqtt(pValues : IMQTTSettingsValues) {
-        await connection.executeCommand("SAVESETTINGS", pCmd=>{
+        await connection.executeCommand("MQTT", pCmd=>{
+          pCmd.Mode = "SetValues"
             pCmd.EnableMqtt = pValues.enableMQTT.toString();
             pCmd.MqttPublishDelay = frequencies[pValues.frequency].seconds.toString();
             pCmd.MqttServerAddress = pValues.serverAddress;
-            pCmd.MqttTopic = pValues.topicPath;
+            pCmd.MqttTopic = pValues.topicPath;          
+            pCmd.ReadingsTopic = pValues.readingsTopic;
+            pCmd.InfoTopic = pValues.infoTopic;
         });
         this._mqttValues = pValues;
     }

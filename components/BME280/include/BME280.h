@@ -18,7 +18,7 @@ class BME280 : public ValuesSource {
     Value _valPressure = { .i = 0 };
     Value _valTemperature = { .i = 0 };
     Value _valHumidity = { .i = 0 };
-    const std::string SOURCE_NAME = "CubicCM11xx";
+    const std::string SOURCE_NAME = "BME280";
 protected: 
     const std::string& GetValuesSourceName() const override;
 public:

@@ -38,18 +38,16 @@ typedef union {
     std::string* s;
 } Value;
 
-
-
-
 class ValuesSource;
 
 enum ValueSourceFlags { 
     VALUESOURCE_NOFLAGS = 0,
     DEFAULT_DATALOG = 1, 
     DEFAULT_MQTT = 2,
-    GET_LATEST_DATA = 4,
-    CALIBRATION_INFO = 8,
-    NETWORK_INFO = 16
+    DEFAULT_MQTTINFO = 4,
+    GET_LATEST_DATA = 8,
+    CALIBRATION_INFO = 16,
+    NETWORK_INFO = 32
 };
 
 MAKE_ENUM_FLAGS(ValueSourceFlags);
@@ -63,9 +61,8 @@ class ValueSource {
     ValueSourceFlags _flags;
     uint _priority;
     bool _includeInMqttReadings;
+    bool _includeInMqttInfo;
     bool _includeInDataLog;
-
-
 public:
     ValueSource(
         const ValuesSource& pValuesSource, 
@@ -85,11 +82,14 @@ public:
     ValueSourceFlags GetFlags() const;
     uint GetPriority() const;
     inline bool IsIncludedInMQTTReadings() { return _includeInMqttReadings; } 
-    inline bool IsIncludedInDataLog() { return _includeInMqttReadings; } 
+    inline bool IsIncludedInMQTTInfo() { return _includeInMqttInfo; } 
+    inline bool IsIncludedInDataLog() { return _includeInDataLog; } 
+    inline void SetIsIncludedInMQTTReadings(bool pIncluded) { _includeInMqttReadings = pIncluded; }
+    inline void SetIsIncludedInMQTTInfo(bool pIncluded) { _includeInMqttInfo = pIncluded; }
+    inline void SetIsIncludedInDatalog(bool pIncluded) { _includeInDataLog = pIncluded; }
     void SerialiseToJsonProperty(Json& pJson);
     Value GetValue();
     std::string GetValueAsString();
-
 };
 
 class MethodSource {
@@ -114,7 +114,6 @@ public:
     void Invoke(const std::vector<Value>& pValues);
 };
 
-
 class ValuesSource {
 private:
     std::vector<ValueSource*> _sources;
@@ -122,7 +121,6 @@ private:
 protected:
     void AddValueSource(ValueSource* pSource);
     void AddMethodSource(MethodSource* pSource);
-   
 public:
     void RegisterWithValueController();
     virtual const std::string& GetValuesSourceName() const = 0;
@@ -161,15 +159,9 @@ public:
     
     static ValueController& GetCurrent();
 
-
     inline std::map<const std::string, ValueSourceGroupHolder*>& GetGroups() {
         return _groups;
     }
-
-
-
-
-
 };
 
 

@@ -16,6 +16,7 @@ ValueSource::ValueSource(
     _value(pValue),
     _flags(pFlags),
     _includeInMqttReadings(pFlags & DEFAULT_MQTT),
+    _includeInMqttInfo(pFlags & DEFAULT_MQTTINFO),
     _includeInDataLog(pFlags & DEFAULT_DATALOG) {
     
 }
@@ -50,18 +51,18 @@ Value ValueSource::GetValue() {
 
 
 MethodSource::MethodSource(
-        const AccessLevels pRequiredAccessLevel,
-        const ValuesSource& pValuesSource,
-        const std::string& pGrouping,
-        const std::string& pName,
-        const std::vector<ValueDataType>& pParams,
-        std::function<void(const std::vector<Value>& pValues)> pMethod) :
-        _requiredAccessLevel(pRequiredAccessLevel),
-        _valuesSource(pValuesSource),
-        _grouping(pGrouping),
-        _name(pName),
-        _params(pParams),
-        _method(pMethod) {
+    const AccessLevels pRequiredAccessLevel,
+    const ValuesSource& pValuesSource,
+    const std::string& pGrouping,
+    const std::string& pName,
+    const std::vector<ValueDataType>& pParams,
+    std::function<void(const std::vector<Value>& pValues)> pMethod) :
+    _requiredAccessLevel(pRequiredAccessLevel),
+    _valuesSource(pValuesSource),
+    _grouping(pGrouping),
+    _name(pName),
+    _params(pParams),
+    _method(pMethod) {
 
 }
 
@@ -236,12 +237,28 @@ void ValueController::LoadSettingsFromJson(Json& pJson) {
                                 break;
                             }                
                     }
+                    for(const auto valueSource : valueByName->Sources)
+                    {
+                        if(jsonConfig->HasObjectProperty(valueSource->GetValuesSource().GetValuesSourceName())) {
+                            auto sourceConfig = jsonConfig->GetObjectProperty(valueSource->GetValuesSource().GetValuesSourceName());
+
+                            if(sourceConfig->HasProperty("Log"))
+                                valueSource->SetIsIncludedInDatalog(sourceConfig->GetBoolProperty("Log"));
+
+                            if(sourceConfig->HasProperty("Mqtt"))
+                                valueSource->SetIsIncludedInMQTTReadings(sourceConfig->GetBoolProperty("Mqtt"));
+
+                            if(sourceConfig->HasProperty("MqttInfo"))
+                                valueSource->SetIsIncludedInMQTTInfo(sourceConfig->GetBoolProperty("MqttInfo"));
+
+                            delete sourceConfig;
+                        } 
+                    }
                     delete jsonConfig;
-                }
+                } 
             }
             delete groupJson;
-        }
-        
+        }         
     }
 }
 
@@ -251,8 +268,18 @@ void ValueController::SaveSettingsToJson(Json& pJson) {
         for(const auto &source : group.second->SourcesByName) {
             auto jsonConfig = groupConfig->CreateObjectProperty(source.first);
             auto valueByName = source.second;
+            
             jsonConfig->CreateStringProperty("Default", valueByName->DefaultSource->GetValuesSource().GetValuesSourceName());
-            delete jsonConfig;
+           
+            for(const auto valueSource : valueByName->Sources)
+            {
+                auto sourceConfig = jsonConfig->CreateObjectProperty(valueSource->GetValuesSource().GetValuesSourceName());
+                sourceConfig->CreateBoolProperty("Log", valueSource->IsIncludedInDataLog());
+                sourceConfig->CreateBoolProperty("Mqtt", valueSource->IsIncludedInMQTTReadings());
+                sourceConfig->CreateBoolProperty("MqttInfo", valueSource->IsIncludedInMQTTInfo());
+                delete sourceConfig;
+            }
+             delete jsonConfig;
      
         }
         delete groupConfig;

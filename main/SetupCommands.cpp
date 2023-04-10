@@ -35,14 +35,7 @@ void SaveSettingsCommand::Process(Json& pJson,Json& pResult)  {
         }
     }
 
-    if(pJson.HasProperty("SensorUpdateInterval"))
-    {
-        auto interval = pJson.GetIntProperty("SensorUpdateInterval");
-        if(interval < (int)3600 && interval > 0) {
-            _settings.SetSensorUpdateInterval(interval);
-        }
 
-    }
     _settings.Save();
 }
 std::string SaveSettingsCommand::GetName()  {
@@ -62,7 +55,7 @@ void LoadSettingsCommand::Process(Json& pJson,Json& pResult)  {
     pResult.CreateStringProperty("PrimaryNtpServer",_settings.GetPrimaryNtpServer());
     pResult.CreateStringProperty("SecondaryNtpServer",_settings.GetSecondaryNtpServer());
     pResult.CreateNumberProperty("Co2SensorType", (int)_settings.GetCO2SensorType());
-    pResult.CreateNumberProperty("SensorUpdateInterval", (int)_settings.GetSensorUpdateInterval());
+
 
 }
 std::string LoadSettingsCommand::GetName() {
@@ -270,17 +263,92 @@ std::string SelectWifiNetworkCommand::GetName() {
     return "SELECTNETWORK";   
 }
 
-DataManagementCommand::DataManagementCommand(DataManager& pManager) : _manager(pManager) {
+DataManagementCommand::DataManagementCommand(GeneralSettings& pSettings, DataManager& pManager) : _settings(pSettings), _manager(pManager) {
 
 }
 
 void DataManagementCommand::Process(Json& pJson,Json& pResult) {
-    _manager.ClearAllData();
-    pResult.CreateBoolProperty("Status", true);
+    if(pJson.HasProperty("Mode")) {
+        auto mode = pJson.GetStringProperty("Mode");
+        if(mode=="GetValues") {   
+            std::vector<Json*> availableValues;
+            std::vector<Json*> setValues;
+            for(auto groupPair : ValueController::GetCurrent().GetGroups()) {                
+                for(auto keyPair : groupPair.second->SourcesByName) {
+                    auto source = keyPair.second->DefaultSource;
+                    if(source->IsIncludedInDataLog() ) {
+                        Json* setJson = new Json();
+                        setJson->CreateStringProperty("Group", groupPair.first);    
+                        setJson->CreateStringProperty("Name", keyPair.first);
+                        setValues.push_back(setJson);
+                    }
+                    if(source->GetFlags()!=VALUESOURCE_NOFLAGS && source->GetDataType()!=ValueDataType::String && source->GetDataType()!=ValueDataType::Bool ) {
+                        Json* availJson = new Json();
+                        availJson->CreateStringProperty("Group", groupPair.first);    
+                        availJson->CreateStringProperty("Name", keyPair.first);
+                        availableValues.push_back(availJson);
+                    }               
+                }   
+            } 
+            pResult.CreateNumberProperty("SensorUpdateInterval", (int)_settings.GetSensorUpdateInterval());
+            pResult.CreateArrayProperty("Available", availableValues);
+            pResult.CreateArrayProperty("Values", setValues);
+        } else if (mode == "SetValues") {
+            if(pJson.HasArrayProperty("Values") ) {
+                for( const auto &group : ValueController::GetCurrent().GetGroups()) {
+                    for(const auto &source : group.second->SourcesByName) {
+                        auto valueByName = source.second;
+                        for(const auto valueSource : valueByName->Sources)
+                        {
+                            valueSource->SetIsIncludedInDatalog(false);                            
+                        }                
+                    }
+                }
+                auto valuesProp = pJson.GetObjectProperty("Values");
+                std::vector<Json*> valueElements;
+                valuesProp->GetAsArrayElements(valueElements);
+                delete valuesProp;
+                for(auto setElement : valueElements) {
+                    if(setElement->HasProperty("Group") && setElement->HasProperty("Name")) {
+                        auto group = setElement->GetStringProperty("Group");
+                        auto name = setElement->GetStringProperty("Name");
+                        
+                        if(!ValueController::GetCurrent().GetGroups().contains(group)) {
+                            continue;
+                        }
+                        auto  valueGroup = ValueController::GetCurrent().GetGroups()[group];
+                        if(!valueGroup->SourcesByName.contains(name)) continue;
+                        auto valueContainer = valueGroup->SourcesByName[name];
+                        valueContainer->DefaultSource->SetIsIncludedInDatalog(true);
+                    }
+                }               
+                ValueController::GetCurrent().Save();
+            }    
+            
+            if(pJson.HasProperty("SensorUpdateInterval"))
+            {
+                auto interval = pJson.GetIntProperty("SensorUpdateInterval");
+                if(interval < (int)3600 && interval > 0) {
+                    _settings.SetSensorUpdateInterval(interval);
+                }
+            }      
+
+            _settings.Save(); 
+        } else if(mode=="Clear")  {
+             _manager.ClearAllData();
+        }  else {
+            pResult.CreateBoolProperty("Status", false);
+            return;    
+        }
+
+        pResult.CreateBoolProperty("Status", true);
+    } else {
+        pResult.CreateBoolProperty("Status", false);
+    }   
 }
 
 std::string DataManagementCommand::GetName() {
-    return "MANAGEDATA";
+    return "DATA";
 }
 
 

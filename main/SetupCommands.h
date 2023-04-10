@@ -80,9 +80,10 @@ public:
 
 
 class DataManagementCommand : public HttpJsonCommand  {
+    GeneralSettings& _settings;
     DataManager& _manager;
 public:
-    DataManagementCommand(DataManager& pManager) ;
+    DataManagementCommand(GeneralSettings& pSettings, DataManager& pManager) ;
     void Process(Json& pJson,Json& pResult) override ;
     std::string GetName() override ;
 };

@@ -54,6 +54,13 @@ function Cloud() {
     });
   };
 
+  const handleTextChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setState({
+      ...state,
+      [event.target.name]: event.target.value,
+    });
+  };
+
   const handleReadingsTopicChange = (values : IValueReference[]) => {
     setState({
       ...state,
@@ -107,7 +114,8 @@ function Cloud() {
                     autoFocus={ true}
                     disabled={ !state.enableMQTT}                    
                     margin="dense"
-                    id="mqttServerAddress"
+                    name="serverAddress"
+                    onChange={handleTextChange}
                     label={t("cloud.mqtt.serverAddress.title")}
                     type="url"
                     fullWidth
@@ -119,7 +127,8 @@ function Cloud() {
             <TextField
                     disabled={ !state.enableMQTT}                    
                     margin="dense"
-                    id="mqttServerAddress"
+                    name="topicPath"
+                    onChange={handleTextChange}
                     label={t("cloud.mqtt.topicPath.title")}
                     type="text"
                     fullWidth
@@ -161,7 +170,7 @@ function Cloud() {
               </FormLabel>
               <FormHelperText disabled={ !state.enableMQTT} >{t("cloud.mqtt.infoTopic.helper")}</FormHelperText>
             <Box sx={{ width: "100%" }}>            
-              <ValueSelect disabled={ !state.enableMQTT} availableValues={state.availableValues} setValues={state.infoTopic} label="Info Topic" onChanged={handleReadingsTopicChange} />
+              <ValueSelect disabled={ !state.enableMQTT} availableValues={state.availableValues} setValues={state.infoTopic} label="Info Topic" onChanged={handleInfoTopicChange} />
             </Box>
           </FormGroup>  
         </FormScreen>                      

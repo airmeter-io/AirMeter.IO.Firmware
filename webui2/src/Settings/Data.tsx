@@ -14,10 +14,16 @@ import * as React from 'react';
 import Slider from '@mui/material/Slider';
 import MainView from '../ViewModel/MainView';
 import FormScreen from './Components/FormScreen';
+import ValueSelect from './Components/ValueSelect';
+import {IDataSettingsValues} from '../ViewModel/DataSettingsView'
+import FormHelperText from '@mui/material/FormHelperText';
+import { IValueReference } from '../ViewModel/ValueModel';
 
 function Data() {
-  const [state, setState] = React.useState({
-    frequency: 0
+  const [state, setState] = React.useState<IDataSettingsValues>({
+    frequency: 0,
+    availableValues: [],
+    values: []
   });
   const { t } = useTranslation(namespaces.settings);
 
@@ -42,6 +48,13 @@ function Data() {
   const handleLoad = async () => {
     setState(await MainView.Current.DataSettings.Load());
   }
+
+  const handleValuesChange = (values : IValueReference[]) => {
+    setState({
+      ...state,
+      values: values,
+    });
+  };
 
 
   return (
@@ -79,7 +92,16 @@ function Data() {
               valueLabelDisplay="auto"
               aria-labelledby="non-linear-slider" />
           </Box>
-        </FormGroup>      
+        </FormGroup>  
+        <FormGroup sx={{mt: "1em"}}>
+              <FormLabel id="non-linear-slider" >
+              {t("data.values.title")}              
+              </FormLabel>
+              <FormHelperText >{t("data.values.helper")}</FormHelperText>
+            <Box sx={{ width: "100%" }}>            
+              <ValueSelect disabled={ false} availableValues={state.availableValues} setValues={state.values} label="Data Log Values" onChanged={handleValuesChange} />
+            </Box>
+          </FormGroup>      
       </FormScreen> 
     </Container>
     <Footer/>

@@ -165,7 +165,11 @@ export const en = {
         breadcrumb: "Data",
         frequency: {
           label: "Readings will be taken from sensors and written to the data log {{frequency}}."
-        }
+        },
+        values: {
+          title: "Choose values to data log",
+          helper: "Select the values that you wish to maintain in the data logging function on this device. Note that increasing the number of values will decrease the length of history that can be held within the device itself."
+        },
     },    
     cloud: {
         title: "Cloud Services",

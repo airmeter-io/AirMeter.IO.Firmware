@@ -11,7 +11,10 @@ export interface IMQTTSettingsValues {
     enableMQTT : boolean
     frequency : number;
     serverAddress : string;
-    topicPath : string;
+    username : string;
+    password : string;
+    readingsTopicPath : string;
+    infoTopicPath : string;
     availableValues : IValueReference[];
     readingsTopic : IValueReference[];
     infoTopic : IValueReference[];
@@ -55,7 +58,10 @@ class CloudSettingsView {
         enableMQTT: false,
         frequency: 0,
         serverAddress: "",
-        topicPath: "CO2Monitors/%DEVICE_NAME%",
+        username: "",
+        password: "",
+        readingsTopicPath: "CO2Monitors/%DEVICE_NAME%/SENSOR",
+        infoTopicPath: "CO2Monitors/%DEVICE_NAME%/INFO",
         availableValues: [],
         readingsTopic: [],
         infoTopic: []
@@ -76,10 +82,13 @@ class CloudSettingsView {
         });
 
         this._mqttValues = {
-            enableMQTT: result.EnableMqtt === "true",
-            frequency: this.getFrequencyIndex(result.MqttPublishDelay),
-            serverAddress: result.MqttServerAddress,
-            topicPath: result.MqttTopic,
+            enableMQTT: result.Enable === "true",
+            frequency: this.getFrequencyIndex(result.PublishDelay),
+            serverAddress: result.ServerAddress,
+            username: result.Username,
+            password: result.Password,
+            readingsTopicPath: result.ReadingsTopicPath,
+            infoTopicPath: result.InfoTopicPath,
             availableValues: result.Available,
             readingsTopic: result.ReadingsTopic,
             infoTopic: result.InfoTopic
@@ -91,10 +100,13 @@ class CloudSettingsView {
     public async SaveMqtt(pValues : IMQTTSettingsValues) {
         await connection.executeCommand("MQTT", pCmd=>{
           pCmd.Mode = "SetValues"
-            pCmd.EnableMqtt = pValues.enableMQTT.toString();
-            pCmd.MqttPublishDelay = frequencies[pValues.frequency].seconds.toString();
-            pCmd.MqttServerAddress = pValues.serverAddress;
-            pCmd.MqttTopic = pValues.topicPath;          
+            pCmd.Enable = pValues.enableMQTT.toString();
+            pCmd.PublishDelay = frequencies[pValues.frequency].seconds.toString();
+            pCmd.ServerAddress = pValues.serverAddress;
+            pCmd.Username = pValues.username;
+            pCmd.Password = pValues.password;
+            pCmd.ReadingsTopicPath = pValues.readingsTopicPath;          
+            pCmd.InfoTopicPath = pValues.infoTopicPath;          
             pCmd.ReadingsTopic = pValues.readingsTopic;
             pCmd.InfoTopic = pValues.infoTopic;
         });

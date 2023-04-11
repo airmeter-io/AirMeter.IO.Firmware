@@ -4,7 +4,6 @@ idf_component_register(
         "CommandHandler.cpp"       
         "main.cpp"
         "MonitorDisplay.cpp"
-        "MqttManager.cpp"
         "OledSsd1306Display.cpp"
         "SetupCommands.cpp"
         "ViewCommands.cpp"
@@ -39,7 +38,8 @@ idf_component_register(
              "SENSORMANAGER"
              "DATAMANAGER"
              "DRAWTARGET"
-             "POWERMANAGE")
+             "POWERMANAGE"
+             "MQTTMANAGER")
              
 spiffs_create_partition_image(web ../webui/distgz FLASH_IN_PROJECT)
 spiffs_create_partition_image(dev ../device FLASH_IN_PROJECT)

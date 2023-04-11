@@ -352,7 +352,7 @@ std::string DataManagementCommand::GetName() {
 }
 
 
-MqttManagementCommand::MqttManagementCommand(GeneralSettings& pSettings) : _settings(pSettings) {
+MqttManagementCommand::MqttManagementCommand(MqttManager& pMqttManager, GeneralSettings& pSettings) : _mqttManager(pMqttManager), _settings(pSettings) {
 
 }
 
@@ -387,10 +387,13 @@ void MqttManagementCommand::Process(Json& pJson,Json& pResult) {
                     }                
                 }   
             } 
-            pResult.CreateBoolProperty("EnableMqtt",_settings.GetEnableMqtt());
-            pResult.CreateStringProperty("MqttServerAddress",_settings.GetMqttServerAddress());
-            pResult.CreateStringProperty("MqttTopic",_settings.GetMqttTopic());
-            pResult.CreateNumberProperty("MqttPublishDelay",_settings.GetMqttPublishDelay());
+            pResult.CreateBoolProperty("Enable",_mqttManager.GetEnable());
+            pResult.CreateStringProperty("ServerAddress",_mqttManager.GetServerAddress());
+            pResult.CreateStringProperty("Username",_mqttManager.GetUsername());
+            pResult.CreateStringProperty("Password",_mqttManager.GetPassword());
+            pResult.CreateStringProperty("ReadingsTopicPath",_mqttManager.GetReadingsTopic());
+            pResult.CreateStringProperty("InfoTopicPath",_mqttManager.GetInfoTopic());
+            pResult.CreateNumberProperty("PublishDelay",_mqttManager.GetPublishDelay());
             pResult.CreateArrayProperty("Available", availableValues);
             pResult.CreateArrayProperty("ReadingsTopic", setReadingsValues);
             pResult.CreateArrayProperty("InfoTopic", setInfoValues);
@@ -445,19 +448,28 @@ void MqttManagementCommand::Process(Json& pJson,Json& pResult) {
                 ValueController::GetCurrent().Save();
             }    
             
-            if(pJson.HasProperty("EnableMqtt")) 
-                _settings.SetEnableMqtt(pJson.GetBoolProperty("EnableMqtt"));        
+            if(pJson.HasProperty("Enable")) 
+                _mqttManager.SetEnable(pJson.GetBoolProperty("Enable"));        
 
-            if(pJson.HasProperty("MqttServerAddress")) 
-                _settings.SetMqttServerAddress(pJson.GetStringProperty("MqttServerAddress"));
+            if(pJson.HasProperty("ServerAddress")) 
+                _mqttManager.SetServerAddress(pJson.GetStringProperty("ServerAddress"));
+
+            if(pJson.HasProperty("Username")) 
+                _mqttManager.SetUsername(pJson.GetStringProperty("Username"));
+
+            if(pJson.HasProperty("Password")) 
+                _mqttManager.SetPassword(pJson.GetStringProperty("Password"));
             
-            if(pJson.HasProperty("MqttTopic")) 
-                _settings.SetMqttTopic(pJson.GetStringProperty("MqttTopic"));
+            if(pJson.HasProperty("ReadingsTopicPath")) 
+                _mqttManager.SetReadingsTopic(pJson.GetStringProperty("ReadingsTopicPath"));
 
-            if(pJson.HasProperty("MqttPublishDelay")) 
-                _settings.SetMqttPublishDelay(pJson.GetIntProperty("MqttPublishDelay"));        
+            if(pJson.HasProperty("InfoTopicPath")) 
+                _mqttManager.SetInfoTopic(pJson.GetStringProperty("InfoTopicPath"));
 
-            _settings.Save(); 
+            if(pJson.HasProperty("PublishDelay")) 
+                _mqttManager.SetPublishDelay(pJson.GetIntProperty("PublishDelay"));        
+
+            _mqttManager.Save(); 
         }             
 
         pResult.CreateBoolProperty("Status", true);

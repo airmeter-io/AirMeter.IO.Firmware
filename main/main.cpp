@@ -130,14 +130,15 @@ void MainLogicLoop::Run() {
     CommandHandler *command = nullptr;
     CaptiveRedirectHandler* captiveRedirect = nullptr;
     WebContentHandler *webContent = nullptr;
-
+    _mqtt = new MqttManager(*_generalSettings);
     httpServer->Start();
  
-    command = new CommandHandler(*_wifi, *_generalSettings, *_dataManager);
+    command = new CommandHandler(*_wifi, *_generalSettings, *_dataManager, *_mqtt);
     webContent = new WebContentHandler();
     httpServer->AddUrlHandler(webContent);
     httpServer->AddUrlHandler(command);
     SntpManager *sntp = nullptr;
+
     if(!_wifi->HasConfiguredNetworks()) {
         _screenManager->ChangeScreen("CAPTIVE");
         captiveRedirect = new CaptiveRedirectHandler ();
@@ -145,10 +146,7 @@ void MainLogicLoop::Run() {
         _waitingForProvisioning = true;
     } else {
         sntp = new SntpManager(_generalSettings->GetNtpServers(), _generalSettings->GetEnableDhcpNtp());
-        sntp->Init();
-        if(_generalSettings->GetEnableMqtt()) {
-            _mqtt = new MqttManager(*_generalSettings);
-        }
+        sntp->Init();       
     }
 
     _sensorManager->UpdateValues();

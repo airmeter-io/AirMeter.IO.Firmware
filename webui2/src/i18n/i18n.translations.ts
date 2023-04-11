@@ -181,9 +181,21 @@ export const en = {
             title: "MQTT Server Address",
             helper: "The MQTT server address must be a URL starting with either mqtt:// or mqtts://"
           },
-          topicPath: {
-            title: "MQTT Topic Path",
-            helper: "Specify where in the hierarchy of topics to publish, '%DEVICE_NAME%' is replaced by the device name. For example 'CO2Monitors/%DEVICE_NAME%'."
+          username: {
+            title: "Username",
+            helper: "The username to use to authenticate to this server. Leave blank if not required."
+          },
+          password: {
+            title: "Password",
+            helper: "The password to use to authenticate to this server. Leave blank if not required."
+          },
+          readingsTopicPath: {
+            title: "Readings Topic Path",
+            helper: "Specify where in the hierarchy of topics to publish readings regularly, '%DEVICE_NAME%' is replaced by the device name. For example 'CO2Monitors/%DEVICE_NAME%/SENSOR'."
+          },
+          infoTopicPath: {
+            title: "Info Topic Path",
+            helper: "Specify where in the hierarchy of topics to publish info on startup, '%DEVICE_NAME%' is replaced by the device name. For example 'CO2Monitors/%DEVICE_NAME%/INFO'."
           },
           frequencyLabel: "Readings will be published to the MQTT server every {{frequency}}.",
           readingsTopic: {

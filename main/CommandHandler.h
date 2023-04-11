@@ -6,7 +6,7 @@
 #include "Json.h"
 #include "GeneralSettings.h"
 #include "DataManager.h"
-
+#include "MqttManager.h"
 
 
 class CommandHandler : public HttpUrlHandler {  
@@ -15,7 +15,7 @@ private:
     GeneralSettings& _settings;
     
 public:
-    CommandHandler(WifiTask& pWifi, GeneralSettings& pSettings, DataManager& pDataManager);
+    CommandHandler(WifiTask& pWifi, GeneralSettings& pSettings, DataManager& pDataManager, MqttManager& pMqttManager);
     ~CommandHandler();
 
     void ProcessRequest(HttpRequest *pReq) override;

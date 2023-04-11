@@ -27,7 +27,10 @@ function Cloud() {
     enableMQTT: false,
     frequency: 0,
     serverAddress: "",
-    topicPath: "",
+    username: "",
+    password: "",
+    readingsTopicPath: "",
+    infoTopicPath: "",
     availableValues: [],
     readingsTopic: [],
     infoTopic: []
@@ -125,16 +128,31 @@ function Cloud() {
           </FormGroup>
           <FormGroup>
             <TextField
+                    autoFocus={ true}
                     disabled={ !state.enableMQTT}                    
                     margin="dense"
-                    name="topicPath"
+                    name="username"
                     onChange={handleTextChange}
-                    label={t("cloud.mqtt.topicPath.title")}
-                    type="text"
+                    label={t("cloud.mqtt.username.title")}
+                    type="url"
                     fullWidth
                     variant="standard"
-                    value={state.topicPath} />     
-            <FormHelperText disabled={ !state.enableMQTT} >{t("cloud.mqtt.topicPath.helper")}</FormHelperText>
+                    value={state.username} />     
+            <FormHelperText disabled={ !state.enableMQTT} >{t("cloud.mqtt.username.helper")}</FormHelperText>
+          </FormGroup>
+          <FormGroup>
+            <TextField
+                    autoFocus={ true}
+                    disabled={ !state.enableMQTT}                    
+                    margin="dense"
+                    name="password"
+                    onChange={handleTextChange}
+                    label={t("cloud.mqtt.password.title")}
+                    type="url"
+                    fullWidth
+                    variant="standard"
+                    value={state.password} />     
+            <FormHelperText disabled={ !state.enableMQTT} >{t("cloud.mqtt.password.helper")}</FormHelperText>
           </FormGroup>
 
           <FormGroup sx={{mt: "1em"}}>
@@ -163,6 +181,17 @@ function Cloud() {
             <Box sx={{ width: "100%" }}>            
               <ValueSelect disabled={ !state.enableMQTT} availableValues={state.availableValues} setValues={state.readingsTopic} label="Readings Topic" onChanged={handleReadingsTopicChange} />
             </Box>
+            <TextField
+                    disabled={ !state.enableMQTT}                    
+                    margin="dense"
+                    name="readingsTopicPath"
+                    onChange={handleTextChange}
+                    label={t("cloud.mqtt.readingsTopicPath.title")}
+                    type="text"
+                    fullWidth
+                    variant="standard"
+                    value={state.readingsTopicPath} />     
+            <FormHelperText disabled={ !state.enableMQTT} >{t("cloud.mqtt.readingsTopicPath.helper")}</FormHelperText>
           </FormGroup>  
           <FormGroup sx={{mt: "1em"}}>
               <FormLabel id="non-linear-slider"  disabled={ !state.enableMQTT}>
@@ -172,6 +201,17 @@ function Cloud() {
             <Box sx={{ width: "100%" }}>            
               <ValueSelect disabled={ !state.enableMQTT} availableValues={state.availableValues} setValues={state.infoTopic} label="Info Topic" onChanged={handleInfoTopicChange} />
             </Box>
+            <TextField
+                    disabled={ !state.enableMQTT}                    
+                    margin="dense"
+                    name="infoTopicPath"
+                    onChange={handleTextChange}
+                    label={t("cloud.mqtt.infoTopicPath.title")}
+                    type="text"
+                    fullWidth
+                    variant="standard"
+                    value={state.infoTopicPath} />     
+            <FormHelperText disabled={ !state.enableMQTT} >{t("cloud.mqtt.infoTopicPath.helper")}</FormHelperText>
           </FormGroup>  
         </FormScreen>                      
       </Container>

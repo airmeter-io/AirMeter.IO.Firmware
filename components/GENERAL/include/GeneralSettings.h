@@ -13,15 +13,14 @@ class GeneralSettings : public SettingsBase {
 
    std::string _deviceName = "device";
    std::string _apPassword = "";
-   std::string _mqttServerAddress = "";
-   std::string _mqttTopic = "CO2Monitors/%DEVICE_NAME%";
+
    std::string _primaryNtpServer = "pool.ntp.org";
    std::string _secondaryNtpServer = "";
    CO2SensorType _sensorType =  CO2SensorType::None;
-   int _sensorUpdateInterval = 10;
-   bool _enableMqtt  = false;
+   int _sensorUpdateInterval = 60;
+
    bool _enableDhcpNtp = false;
-   int _mqttPublishSecondDelay = 5*60;
+  
    bool _enablePowerSave = true;
    int _backgroundCO2 = 400;
 
@@ -35,15 +34,7 @@ public:
     std::string GetDeviceName();
     void SetDeviceName(const std::string& pDeviceName);
     std::string GetApPassword();
-    void SetApPassword(const std::string& pPassword);
-    std::string& GetMqttServerAddress();
-    void SetMqttServerAddress(const std::string& pAddress);
-    std::string GetMqttTopic();
-    void SetMqttTopic(const std::string& pTopic);
-    bool GetEnableMqtt();
-    void SetEnableMqtt(bool pValue);
-    int GetMqttPublishDelay();
-    void SetMqttPublishDelay(int pDelayInSeconds);
+    void SetApPassword(const std::string& pPassword);    
     bool GetEnableDhcpNtp();
     void SetEnableDhcpNtp(bool pValue);
     std::vector<std::string*> GetNtpServers();

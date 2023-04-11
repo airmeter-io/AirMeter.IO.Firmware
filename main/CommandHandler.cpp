@@ -4,7 +4,7 @@
 #include "ViewCommands.h"
 
 
-CommandHandler::CommandHandler(WifiTask& pWifi, GeneralSettings& pSettings, DataManager& pDataManager): 
+CommandHandler::CommandHandler(WifiTask& pWifi, GeneralSettings& pSettings, DataManager& pDataManager, MqttManager& pMqttManager): 
     HttpUrlHandler({"/command"}, HTTP_POST ), _wifi(pWifi),  _settings(pSettings) {
     RegisterCommand(new CalibrationCommand(pSettings));
     RegisterCommand(new SaveSettingsCommand(pSettings));
@@ -16,7 +16,7 @@ CommandHandler::CommandHandler(WifiTask& pWifi, GeneralSettings& pSettings, Data
     RegisterCommand(new GetSystemInfoCommand(pSettings));
     RegisterCommand(new GetHistoricalDataCommand(pDataManager));
     RegisterCommand(new DataManagementCommand(pSettings, pDataManager));
-    RegisterCommand(new MqttManagementCommand(pSettings));
+    RegisterCommand(new MqttManagementCommand(pMqttManager, pSettings));
 }
 
 CommandHandler::~CommandHandler() {

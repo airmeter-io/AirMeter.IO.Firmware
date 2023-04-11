@@ -27,16 +27,8 @@ void GeneralSettings::LoadSettingsFromJson(Json& pJson) {
         _deviceName = pJson.GetStringProperty("DeviceNetName");
     if(pJson.HasProperty("ApPassword"))
         _apPassword = pJson.GetStringProperty("ApPassword");        
-    if(pJson.HasProperty("EnableMqtt"))
-        _enableMqtt = pJson.GetBoolProperty("EnableMqtt");
     if(pJson.HasProperty("EnableDhcpNtp"))
-        _enableDhcpNtp = pJson.GetBoolProperty("EnableDhcpNtp");
-    if(pJson.HasProperty("MqttServerAddress"))
-        _mqttServerAddress = pJson.GetStringProperty("MqttServerAddress");
-    if(pJson.HasProperty("MqttTopic"))
-        _mqttTopic = pJson.GetStringProperty("MqttTopic");    
-    if(pJson.HasProperty("MqttPublishSecondDelay"))
-        _mqttPublishSecondDelay = pJson.GetIntProperty("MqttPublishSecondDelay");           
+        _enableDhcpNtp = pJson.GetBoolProperty("EnableDhcpNtp");                 
     if(pJson.HasProperty("CO2SensorType")) 
         _sensorType = (CO2SensorType)pJson.GetIntProperty("CO2SensorType");
     if(pJson.HasProperty("SensorUpdateInterval")) 
@@ -51,39 +43,11 @@ void GeneralSettings::LoadSettingsFromJson(Json& pJson) {
 void GeneralSettings::SaveSettingsToJson(Json& pJson) {    
     pJson.CreateStringProperty("DeviceNetName", _deviceName);
     pJson.CreateStringProperty("ApPassword", _apPassword);
-    pJson.CreateBoolProperty("EnableMqtt", _enableMqtt);
     pJson.CreateBoolProperty("EnableDhcpNtp", _enableDhcpNtp);
-    pJson.CreateStringProperty("MqttTopic", _mqttTopic);
-    pJson.CreateNumberProperty("MqttPublishSecondDelay", _mqttPublishSecondDelay);
-    pJson.CreateStringProperty("MqttServerAddress", _mqttServerAddress);
     pJson.CreateNumberProperty("CO2SensorType", (int)_sensorType);
     pJson.CreateNumberProperty("SensorUpdateInterval", _sensorUpdateInterval);
     pJson.CreateBoolProperty("EnablePowerSave", _enablePowerSave);
     pJson.CreateNumberProperty("BaselineBackgroundCO2", _backgroundCO2);
-}
-
-std::string& GeneralSettings::GetMqttServerAddress() {
-  return _mqttServerAddress;
-}
-
-void GeneralSettings::SetMqttServerAddress(const std::string& pValue) {
-   _mqttServerAddress = pValue;
-}
-
-bool GeneralSettings::GetEnableMqtt() { 
-    return _enableMqtt;
-}
-
-void GeneralSettings::SetEnableMqtt(bool pValue) {
-    _enableMqtt = pValue;
-}
-
-int GeneralSettings::GetMqttPublishDelay() {
-    return _mqttPublishSecondDelay;
-}
-
-void GeneralSettings::SetMqttPublishDelay(int pDelay) {
-    _mqttPublishSecondDelay = pDelay;
 }
 
 bool GeneralSettings::GetEnableDhcpNtp() {
@@ -134,13 +98,7 @@ void GeneralSettings::SetApPassword(const std::string& pPassword) {
     _apPassword = pPassword;
 }
 
-std::string GeneralSettings::GetMqttTopic() {
-    return _mqttTopic;
-}
 
-void GeneralSettings::SetMqttTopic(const std::string& pTopic) {
-    _mqttTopic = pTopic;
-}
 
 CO2SensorType GeneralSettings::GetCO2SensorType() {
     return _sensorType;

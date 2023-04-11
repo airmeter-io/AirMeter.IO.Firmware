@@ -1,5 +1,9 @@
 #include "Mqtt.h"
 
+extern "C" {
+    #include "esp_crt_bundle.h"
+}
+
 static const char *TAG = "MQTT";
 
 
@@ -21,9 +25,14 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
     mqtt->ProcessEvent(eventData);
 }
 
-Mqtt::Mqtt(const std::string& pServerAddress) {
+Mqtt::Mqtt(const std::string& pServerAddress, const std::string& pUsername, const std::string& pPassword) {
     memset(&_clientConfig, 0, sizeof(_clientConfig));
-    _clientConfig.broker.address.uri = pServerAddress.c_str();
+    _clientConfig.broker.address.uri = pServerAddress.c_str();   
+    _clientConfig.broker.verification.crt_bundle_attach=esp_crt_bundle_attach;
+    if(pUsername.size()>0)
+        _clientConfig.credentials.username = pUsername.c_str();
+    if(pPassword.size()>0)
+        _clientConfig.credentials.authentication.password = pPassword.c_str();
     _client = esp_mqtt_client_init(&_clientConfig);
     esp_mqtt_client_register_event(_client, (esp_mqtt_event_id_t)ESP_EVENT_ANY_ID, mqtt_event_handler, this);
     esp_mqtt_client_start(_client);

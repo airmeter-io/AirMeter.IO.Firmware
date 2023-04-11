@@ -7,6 +7,7 @@
 #include "Json.h"
 #include "DataManager.h"
 #include <string>
+#include "MqttManager.h"
 
 
 class SaveSettingsCommand : public HttpJsonCommand  {
@@ -90,9 +91,10 @@ public:
 
 
 class MqttManagementCommand : public HttpJsonCommand  {
+    MqttManager& _mqttManager;
     GeneralSettings& _settings;
     public:
-        MqttManagementCommand(GeneralSettings& pSettings);
+        MqttManagementCommand(MqttManager& pMqttManager, GeneralSettings& pSettings);
         void Process(Json& pJson,Json& pResult) override ;
         std::string GetName() override ;
 };

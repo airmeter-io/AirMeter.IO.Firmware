@@ -34,7 +34,7 @@ class Mqtt : private MqttInternal {
     std::map<MqttPublishTopic*,int> _publishedTopicsMsgIds;
     void ProcessEvent(esp_mqtt_event_handle_t pEvent) override;
 public:
-    Mqtt(const std::string& pServerAddress);
+    Mqtt(const std::string& pServerAddress, const std::string& pUsername, const std::string& pPassword);
     ~Mqtt();
 
     void Publish(MqttPublishTopic* pTopic);

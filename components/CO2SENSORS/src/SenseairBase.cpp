@@ -13,6 +13,7 @@ const ValueIdentifier SUNRISE_ABCPERIOD             = { .Id = 1067, .Grouping = 
 const ValueIdentifier SUNRISE_ABCTARGET             = { .Id = 1068, .Grouping = GROUP_SUNRISE, .Name = "AbcTarget"};
 const ValueIdentifier SUNRISE_IRFILTER              = { .Id = 1069, .Grouping = GROUP_SUNRISE, .Name = "IRFilter"};
 const ValueIdentifier SUNRISE_METERCONTROL          = { .Id = 1070, .Grouping = GROUP_SUNRISE, .Name = "MeterControl"};
+const ValueIdentifier SUNRISE_CO2SMOOTHED           = { .Id = 1071, .Grouping = GROUP_SUNRISE, .Name = "CO2Smoothed"};
 
 SenseairBase::SenseairBase()  {
     _valMaxPPM.i = 5000;
@@ -30,6 +31,7 @@ SenseairBase::SenseairBase()  {
     AddValueSource(new ValueSource(*this,SUNRISE_ABCTARGET,             Int,    Dimensionless, _valAbcTarget, GET_LATEST_DATA));
     AddValueSource(new ValueSource(*this,SUNRISE_IRFILTER,              Int,    Dimensionless, _valFilter, GET_LATEST_DATA));
     AddValueSource(new ValueSource(*this,SUNRISE_METERCONTROL,          String, Dimensionless, _valMeterControl, GET_LATEST_DATA));
+    AddValueSource(new ValueSource(*this,SUNRISE_CO2SMOOTHED,           Int,    Dimensionless, _valCO2Smoothed, GET_LATEST_DATA));
 }
 
 #define SENSOR_STATUS_MSB_LOW_VOLTAGE_ERROR 1
@@ -95,4 +97,14 @@ SenseairBase::SenseairBase()  {
     
     _valIsHeatingUp.b = pInput[1] & SENSOR_STATUS_LSB_NO_MEASUREMENT_COMPLETED;
 
+}
+
+void SenseairBase::UpdateSmoothed(uint16_t pUnfilteredValue) {
+    _previousUnfilteredValues.push_back(pUnfilteredValue);
+    if(_previousUnfilteredValues.size() > UnfilteredWindowSize)
+        _previousUnfilteredValues.erase(_previousUnfilteredValues.begin());
+    uint32_t result = 0;
+    for(auto val : _previousUnfilteredValues)
+        result+=val;
+    _valCO2Smoothed.i = result / _previousUnfilteredValues.size();
 }

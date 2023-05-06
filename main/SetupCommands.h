@@ -5,7 +5,7 @@
 #include "WifiTask.h"
 #include "GeneralSettings.h"
 #include "Json.h"
-#include "DataManager.h"
+#include "DataManagerStore.h"
 #include <string>
 #include "MqttManager.h"
 
@@ -82,9 +82,9 @@ public:
 
 class DataManagementCommand : public HttpJsonCommand  {
     GeneralSettings& _settings;
-    DataManager& _manager;
+    DataManagerStore& _manager;
 public:
-    DataManagementCommand(GeneralSettings& pSettings, DataManager& pManager) ;
+    DataManagementCommand(GeneralSettings& pSettings, DataManagerStore& pManager) ;
     void Process(Json& pJson,Json& pResult) override ;
     std::string GetName() override ;
 };

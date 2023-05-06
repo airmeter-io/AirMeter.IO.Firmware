@@ -2,6 +2,7 @@
 #include "CaptiveDNS.h"
 #include "CommonValueNames.h"
 
+
 static void WifiStationTaskEntry(void *arg)
 {
     (((WifiTask*)arg))->StationConnectLoop();
@@ -59,7 +60,7 @@ void WifiTask::ApTaskMain() {
 
 WifiTask::WifiTask(const std::string& pDeviceName, const std::string& pApPassword) : _apSSID(pDeviceName), _apPassword(pApPassword) {
     _wifiSettings = new WifiSettings();
-    _manager = new WifiManager(*this);
+    _manager = new WifiManager(*this, pDeviceName);
     _stationSemaphore = xSemaphoreCreateBinary();
     _searchSemaphore = xSemaphoreCreateBinary();
     _uiMutex = xSemaphoreCreateMutex();

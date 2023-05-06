@@ -1,8 +1,8 @@
 idf_component_register(
-  SRCS "src/DataManager.cpp"
-    "src/DataManagerFlashDataStore.cpp"
+  SRCS "src/DataManagerStore.cpp"
+    "src/DataManagerStoreBucket.cpp"
     "src/DataManagerQuery.cpp"
-    "src/DataManagerRamTemporaryStore.cpp"
+    "src/DataManagerStoreBucketReader.cpp"
   INCLUDE_DIRS "include"
               "../../common"
   REQUIRES "json"
@@ -15,4 +15,5 @@ idf_component_register(
           "esp_http_server"
           "driver"
           "esp_wifi"
+          "VALUES"
 )

@@ -21,7 +21,7 @@ class GeneralSettingsView {
 
         this._values = {
             deviceName: result.DeviceName,
-            enablePowerSaving: result.EnablePowerSave === "true"
+            enablePowerSaving: result.EnablePowerSave === true
         };
                 
         return structuredClone(this._values);

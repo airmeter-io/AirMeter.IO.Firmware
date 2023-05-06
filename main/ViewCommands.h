@@ -2,7 +2,7 @@
 
 #include "Common.h"
 #include "HttpUrlHandler.h"
-#include "DataManager.h"
+#include "DataManagerStore.h"
 #include "Json.h"
 
 class GetLatestDataCommand : public HttpJsonCommand  {
@@ -14,9 +14,9 @@ class GetLatestDataCommand : public HttpJsonCommand  {
 };
 
 class GetHistoricalDataCommand : public HttpJsonCommand  {
-    DataManager& _manager;
+    DataManagerStore& _manager;
     public:
-        GetHistoricalDataCommand(DataManager& pManager);
+        GetHistoricalDataCommand(DataManagerStore& pManager);
         void Process(Json& pJson,Json& pResult) override;
         void ProcessFullResponse(Json& pJson, HttpRequest& pReq ) override;
         std::string GetName() override;

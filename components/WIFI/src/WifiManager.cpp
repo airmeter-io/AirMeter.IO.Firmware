@@ -6,6 +6,10 @@
 extern "C" {
     #include "esp_mac.h"
 }
+extern "C" {
+    #include "esp_netif.h"
+}
+
 
 static void WifiManageEventHandler(void* pArg, esp_event_base_t pEventBase, int32_t pEventId, void* pEventData)
 {
@@ -187,6 +191,7 @@ void WifiManager::ProcessScanDoneEvent(wifi_event_sta_scan_done_t* pEvent) {
 }
 
 void WifiManager::ProcessWifiStationStartEvent(){
+    esp_netif_set_hostname(_staIf, _hostname.c_str());
     _callbacks.OnWifiStarted();
 }
 
@@ -287,7 +292,7 @@ wifi_auth_mode_t WifiManager::GetAuthModeFromText(std::string pAuthMode) {
     return wifi_auth_mode_t::WIFI_AUTH_MAX; 
 }
 
-WifiManager::WifiManager(WifiManagerCallBacks& pCallbacks) : _callbacks(pCallbacks) {
+WifiManager::WifiManager(WifiManagerCallBacks& pCallbacks, const std::string& pHostname) : _hostname(pHostname), _callbacks(pCallbacks) {
     uint8_t mac[6];
 
 

@@ -60,7 +60,7 @@ class CalibrationSettingsView {
         var result = await connection.executeCommand("CALIBRATE", pCmd=>pCmd.Mode = "Info");
 
         this._values = {
-          enableAbc: result.Co2.IsABCEnabled ==="true",
+          enableAbc: result.Co2.IsABCEnabled ===true,
           abcFrequency: parseInt(result.Co2.ABCHoursPerCycle),
           minAbcFrequency: parseInt(result.Co2.ABCMinHoursPerCycle),
           maxAbcFrequency: parseInt(result.Co2.ABCMaxHoursPerCycle),
@@ -90,7 +90,7 @@ class CalibrationSettingsView {
     public async Calibrate() : Promise<ICalibrationResult> {
       var result = await connection.executeCommand("CALIBRATE", pCmd=>pCmd.Mode = "Perform");     
       return {
-        success: result.Status==="true",
+        success: result.Status===true,
         message: ""
       };
     }

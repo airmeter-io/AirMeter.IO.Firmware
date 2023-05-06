@@ -40,7 +40,7 @@ PinSerial* CreateSerial(const UartConfig& pConfig) {
 
 #endif
 
-SensorManager::SensorManager(DevicePersonality& pDevicePersonality,GeneralSettings& pSettings, I2C& pI2C, DataManager& pDataManager) : 
+SensorManager::SensorManager(DevicePersonality& pDevicePersonality,GeneralSettings& pSettings, I2C& pI2C, DataManagerStore& pDataManager) : 
     _settings(pSettings), 
     _devicePersonality(pDevicePersonality),
     _i2c(pI2C), 
@@ -109,42 +109,18 @@ void SensorManager::DisableSensorReadGPIO() {
     ESP_ERROR_CHECK(gpio_set_level(SENSOR_ENABLE_GPIO,0));
 }
 
-
-
 time_t SensorManager::UpdateValues() {
     time_t curTime;
     time(&curTime);
     if(curTime - _lastSensorRead >= _settings.GetSensorUpdateInterval()) {
-      
-        
         EnableSensorReadGPIO();
         if(_co2Sensor) _co2Sensor->RefreshValues();
         
         _bme->ReadSensorValues();
         DisableSensorReadGPIO();
-        _lastSensorRead = curTime;
-        time(&curTime);
-
-        auto co2ValueSource = ValueController::GetCurrent().GetDefault(GROUP_CO2,CO2VALUE.Name);   
-        auto tempSource = ValueController::GetCurrent().GetDefault(GROUP_ATMOSPHERE, TEMPERATURE.Name);    
-        auto humiditySource = ValueController::GetCurrent().GetDefault(GROUP_ATMOSPHERE, HUMIDITY.Name);
-        auto pressureSource = ValueController::GetCurrent().GetDefault(GROUP_ATMOSPHERE, PRESSURE.Name);
-        auto co2 = co2ValueSource ? (uint16_t)(co2ValueSource->GetValue().i) : (uint16_t)0;
-        auto temp = (uint16_t)tempSource->GetValue().i;
-        auto humidity = (uint16_t)humiditySource->GetValue().i;
-        auto pressure = (uint)pressureSource->GetValue().i- 80000;
-
-        DataEntry entry = {
-            .TimeStamp = curTime,
-            .Temp = (int16_t)temp,
-            .CO2 = co2,
-            .Humidity = humidity, 
-            .Pressure = (uint16_t)pressure
-        };
-
-        _dataManager.WriteEntry(entry);
-        time(&curTime);
-       
+        _lastSensorRead = curTime;    
+        if(_lastSensorRead> 310000000)   // Oct 28th 1979
+            _dataManager.WriteRecord();       
     }   
     return _settings.GetSensorUpdateInterval() - (curTime - _lastSensorRead); 
 }

@@ -1,6 +1,7 @@
 #pragma once
 #include "Common.h"
 #include "CO2Sensor.h"
+#include <vector>
 
 enum MeterControlModes {
     nRDYEnabled = 1,
@@ -12,12 +13,15 @@ enum MeterControlModes {
 };
 
 class SenseairBase : public CO2Sensor {
+    const uint16_t UnfilteredWindowSize = 5;
+    std::vector<uint16_t> _previousUnfilteredValues;
+
 protected:
     std::string _temp;
     std::string _measurementInfo;
     std::string _error;
 
-
+    
 
     std::string _meterControl;
     Value _valFirmwareType = { .i = 0 };
@@ -30,7 +34,9 @@ protected:
     Value _valAbcTarget = { .i = 0 };
     Value _valFilter = { .i = 0 };
     Value _valMeterControl = { .s = &_meterControl };
+    Value _valCO2Smoothed = {.i = 400 };
     void UpdateErrorStatus(uint8_t* pInput);
+    void UpdateSmoothed(uint16_t pUnfilteredValue);
 public:
     SenseairBase();
    

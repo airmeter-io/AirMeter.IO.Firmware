@@ -9,13 +9,13 @@ class SenseairI2CSensor : public SenseairBase {
     bool _hasDataRestore = false;
     ISensorManager *_sensorManager;
     uint8_t _sensorStateData[25] = { 0x1 };
-    const std::string SOURCE_NAME = "SenseairI2C";;
+    const std::string SOURCE_NAME = "SenseairI2C";
     void ReadFirmwareType();
     void ReadFirmwareVersion();
     void ReadSensorID();
     void ReadCalibrationStatus();
     void ReadMeasurementModeInfo();
-
+    bool WriteIRFilter(uint8_t pIRFilter);
     bool WriteCalibrationStatus(uint8_t pStatus);
     bool WriteCalibrationCommand(uint8_t pByte1, uint8_t pByte2);
 

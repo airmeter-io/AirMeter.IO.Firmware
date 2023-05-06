@@ -78,8 +78,7 @@ class WifiManager : private WifiManagerInternal {
     const std::string _softApName;
     esp_netif_t *_staIf;
     esp_netif_t *_apIf;
-    std::string _netmask;
-    std::string _gateway;
+    std::string _hostname;
     bool _wifiIsStarted = false;
     WifiManagerCallBacks& _callbacks;
    
@@ -107,7 +106,7 @@ class WifiManager : private WifiManagerInternal {
     static std::string GetAuthModeText(wifi_auth_mode_t pAuthMode);    
     static wifi_auth_mode_t GetAuthModeFromText(std::string pAuthMode);
 public:
-    WifiManager(WifiManagerCallBacks& pCallbacks);
+    WifiManager(WifiManagerCallBacks& pCallbacks, const std::string& pHostname);
     ~WifiManager();
   
     bool HasStationConfiguration();

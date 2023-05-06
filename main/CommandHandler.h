@@ -5,7 +5,7 @@
 #include "WifiTask.h"
 #include "Json.h"
 #include "GeneralSettings.h"
-#include "DataManager.h"
+#include "DataManagerStore.h"
 #include "MqttManager.h"
 
 
@@ -15,7 +15,7 @@ private:
     GeneralSettings& _settings;
     
 public:
-    CommandHandler(WifiTask& pWifi, GeneralSettings& pSettings, DataManager& pDataManager, MqttManager& pMqttManager);
+    CommandHandler(WifiTask& pWifi, GeneralSettings& pSettings, DataManagerStore& pDataManager, MqttManager& pMqttManager);
     ~CommandHandler();
 
     void ProcessRequest(HttpRequest *pReq) override;

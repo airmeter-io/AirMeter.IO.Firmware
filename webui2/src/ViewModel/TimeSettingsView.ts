@@ -22,7 +22,7 @@ class TimeSettingsView {
         this._values = {
             ntp1: result.PrimaryNtpServer,
             ntp2: result.SecondaryNtpServer,
-            enableDhcp: result.EnableDhcpNtp === "true"
+            enableDhcp: result.EnableDhcpNtp === true
         };
            
         return structuredClone(this._values);

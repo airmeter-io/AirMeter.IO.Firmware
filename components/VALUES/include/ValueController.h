@@ -47,7 +47,8 @@ enum ValueSourceFlags {
     DEFAULT_MQTTINFO = 4,
     GET_LATEST_DATA = 8,
     CALIBRATION_INFO = 16,
-    NETWORK_INFO = 32
+    NETWORK_INFO = 32,
+    DATALOG_AVAILABLE = 64
 };
 
 MAKE_ENUM_FLAGS(ValueSourceFlags);
@@ -60,6 +61,8 @@ class ValueSource {
     Value& _value;
     ValueSourceFlags _flags;
     uint _priority;
+    int _min;
+    int _max;
     bool _includeInMqttReadings;
     bool _includeInMqttInfo;
     bool _includeInDataLog;
@@ -71,6 +74,8 @@ public:
         ValueUnit pUnit, 
         Value& pValue,
         ValueSourceFlags pFlags = VALUESOURCE_NOFLAGS,
+        int pMin = 0, 
+        int pMax = 0,
         uint pPriority = 0
         );
 
@@ -87,6 +92,14 @@ public:
     inline void SetIsIncludedInMQTTReadings(bool pIncluded) { _includeInMqttReadings = pIncluded; }
     inline void SetIsIncludedInMQTTInfo(bool pIncluded) { _includeInMqttInfo = pIncluded; }
     inline void SetIsIncludedInDatalog(bool pIncluded) { _includeInDataLog = pIncluded; }
+    inline int GetMin() { return _min;}
+    inline int GetMax() { return _max;}
+    inline int GetRange() { return _max - _min; };
+    inline int GetRequiredBits() {
+        auto j = 0;
+        for(auto i = GetRange(); i>0;  i>>=1, j++ );
+        return j;
+    }
     void SerialiseToJsonProperty(Json& pJson);
     Value GetValue();
     std::string GetValueAsString();
@@ -145,6 +158,7 @@ public:
 class ValueController : public SettingsBase {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
     std::vector<ValuesSource*> _sources;
     std::map<const std::string, ValueSourceGroupHolder*> _groups;
+    std::map<uint16_t, ValueSource*> _sourceById;
     static ValueController* _current;
 protected:
     const char* GetFilePath() override;
@@ -158,6 +172,7 @@ public:
     MethodSource* GetMethod(std::string pMethodGroup, std::string pMethodName);
     
     static ValueController& GetCurrent();
+    ValueSource* GetSourceById(uint16_t pValueSourceId);
 
     inline std::map<const std::string, ValueSourceGroupHolder*>& GetGroups() {
         return _groups;

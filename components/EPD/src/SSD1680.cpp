@@ -34,19 +34,19 @@ void SSD1680::SetRamDataEntryMode(SSD1680RamDataEntryMode pMode, uint16_t pWidth
     {
         case XDecreaseYDescrease: // x decrease, y decrease
             SetRamArea(pWidth / 8, 0, pHeight, 0, pXOffset);  // X-source area,Y-gate area
-            SetRamPointer(pWidth / 8, pHeight); // set ram
+            SetRamPointer(pWidth / 8, pHeight, pXOffset); // set ram
             break;
         case XIncreaseYDecrease: // x increase, y decrease : as in demo code
             SetRamArea(0, pWidth / 8, pHeight, 0, pXOffset);  // X-source area,Y-gate area
-            SetRamPointer(0, pHeight); // set ram
+            SetRamPointer(0, pHeight, pXOffset); // set ram
             break;
         case XDecreaseYIncrease: // x decrease, y increase
             SetRamArea(pWidth / 8, 0,0, pHeight, pXOffset);  // X-source area,Y-gate area
-            SetRamPointer(pWidth / 8, 0); // set ram
+            SetRamPointer(pWidth / 8, 0, pXOffset); // set ram
             break;
         case XIncreaseYIncrease: // x increase, y increase : normal mode
             SetRamArea(0, pWidth / 8, 0, pHeight, pXOffset);  // X-source area,Y-gate area
-            SetRamPointer(0, 0); // set ram
+            SetRamPointer(0, 0, pXOffset); // set ram
             break;
     }
 }
@@ -64,12 +64,12 @@ void SSD1680::SetRamArea(uint8_t pXStart, uint8_t pXEnd, uint16_t pYStart, uint1
 }
 
 
-void SSD1680::SetRamPointer(uint8_t pX, uint16_t pY) {
+void SSD1680::SetRamPointer(uint8_t pX, uint16_t pY, uint16_t pXOffset) {
     _spi.cmd(SetRamXAddressCounter);
-    _spi.data(pX+1);
+    _spi.data(pX+pXOffset);
     _spi.cmd(SetRamYAddressCounter);
-    _spi.data(pY % 255);
-    _spi.data(pY /255);
+    _spi.data(pY % (256-pXOffset));
+    _spi.data(pY /(256-pXOffset));
 }
 
 

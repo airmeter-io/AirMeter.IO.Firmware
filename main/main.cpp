@@ -34,9 +34,7 @@ MainLogicLoop::MainLogicLoop() {
     _i2c->Scan();
     _devicePersonality = DevicePersonality::Load();
     _generalSettings = new GeneralSettings();
-    _ramStore = new DataManagerRamTemporaryStore();
-    _flashStore = new DataManagerFlashDataStore();
-    _dataManager = new DataManager(_flashStore,_ramStore);
+    _dataManager = new DataManagerStore();    
     _sensorManager = new SensorManager(*_devicePersonality, *_generalSettings, *_i2c, *_dataManager);
     _screenDrivers = new ScreenDrivers();
 
@@ -161,12 +159,18 @@ void MainLogicLoop::Run() {
 std::vector<int> MainLogicLoop::ResolveTimeSeries(std::string pName, uint32_t pSecondsInPast, uint32_t pSteps) {
     std::vector<int> result(pSteps,0);
     std::vector<int> resultCounts(pSteps,0);
-    if(pName!="CO2Ppm" &&
-       pName!="Temp" &&
-       pName!="Pressure" &&
-       pName!="Humidity")
+
+    auto  pos = pName.find (".");
+    ValueSource* valueSource = nullptr;
+    if(pos!=std::string::npos) {
+        auto group =  pName.substr(0, pos);
+        auto name = pName.substr(pos+1,std::string::npos);
+        valueSource = ValueController::GetCurrent().GetDefault(group, name);
+    }
+    if(valueSource == nullptr)
        return std::vector<int>();
-    
+    std::vector<ValueSource*> values;
+    values.push_back(valueSource);
 
     time_t curTime;
     time(&curTime);
@@ -174,35 +178,28 @@ std::vector<int> MainLogicLoop::ResolveTimeSeries(std::string pName, uint32_t pS
         curTime+=(pSecondsInPast/pSteps)-(curTime % (pSecondsInPast/pSteps));
 
     auto startTime = curTime-pSecondsInPast;
-    auto query = _dataManager->StartQuery(startTime, curTime);
+    DataManagerQuery query(values, *_dataManager,startTime, curTime);
+
     const auto maxEntries = 60;
     const auto multiplier = 100;
-    auto entries = (DataEntry*)calloc(maxEntries, sizeof(DataEntry));
-
-    auto read = query->ReadEntries(entries, maxEntries);
+    DataManagerQueryResults resultData(values, maxEntries);
+    auto read = query.ReadEntries(&resultData);
     auto perStep = (pSecondsInPast*multiplier)/pSteps;
     while(read>0) {
         for(auto i = 0; i < read; i++)
         {
-            auto step = ((entries[i].TimeStamp-startTime)*multiplier)/perStep;
+            auto step = ((resultData.GetTimeStamps()[i]-startTime)*multiplier)/perStep;
 
             if(step<0 || step >= pSteps) {
                 printf("Step out of range %d\n",(int)step);
                 continue;
             }
-            if(pName=="CO2Ppm")
-                result[step]+=entries[i].CO2;
-            else if (pName=="Temp")
-                result[step]+=entries[i].Temp;
-            else if (pName=="Pressure") 
-                result[step]+=entries[i].Pressure;
-            else if (pName=="Humidity") 
-                result[step]+=entries[i].Humidity;
-            
+
+            result[step]+=resultData.GetValues()[i];            
             resultCounts[step]++;
         }
         esp_task_wdt_reset();
-        read = query->ReadEntries(entries, maxEntries);
+        read = query.ReadEntries(&resultData);
         esp_task_wdt_reset();
     }
     int last = 0;
@@ -214,8 +211,6 @@ std::vector<int> MainLogicLoop::ResolveTimeSeries(std::string pName, uint32_t pS
         } else
             result[i] = last;
     }
-    free(entries);
-    delete query;
     return result;
 }
 

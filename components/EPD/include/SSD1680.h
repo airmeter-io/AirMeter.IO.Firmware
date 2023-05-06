@@ -80,7 +80,7 @@ class SSD1680 {
     std::vector<gpio_num_t> _gpios;
     GpioGroup _group;
     void SetRamArea(uint8_t pXStart, uint8_t pXEnd, uint16_t pYStart, uint16_t pYEnd, uint16_t pXOffset);
-    void SetRamPointer(uint8_t pX, uint16_t pY);
+    void SetRamPointer(uint8_t pX, uint16_t pY, uint16_t pXOffset);
     void WaitBusy(const char* message, uint16_t busy_time);
     void WaitBusy2(const char* message, uint16_t busy_time);
     void WaitBusy(const char* message);

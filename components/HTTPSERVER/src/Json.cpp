@@ -64,6 +64,9 @@ std::string trim(const std::string &s) {
 }
 
 bool Json::GetBoolProperty(const std::string& pProperty) {
+    auto result= cJSON_GetObjectItemCaseSensitive(_json, pProperty.c_str());
+    if(cJSON_IsBool(result))
+        return cJSON_IsTrue(result);
     auto resultStr = trim(GetStringProperty(pProperty));
     return resultStr.compare("true") == 0;
 }
@@ -112,7 +115,7 @@ bool Json::HasArrayProperty(const std::string& pProperty) {
 }
 
 void Json::CreateNumberProperty(const std::string& pProperty, double pValue) {
-    CreateStringProperty(pProperty, std::to_string(pValue)); 
+    cJSON_AddNumberToObject(_json, pProperty.c_str(), pValue);
 }
 
 void Json::CreateStringProperty(const std::string& pProperty, const std::string& pValue) {
@@ -120,11 +123,11 @@ void Json::CreateStringProperty(const std::string& pProperty, const std::string&
 }
 
 void Json::CreateNumberProperty(const std::string& pProperty, int pValue) {
-    CreateStringProperty(pProperty, std::to_string(pValue));
+    cJSON_AddNumberToObject(_json, pProperty.c_str(), pValue);    
 }
 
 void Json::CreateBoolProperty(const std::string& pProperty, bool pValue) {
-   CreateStringProperty(pProperty, pValue? "true" : "false");
+    cJSON_AddBoolToObject(_json, pProperty.c_str(), pValue);
 }
 
 void Json::CreateArrayProperty(const std::string& pProperty, std::vector<Json*>& pElements) {

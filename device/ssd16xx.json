@@ -18,7 +18,7 @@
     "GDEM0213B74": {  
         "Width": 128,
         "Height": 250,        
-        "RamXOffset": 0,
+        "RamXOffset": 01,
         "PingPong": "false"        
     }
 }

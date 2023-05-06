@@ -8,9 +8,8 @@
 #include "ButtonManager.h"
 #include "BME280.h"
 #include "StringWithValues.h"
+#include "DataManagerStore.h"
 #include "I2C.h"
-#include "DataManagerRamTemporaryStore.h"
-#include "DataManagerFlashDataStore.h"
 #include "ScreenManager.h"
 #include "MqttManager.h"
 #include "BatteryManager.h"
@@ -32,9 +31,7 @@ class MainLogicLoop : private StringValueSource, private ScreenManagerNotifier, 
     DevicePersonality* _devicePersonality = nullptr;
     //CO2MonitorDisplay* _display = nullptr;
     MqttManager* _mqtt = nullptr;
-    DataManagerRamTemporaryStore *_ramStore = nullptr;
-    DataManagerFlashDataStore *_flashStore;
-    DataManager *_dataManager = nullptr;
+    DataManagerStore *_dataManager = nullptr;
     ScreenManager *_screenManager = nullptr;
     BatteryManager *_battery = nullptr;
     WifiTask* _wifi = nullptr;

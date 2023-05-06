@@ -24,10 +24,10 @@ private:
     Value _valDeviceName { .s = &_deviceName };
     Value _valSwVersion { .s = &_softwareVersion };
 protected:
-    Value _valCo2 = { .i = 0 };
-    Value _valCo2Unfiltered = {.i = 0};
-    Value _valCo2Uncompensated { .i = 0};
-    Value _valCo2UnfilteredUncompensated { .i = 0};
+    Value _valCo2 = { .i = 400 };
+    Value _valCo2Unfiltered = {.i = 400};
+    Value _valCo2Uncompensated { .i = 400};
+    Value _valCo2UnfilteredUncompensated { .i = 400};
     Value _valMaxPPM { .i = 2000 };
     Value _valMaxBasePPM { .i = 2000};
     Value _valMinBasePPM { .i = 400 };

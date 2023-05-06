@@ -55,6 +55,8 @@ SenseairI2CSensor::SenseairI2CSensor(I2CDeviceSession* pSession, ISensorManager*
         WriteRegister((uint8_t)SENSEAIR_I2C_RERISTERS::MEASUREMENT_MODE, &mode, sizeof(mode));
         ReadMeasurementModeInfo();
     }
+    if(_valFilter.i != 2)
+        WriteIRFilter(2);
 }
 
 
@@ -92,6 +94,7 @@ bool SenseairI2CSensor::RefreshValues() {
                 _valCo2Uncompensated.i = ppmBytes[12]*256 + ppmBytes[13];
                 _valCo2UnfilteredUncompensated.i = ppmBytes[14]*256 + ppmBytes[15];
                 measurementSeconds*=2;
+                UpdateSmoothed(_valCo2Unfiltered.i);
             _temp = std::to_string(tempRaw/100)+"."+std::to_string(tempRaw % 100);
 
             _measurementInfo = std::to_string(measurementSeconds) + "s since reading #"+std::to_string(measurementCount);
@@ -118,6 +121,9 @@ bool SenseairI2CSensor::RefreshValues() {
     return true;
 }
 
+bool SenseairI2CSensor::WriteIRFilter(uint8_t pIRFilter) {
+    return WriteRegister((uint8_t)SENSEAIR_I2C_RERISTERS::IIR_FILTER_PARMETER, (const uint8_t*)&pIRFilter, sizeof(pIRFilter));
+}
 
 bool SenseairI2CSensor::WriteCalibrationStatus(uint8_t pStatus) {
     return WriteRegister((uint8_t)SENSEAIR_I2C_RERISTERS::CALIBRATION_STATUS, (const uint8_t*)&pStatus, sizeof(pStatus));
@@ -208,12 +214,12 @@ void SenseairI2CSensor::ReadMeasurementModeInfo() {
         auto meterControl = values[16];
         _meterControl = "";
 
-        if(meterControl & (int)MeterControlModes::nRDYEnabled) _meterControl+="nRDY ";
-        if(meterControl & (int)MeterControlModes::ABCEnabled) _meterControl+="ABC ";
-        if(meterControl & (int)MeterControlModes::StaticIREnabled) _meterControl+="StaticIR ";
-        if(meterControl & (int)MeterControlModes::DynmaicIREnabled) _meterControl+="DynmaicIR ";
-        if(meterControl & (int)MeterControlModes::PressureCompensationEnabled) _meterControl+="PressureCompensation ";
-        if(meterControl & (int)MeterControlModes::nRDNYPinInvert) _meterControl+="nRDNYPinInvert ";
+        if(!(meterControl & (int)MeterControlModes::nRDYEnabled)) _meterControl+="nRDY ";
+        if(!(meterControl & (int)MeterControlModes::ABCEnabled)) _meterControl+="ABC ";
+        if(!(meterControl & (int)MeterControlModes::StaticIREnabled)) _meterControl+="StaticIR ";
+        if(!(meterControl & (int)MeterControlModes::DynmaicIREnabled)) _meterControl+="DynmaicIR ";
+        if(!(meterControl & (int)MeterControlModes::PressureCompensationEnabled)) _meterControl+="PressureCompensation ";
+        if(!(meterControl & (int)MeterControlModes::nRDNYPinInvert)) _meterControl+="nRDNYPinInvert ";
 
     }
 }

@@ -263,7 +263,7 @@ std::string SelectWifiNetworkCommand::GetName() {
     return "SELECTNETWORK";   
 }
 
-DataManagementCommand::DataManagementCommand(GeneralSettings& pSettings, DataManager& pManager) : _settings(pSettings), _manager(pManager) {
+DataManagementCommand::DataManagementCommand(GeneralSettings& pSettings, DataManagerStore& pManager) : _settings(pSettings), _manager(pManager) {
 
 }
 
@@ -335,7 +335,7 @@ void DataManagementCommand::Process(Json& pJson,Json& pResult) {
 
             _settings.Save(); 
         } else if(mode=="Clear")  {
-             _manager.ClearAllData();
+             _manager.EraseAll();
         }  else {
             pResult.CreateBoolProperty("Status", false);
             return;    

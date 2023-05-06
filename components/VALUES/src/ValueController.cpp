@@ -8,6 +8,8 @@ ValueSource::ValueSource(
     ValueUnit pUnit, 
     Value& pValue,
     ValueSourceFlags pFlags,
+    int pMin, 
+    int pMax,
     uint pPriority) :
     _valuesSource(pValuesSource), 
     _identifier(pIdentifier), 
@@ -15,6 +17,9 @@ ValueSource::ValueSource(
     _unit(pUnit), 
     _value(pValue),
     _flags(pFlags),
+    _priority(pPriority),
+    _min(pMin),
+    _max(pMax),
     _includeInMqttReadings(pFlags & DEFAULT_MQTT),
     _includeInMqttInfo(pFlags & DEFAULT_MQTTINFO),
     _includeInDataLog(pFlags & DEFAULT_DATALOG) {
@@ -105,8 +110,12 @@ const std::vector<MethodSource*>& ValuesSource::GetMethodSources() const {
 
 void ValueController::RegisterSource(ValuesSource* pSource) {
     _sources.push_back(pSource);
+    
     for(auto source : pSource->GetValueSources()) {
         auto identifier = source->GetIdentifier();
+        if(!_sourceById.contains(identifier.Id) || _sourceById[identifier.Id]->GetPriority()<source->GetPriority()) {
+            _sourceById[identifier.Id] = source;
+        } 
         if(_groups.find(identifier.Grouping) == _groups.end()) {
             _groups[identifier.Grouping] = new ValueSourceGroupHolder();
         }
@@ -158,15 +167,10 @@ void ValueSource::SerialiseToJsonProperty(Json& pJson)
     case String:
         pJson.CreateStringProperty(_identifier.Name, *_value.s);
         break;
-    case Fixed:
-        char buf[20];
-        auto value = _value.i;
-        snprintf(buf, 
-                 sizeof(buf), 
-                 "%d.%.2d",  
-                 (int)(value / DEC_PLACE_MULTIPLIER), 
-                 (int)( abs(value) % DEC_PLACE_MULTIPLIER));
-        pJson.CreateStringProperty(_identifier.Name, buf);
+    case Fixed:        
+        double value = _value.i;
+        value/=DEC_PLACE_MULTIPLIER;
+        pJson.CreateNumberProperty(_identifier.Name, value);
         break;
     }
 }
@@ -300,4 +304,9 @@ ValueController& ValueController::GetCurrent() {
     if(_current == nullptr)
         _current = new ValueController();
     return *_current;
+}
+
+ValueSource* ValueController::GetSourceById(uint16_t pValueSourceId) {
+    if(!_sourceById.contains(pValueSourceId)) return nullptr;
+    return _sourceById[pValueSourceId];
 }

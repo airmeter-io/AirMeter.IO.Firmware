@@ -82,7 +82,7 @@ class CloudSettingsView {
         });
 
         this._mqttValues = {
-            enableMQTT: result.Enable === "true",
+            enableMQTT: result.Enable === true,
             frequency: this.getFrequencyIndex(result.PublishDelay),
             serverAddress: result.ServerAddress,
             username: result.Username,

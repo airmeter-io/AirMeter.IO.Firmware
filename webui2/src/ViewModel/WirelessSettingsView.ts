@@ -165,8 +165,8 @@ class WirelessSettingsView {
                         pCmd.Mode = "Status";                        
                     }, 2500);
 
-                    if(result.Testing==="false") {
-                        return result.TestSuccess==="true";
+                    if(result.Testing===false) {
+                        return result.TestSuccess===true;
                     }
                 }
 
@@ -196,7 +196,7 @@ class WirelessSettingsView {
                     var result = await connection.executeCommand("SELECTNETWORK", pCmd=>{
                         pCmd.Mode = "Status";                        
                     }, 2500);
-                    if(result.Applying==="false") {
+                    if(result.Applying===false) {
                         return true;
                     }
                 }

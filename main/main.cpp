@@ -29,6 +29,7 @@ static void i2ctask(void *arg)
 }
 
 MainLogicLoop::MainLogicLoop() {
+    printf("MLL\n");
     GpioManager::Setup();
     _i2c = new I2C(GPIO_NUM_4, GPIO_NUM_5);
     _i2c->Scan();
@@ -146,7 +147,7 @@ void MainLogicLoop::Run() {
         sntp = new SntpManager(_generalSettings->GetNtpServers(), _generalSettings->GetEnableDhcpNtp());
         sntp->Init();       
     }
-
+    _dataManager->ScanBuckets();
     _sensorManager->UpdateValues();
    
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)    
@@ -293,9 +294,9 @@ extern "C" void app_main(void)
     };
     
     MountSpiffs(conf);
-
+    printf("MLLCreate\n");
     mainLoop = new MainLogicLoop();
-   
+   printf("MLLTask\n");
     xTaskCreate(i2ctask, "i2ctask", 4096, NULL, 10, NULL);
     lock.Release();
 }

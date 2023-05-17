@@ -7,14 +7,18 @@
 #define TAG "DataManagerStore"
 
 DataManagerStore::DataManagerStore() {
-    for(auto groupPair : ValueController::GetCurrent().GetGroups())                
-        for(auto keyPair : groupPair.second->SourcesByName) {
-            auto source = keyPair.second->DefaultSource;
-            if(source->IsIncludedInDataLog() ) {
-                _values.push_back(source);
-            }                         
-        }       
-    ScanBuckets();
+    _partition = esp_partition_find_first((esp_partition_type_t)0x50,ESP_PARTITION_SUBTYPE_ANY, "readings");
+    _numBuckets = _partition->size/BUCKET_SIZE;
+    _buckets = (DataStoreBucketInfo*)calloc(sizeof(DataStoreBucketInfo), _numBuckets);
+ //   EraseAll();
+    if(_partition==nullptr) {
+        printf("Failed to find readings partition\n");
+        return;
+
+
+    }
+    printf("Readings partition found %u bytes\n", (unsigned int)_partition->size);
+    
 }
 
 DataManagerStore::~DataManagerStore() {
@@ -22,12 +26,21 @@ DataManagerStore::~DataManagerStore() {
 }
 
 void DataManagerStore::ScanBuckets() {
-    int openBucketOffset = -1;
-    uint32_t openBucketIndex = 0;
-    uint32_t maxCompletedBucketIndex = 0;
-    
+    _values.clear();
+    for(auto groupPair : ValueController::GetCurrent().GetGroups())                
+        for(auto keyPair : groupPair.second->SourcesByName) {
+            auto source = keyPair.second->DefaultSource;
+            if(source->IsIncludedInDataLog() ) {
+                _values.push_back(source);
+            }                         
+        }       
+
+
+    int32_t openBucketIndex = -1;
+    int32_t maxCompletedBucketIndex = -1;
     for(uint32_t offset = 0; offset < _partition->size; offset+=BUCKET_SIZE) {
         DataManagerStoreBucket bucket(_partition, offset, BUCKET_SIZE);
+        printf("%x: %d\n", (int)offset, (int)bucket.GetState());
         switch(bucket.GetState()) {
             case InvalidBucket :
                 bucket.Erase();
@@ -35,25 +48,22 @@ void DataManagerStore::ScanBuckets() {
             case UnusedBucket :
                 break;
             case DataManagerStoreBucketState::OpenBucket :                
-                if(openBucketOffset == -1 || bucket.GetHeader()->Index > openBucketIndex) 
+                if(openBucketIndex == -1 || bucket.GetHeader().BlockStartTime > _buckets[openBucketIndex].BlockStartTime) 
                 {
-                    openBucketOffset = offset;
-                    openBucketIndex = bucket.GetHeader()->Index;
+                    openBucketIndex = offset/BUCKET_SIZE;
                 }
                 break;
             case CompletedBucket :
-                if(bucket.GetHeader()->Index > maxCompletedBucketIndex)
-                    maxCompletedBucketIndex = bucket.GetHeader()->Index;
+                if(maxCompletedBucketIndex ==-1 ||  bucket.GetHeader().BlockStartTime > _buckets[maxCompletedBucketIndex].BlockStartTime)
+                    maxCompletedBucketIndex = bucket.GetHeader().Index;
                 break;
         }
         auto header = bucket.GetHeader();
-        _buckets[offset/BUCKET_SIZE]  = { .Offset = offset, .Index = header->Index, .BlockStartTime = header->BlockStartTime, .BlockEndTime = header->BlockEndTime, .DataLength = header->DataLength };
+        _buckets[offset/BUCKET_SIZE]  = { .Offset = offset, .Index = header.Index, .BlockStartTime = header.BlockStartTime, .BlockEndTime = header.BlockEndTime, .DataLength = header.DataLength, .NumReadings = header.NumReadings };
+    
     }
-    if(openBucketOffset!=-1 && maxCompletedBucketIndex>=openBucketIndex) {
-        ESP_LOGE(TAG, "Readings partition is corrupt. The max completed bucket index (%d) is greater than the open bucket index (%d). Erasing all buckets.", (int)maxCompletedBucketIndex, (int)openBucketIndex ); 
-        EraseAll();
-        return;
-    }
+   
+    printf("Openning bucket, OpenBucketIndex  = %d, maxCompleted = %d\n",(int)openBucketIndex, (int)maxCompletedBucketIndex);
     OpenBucket(openBucketIndex!=-1 ? openBucketIndex : maxCompletedBucketIndex+1);
 }
 
@@ -65,8 +75,10 @@ void DataManagerStore::EraseAll() {
             case  DataManagerStoreBucketState::OpenBucket :
             case CompletedBucket :
                 bucket.Erase();
+                printf("Erasing %x\n", (int)offset);
                 break;
             default:
+                printf("Not Erasing %x\n", (int)offset);
                 break;
         }
     } 
@@ -74,6 +86,7 @@ void DataManagerStore::EraseAll() {
 }
 
 void DataManagerStore::WriteRecord() {
+    if(_values.size()==0) return;
     if(!_bucket->WriteRecord()) {
         OpenBucket(_currentBucket+1);
         _bucket->WriteRecord();
@@ -81,11 +94,16 @@ void DataManagerStore::WriteRecord() {
 }
 
 void DataManagerStore::OpenBucket(uint32_t pIndex) {  
+    if(_values.size()==0) return;
     if(pIndex>=_partition->size / BUCKET_SIZE)
         pIndex = 0;  
-    if(_bucket!=nullptr)
+    if(_bucket!=nullptr) {
+        auto header = _bucket->GetHeader();
+        _buckets[_currentBucket] = { .Offset = _currentBucket*BUCKET_SIZE, .Index = header.Index, .BlockStartTime = header.BlockStartTime, .BlockEndTime = header.BlockEndTime, .DataLength = header.DataLength, .NumReadings = header.NumReadings };
         delete _bucket;
+    }
     _bucket = new DataManagerStoreBucket(_partition, pIndex*BUCKET_SIZE , BUCKET_SIZE);
+    printf("Opening bucket values = %d\n", (int)_values.size());
     _bucket->Open(_values);
     _currentBucket = pIndex;
 }
@@ -96,6 +114,18 @@ void DataManagerStore::GetBucketsForRange(time_t pFrom, time_t pTo, std::vector<
             !(_buckets[i].BlockStartTime<pFrom && _buckets[i].BlockEndTime<pTo) &&
             !(_buckets[i].BlockStartTime>pFrom && _buckets[i].BlockEndTime>pTo))
             pResult.push_back(&_buckets[i]);
+}
+
+void DataManagerStore::GetCurrentBucketInfo(DataManagerStoreCurrentBucketInfo& pInfo) {
+    auto header = _bucket->GetHeader();
+    pInfo = {  
+        .currentIndex = _currentBucket, 
+        .numReadings = _bucket->GetNumReadings(), 
+        .currentTime = _bucket->GetLastReading(), 
+        .offset = _bucket->GetPayloadOffset(), 
+        .size = BUCKET_SIZE,
+        .info =  { .Offset = _currentBucket*BUCKET_SIZE, .Index = header.Index, .BlockStartTime = header.BlockStartTime, .BlockEndTime = header.BlockEndTime, .DataLength = header.DataLength, .NumReadings = header.NumReadings } 
+    };
 }
 
 

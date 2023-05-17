@@ -29,8 +29,14 @@ const int16_t* DataManagerStoreBucketReader::GetCurrentValues() const {
 }
 
 bool DataManagerStoreBucketReader::ReadNext() {
-    if(_reader->GetByteLength()+_headerSize>=_size)
+    if(_reader->PeekByte()==0xFF) {
+        printf("End of read\n");
         return false;
+    }
+    if(_reader->GetByteLength()+_headerSize>=_size) {
+        printf("Out of data to read from bucket\n");
+        return false;
+    }
     auto bits = 0;
     switch(_reader->ReadUInt(3)) {
         case FullRecord :
@@ -38,21 +44,26 @@ bool DataManagerStoreBucketReader::ReadNext() {
             auto timestampOffset = _reader->ReadUInt(29);
             _currentTime = _header->BlockStartTime + timestampOffset;
             _reader->ReadBytes((uint8_t*)_currentValues, _values.size()*sizeof(int16_t));
-            _reader->Advance();
+            
+           // _reader->Advance();
             return true;
         }
-        case IndexRecord :
         case FreeRecord :
-            _reader->Advance();
             return false;
         case Delta3BitRecord :
             bits = 2;
             break;
+        case Delta4BitRecord :
+            bits = 3;
+            break;
         case Delta5BitRecord : 
             bits = 4;
             break;
-        case Delta7BitRecord :
-            bits = 6;
+        case Delta8BitRecord :
+            bits = 7;
+            break;
+        case Delta9BitRecord :
+            bits = 8;
             break;
         case Delta11BitRecord :
             bits = 10;
@@ -64,12 +75,17 @@ bool DataManagerStoreBucketReader::ReadNext() {
     while(repeat) {
         auto timeOff = _reader->ReadUInt(8);
         repeat = (timeOff & (1<<7));
-        timeOffset |= (timeOff & ((1<<7)-1)) << index*7;
+        timeOffset |= (timeOff & ((1<<7)-1)) << index;
         index+=7;
     }
     _currentTime+=timeOffset;
-    for(auto i = 0; i<_values.size();i++)
-        _values[i]+=_reader->ReadInt(bits);
+    printf("Read values: ");
+    for(auto i = 0; i<_values.size();i++) {
+        printf("%d->",(int)(_currentValues[i]) );
+        _currentValues[i]+=_reader->ReadInt(bits);
+        printf("%d ",(int)(_currentValues[i]) );
+    }
+    printf("\n");
     _reader->Advance();
     return true;
 }

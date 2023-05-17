@@ -12,7 +12,17 @@ typedef struct {
     time_t BlockStartTime;
     time_t BlockEndTime;
     uint32_t DataLength;
+    uint32_t NumReadings;
 } DataStoreBucketInfo;
+
+typedef struct {
+    uint32_t currentIndex;
+    uint32_t numReadings;
+    time_t currentTime;
+    size_t offset;
+    size_t size;
+    DataStoreBucketInfo info;
+} DataManagerStoreCurrentBucketInfo;
 
 class DataManagerStore {
     const esp_partition_t* _partition;
@@ -21,16 +31,20 @@ class DataManagerStore {
     uint32_t _numBuckets;
     DataManagerStoreBucket* _bucket = nullptr;
     std::vector<ValueSource*> _values;
-    void ScanBuckets();
+   
     void OpenBucket(uint32_t pIndex);
 public:
     DataManagerStore();
     ~DataManagerStore();
 
+    void ScanBuckets();
     void EraseAll();
-
     void WriteRecord();
     void GetBucketsForRange(time_t pFrom, time_t pTo, std::vector<DataStoreBucketInfo*>& pResult);
-    inline const esp_partition_t * GetPartition() { return _partition; }
 
+    inline const esp_partition_t * GetPartition() { return _partition; }
+    inline uint32_t GetNumBuckets() { return _numBuckets;}
+    inline const DataStoreBucketInfo& GetBucket(uint32_t pIndex) {  
+        return (pIndex < _numBuckets) ? _buckets[pIndex] : *_buckets;}
+    void GetCurrentBucketInfo(DataManagerStoreCurrentBucketInfo& pInfo);
 };

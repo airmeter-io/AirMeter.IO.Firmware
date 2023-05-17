@@ -19,6 +19,8 @@ import CalibrationManual from './Settings/CalibrationManual';
 import WirelessNetworks from './Settings/WirelessNetworks';
 import WirelessOptions from './Settings/WirelessOptions';
 import CalibrationOptions from './Settings/CalibrationOptions';
+import DataFlashInfo from './Settings/DataFlashInfo';
+import DataOptions from './Settings/DataOptions';
 
 
 const router = createHashRouter([
@@ -70,6 +72,15 @@ const router = createHashRouter([
     path: "/settings/data",
     element: <Data/>,
   },
+  {
+    path: "/settings/data/options",
+    element: <DataOptions/>,
+  },
+  {
+    path: "/settings/data/flashinfo",
+    element: <DataFlashInfo/>,
+  },
+
   {
     path: "/settings/ntp",
     element: <Ntp/>,

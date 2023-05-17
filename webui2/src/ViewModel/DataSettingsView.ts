@@ -16,7 +16,18 @@ export interface IDataSettingsValues {
 interface DataFrequency {
     seconds: number;
     label: string;
- }
+}
+
+export interface IFlashBucketInfo {
+  offset : number;
+  index : number;
+  blockStartTime : Date | undefined;
+  blockEndTime : Date | undefined;
+  dataLength : number;
+  payloadOffset : number | undefined;
+  numReadings : number | undefined;
+  currentTime : Date | undefined;
+}
  
 const frequencies : DataFrequency[] = [
   {
@@ -106,6 +117,27 @@ class DataSettingsView {
 
     public FormatFrequency(pFrequency : number) {
         return frequencies[pFrequency].label;
+    }
+
+    public async GetFlashBucketInfos() {
+      var result = await connection.executeCommand("DATA", pCmd=>{
+        pCmd.Mode = "GetFlashInfo";
+      });
+      var infos : IFlashBucketInfo[] = [];
+      for(var i = 0; i < result.Buckets.length; i++) {
+        infos.push({
+          offset: result.Buckets[i].Offset,
+          index: result.Buckets[i].Index,
+          blockStartTime: result.Buckets[i].BlockStartTime === undefined ? undefined : new Date(result.Buckets[i].BlockStartTime*1000),
+          blockEndTime: result.Buckets[i].BlockEndTime === undefined ? undefined : new Date(result.Buckets[i].BlockEndTime*1000),
+          dataLength: result.Buckets[i].DataLength,
+          payloadOffset: result.Buckets[i].PayloadOffset === undefined ? undefined : result.Buckets[i].PayloadOffset,
+          numReadings: result.Buckets[i].NumReadings === undefined ? undefined : result.Buckets[i].NumReadings,
+          currentTime: result.Buckets[i].CurrentTime === undefined ? undefined : new Date(result.Buckets[i].CurrentTime*1000),
+        });
+      }
+    
+      return infos;
     }
 }
 

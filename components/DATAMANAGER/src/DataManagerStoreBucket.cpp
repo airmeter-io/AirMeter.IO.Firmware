@@ -7,20 +7,17 @@
 
 DataManagerStoreBucket::DataManagerStoreBucket(const esp_partition_t*  pPartition, size_t pOffset, size_t pSize) : _partition(pPartition), _offset(pOffset), _size(pSize) {
    ReadHeader();
+   
 }
 
 
 DataManagerStoreBucket::~DataManagerStoreBucket() {
 }
 
-DataStoreBucketHeader* DataManagerStoreBucket::GetHeader() {
-    return &_header;
-}
-
 DataManagerStoreBucketState DataManagerStoreBucket::GetState() {
     return _state;
 }
-void DataManagerStoreBucket::ReadHeader() {
+void DataManagerStoreBucket::ReadHeader() { 
     esp_partition_read(_partition, _offset , &_header, sizeof(_header));
     if(_header.Magic != MAGIC) {
         if(_header.Magic == 0xFFFFFFFF)
@@ -37,7 +34,7 @@ void DataManagerStoreBucket::ReadHeader() {
 
 void DataManagerStoreBucket::CloseBucket() {
     ReadHeader();
-    _header.DataLength = _offset - sizeof(_header) - (_header.ValueCount*sizeof(uint16_t));
+    _header.DataLength = _payloadOffset - sizeof(_header) - (_header.ValueCount*sizeof(uint16_t));
     _header.BlockEndTime = _lastReading;
     auto closeTime = time(nullptr);
     _header.CloseTime = closeTime;
@@ -52,8 +49,10 @@ bool DataManagerStoreBucket::WriteRecord(uint8_t* pData, uint32_t pDataLength) {
         CloseBucket();
         return false;
     }
+    printf("WriteRecord Before: %x\n", (int)_payloadOffset);
     esp_partition_write(_partition, _offset+_payloadOffset , pData, pDataLength);
     _payloadOffset+=pDataLength;
+    printf("WriteRecord After: %x\n", (int)_payloadOffset);
 
     return true;
 }
@@ -64,7 +63,8 @@ void DataManagerStoreBucket::WriteHeader() {
 
 bool DataManagerStoreBucket::Open(const std::vector<ValueSource*>& pValues){
     _values =  pValues;
-    if(_state == UnusedBucket) {
+    printf("Open bucket at %x\n", (int)_offset);
+    if(_state == UnusedBucket || _header.ValueCount == 0xFFFF) {
         ReadHeader();    
         _header.Magic = MAGIC;
         _header.ValueCount = pValues.size();  
@@ -74,29 +74,36 @@ bool DataManagerStoreBucket::Open(const std::vector<ValueSource*>& pValues){
         auto valueIdSize = _header.ValueCount*sizeof(uint16_t);
         uint16_t* valueIds = (uint16_t*)malloc(valueIdSize);
         _lastValues = (int16_t*)calloc(sizeof(int16_t), pValues.size());
-        for(auto i = 0; i < _header.ValueCount; i++)
+        for(auto i = 0; i < _header.ValueCount; i++) {
             valueIds[i] = pValues[i]->GetIdentifier().Id;
+            printf("%d: %x\n", i, (int)valueIds[i]);
+        }
         _payloadOffset = sizeof(_header);
+       
         esp_partition_write(_partition, _offset+_payloadOffset , valueIds, valueIdSize);
         _payloadOffset += valueIdSize;
+
+         printf("Payload offset after OpenUnused: %x\n", (int)_payloadOffset);
         ReadHeader();
         _firstRecord = true;
         _numReadings = 0;
         return true;
     } else if (_state == OpenBucket) {
         DataManagerStoreBucketReader reader(_partition, _offset, _size);
+         _lastValues = (int16_t*)calloc(sizeof(int16_t), pValues.size());
         _firstRecord = true;
         _numReadings = 0;
         while(reader.ReadNext()) {
             _numReadings++;
             _firstRecord = false;
+            if(_numReadings%100 == 0) esp_task_wdt_reset();
         }
+        _payloadOffset = reader.GetCurrentBlockOffset();
         if(!_firstRecord) {
             _lastReading  = reader.GetCurrentTime();
             memcpy(_lastValues, reader.GetCurrentValues(), sizeof(uint16_t)*_values.size());            
         }
-        _payloadOffset = reader.GetCurrentBlockOffset();
-
+        printf("Payload offset after OpenUsed: %x\n", (int)_payloadOffset);
         return true;
     }
     return false;
@@ -142,11 +149,15 @@ bool DataManagerStoreBucket::WriteDeltaRecord() {
     auto offset = readingTime - _lastReading;
 
     int32_t max=0;
+    printf("Deltas: ");
     for(auto i = 0; i < _values.size(); i++) {
+        printf("%d->", values[i]);
         values[i] -= _lastValues[i];       
+        printf("%d ", values[i]);
         if(abs(values[i])>max)
             max = abs(values[i]);
     }
+    printf("\n");
     
     auto result = false;
     auto recordType = FullRecord;
@@ -155,16 +166,24 @@ bool DataManagerStoreBucket::WriteDeltaRecord() {
     if(max < (1 << 2)) {
         recordType = Delta3BitRecord;
         bits = 2;
+    } else if(max < (1 << 3)) {
+        recordType = Delta4BitRecord;
+        bits = 3;
     } else if (max < (1<<4)) {
         recordType = Delta5BitRecord;
         bits = 4;
-    } else if (max < (1<<6)) {
-        recordType = Delta7BitRecord;
-        bits = 6;
+    } else if (max < (1<<7)) {
+        recordType = Delta8BitRecord;
+        bits = 7;
+    } else if (max < (1<<8)) {
+        recordType = Delta9BitRecord;
+        bits = 8;
     } else if (max < (1<<10)) {
         recordType = Delta11BitRecord;
         bits = 10;
     } 
+
+    printf("Writing a %d bit delta record\n", (int)bits);
 
     if(recordType!=FullRecord) {
         writer.WriteUInt((uint32_t)recordType, 3);
@@ -180,7 +199,9 @@ bool DataManagerStoreBucket::WriteDeltaRecord() {
         }
         result = WriteRecord(record, writer.GetByteLength());
         
-        memcpy(_lastValues, values, _values.size()*sizeof(int16_t));
+        for(auto i = 0; i < _values.size(); i++) 
+            _lastValues[i] += values[i];       
+
     } else
         result = WriteFullRecord();
 
@@ -192,16 +213,13 @@ bool DataManagerStoreBucket::WriteDeltaRecord() {
 }
 
 bool DataManagerStoreBucket::WriteFullRecord() {
-    auto time = time_t(nullptr);
-    if(_header.BlockStartTime> time) {
-        ESP_LOGE(TAG, "Current time is before block start time"); 
-        return false;
-    }
-    auto timeOffset = (uint32_t)(time - _header.BlockStartTime);
+    auto curTime = time(nullptr);
+    printf("Writing a full record\n");
+    auto timeOffset = (uint32_t)(curTime - _header.BlockStartTime);
     auto recordSize = sizeof(uint32_t) + _values.size()*2;
     uint8_t* record = (uint8_t*)calloc(1, recordSize);
     
-    _lastReading = time;
+    _lastReading = curTime;
     BitWriter bitWriter(record, 4);
     bitWriter.WriteUInt((uint32_t)FullRecord, 3);
     bitWriter.WriteUInt(timeOffset, 29);    
@@ -219,16 +237,13 @@ bool DataManagerStoreBucket::WriteRecord() {
     auto result = false;
     if(_firstRecord)
     {
-        result = WriteFullRecord();
-        if(result) {
-            if(_header.BlockStartTime == 0xFFFFFFFFFFFFFFFF ) {
-                ReadHeader();
-                _header.BlockStartTime = _lastReading;
-                WriteHeader();
-            }
-            _firstRecord = false;
+        if(_header.BlockStartTime == 0xFFFFFFFFFFFFFFFF ) {
+            ReadHeader();
+            _header.BlockStartTime = time(nullptr);
+            WriteHeader();
         }
-       
+        result = WriteFullRecord();
+        if(result) _firstRecord = false;
     } else 
         result = WriteDeltaRecord();
 

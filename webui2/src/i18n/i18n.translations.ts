@@ -160,16 +160,27 @@ export const en = {
         }
     }, 
     data: {
-        title: "Data Logging & Frequency",
-        description: "Configure which parameters are logged and how often readings are taken from the sensors.",
-        breadcrumb: "Data",
-        frequency: {
-          label: "Readings will be taken from sensors and written to the data log {{frequency}}."
-        },
-        values: {
-          title: "Choose values to data log",
-          helper: "Select the values that you wish to maintain in the data logging function on this device. Note that increasing the number of values will decrease the length of history that can be held within the device itself."
-        },
+      title: "Data Logging & Frequency",
+      description: "Configure which parameters are logged and how often readings are taken from the sensors.",
+      breadcrumb: "Data",
+      options: {
+          title: "Data Logging & Frequency",
+          description: "Configure which parameters are logged and how often readings are taken from the sensors.",
+          breadcrumb: "Options",
+          frequency: {
+            label: "Readings will be taken from sensors and written to the data log {{frequency}}."
+          },
+          values: {
+            title: "Choose values to data log",
+            helper: "Select the values that you wish to maintain in the data logging function on this device. Note that increasing the number of values will decrease the length of history that can be held within the device itself."
+          },
+      },
+      flashInfo: {
+        title: "Flash Store Information",
+        description: "Shows an overview of the data logger flash storage.",
+        breadcrumb: "Flash Information",
+      }
+        
     },    
     cloud: {
         title: "Cloud Services",

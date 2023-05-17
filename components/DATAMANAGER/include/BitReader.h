@@ -49,19 +49,33 @@ public:
 
     
     inline uint32_t GetByteLength() {
-        return _byteIndex+1;
+        return _byteIndex;
     }
 
     inline void ReadBytes(uint8_t* pData, uint32_t pLength) {
         memcpy(pData, _buffer+_byteIndex, pLength);
         _byteIndex+=pLength;
         _bitIndex = _byteIndex*8;
+        _localBitIndex = 0;
+        _localBitsRemaining = 8;
     }
     inline void Advance() {
-        if(_bitIndex>0)
+        if(_localBitIndex>0)
         {
-            _bitIndex = 0;
+            _localBitIndex = 0;
             _byteIndex++;
+            _bitIndex = _byteIndex*8;                   
+            _localBitsRemaining = 8;
         }
+    }
+
+    inline void ResetBitIndex() {
+        _localBitIndex = 0;
+        _localBitsRemaining = 8;
+        _bitIndex = _byteIndex*8;
+    }
+
+    inline uint8_t PeekByte() {
+        return _buffer[_byteIndex];
     }
 };

@@ -8,10 +8,11 @@
 enum FlashDataBlockRecordType {
     FullRecord = 0, 
     Delta3BitRecord = 1, 
-    Delta5BitRecord = 2, 
-    Delta7BitRecord = 3, 
-    Delta11BitRecord = 4, 
-    IndexRecord = 6,
+    Delta4BitRecord = 2,
+    Delta5BitRecord = 3, 
+    Delta8BitRecord = 4, 
+    Delta9BitRecord = 5, 
+    Delta11BitRecord = 6,     
     FreeRecord = 7
 };
 
@@ -63,11 +64,14 @@ class DataManagerStoreBucket {
 public:
     DataManagerStoreBucket(const esp_partition_t*  pPartition, size_t pOffset, size_t pSize);
     ~DataManagerStoreBucket();
-    DataStoreBucketHeader* GetHeader();
     DataManagerStoreBucketState GetState();
     bool Open(const std::vector<ValueSource*>& pValues);
     void Close();
     void Erase();
     bool WriteRecord();
-
+    inline time_t GetLastReading() { return _lastReading; }
+    uint32_t GetNumReadings() { return _numReadings; }
+    inline size_t GetPayloadOffset() { return _payloadOffset; }
+    inline size_t GetSize() { return _size; }
+    inline const DataStoreBucketHeader& GetHeader() { return _header; }
 };

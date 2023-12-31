@@ -120,7 +120,7 @@ time_t SensorManager::UpdateValues() {
         DisableSensorReadGPIO();
         _lastSensorRead = curTime;    
         if(_lastSensorRead> 310000000)   // Oct 28th 1979
-            _dataManager.WriteRecord();       
+            _dataManager.WriteRecord(curTime);       
     }   
     return _settings.GetSensorUpdateInterval() - (curTime - _lastSensorRead); 
 }

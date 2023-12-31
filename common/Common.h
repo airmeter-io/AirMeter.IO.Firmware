@@ -42,3 +42,5 @@ extern "C" {
 
     #include "esp32/rom/ets_sys.h"
 }
+
+#define uint unsigned

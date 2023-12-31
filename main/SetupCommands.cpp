@@ -343,27 +343,26 @@ void DataManagementCommand::Process(Json& pJson,Json& pResult) {
             for(auto i = 0; i < _manager.GetNumBuckets();i++) {
                 auto bucketJson = new Json();
                 if(i == currentBucketInfo.currentIndex) {
-                    bucketJson->CreateNumberProperty("Offset", (int)currentBucketInfo.info.Offset);
-                    bucketJson->CreateNumberProperty("Index", (int)currentBucketInfo.info.Index);
+                    bucketJson->CreateNumberProperty("Offset", (double)currentBucketInfo.info.Offset);
+                    bucketJson->CreateNumberProperty("Index", (double)currentBucketInfo.info.Index);
                     if(currentBucketInfo.info.BlockStartTime!=0xFFFFFFFFFFFFFFFF)
                         bucketJson->CreateNumberProperty("BlockStartTime", (double)currentBucketInfo.info.BlockStartTime);
                     if(currentBucketInfo.info.BlockEndTime!=0xFFFFFFFFFFFFFFFF)
                         bucketJson->CreateNumberProperty("BlockEndTime", (double)currentBucketInfo.info.BlockEndTime);
                     bucketJson->CreateNumberProperty("DataLength", (double)currentBucketInfo.info.DataLength);
                     bucketJson->CreateNumberProperty("PayloadOffset", (int)currentBucketInfo.offset);
-                    bucketJson->CreateNumberProperty("NumReadings", (int)currentBucketInfo.numReadings);
+                    bucketJson->CreateNumberProperty("NumReadings", (double)currentBucketInfo.numReadings);
                     bucketJson->CreateNumberProperty("CurrentTime", (double)currentBucketInfo.currentTime);
                     buckets.push_back(bucketJson);
                 } else {
-                    auto bucket = _manager.GetBucket(i);
-                     printf("Offset: %x, Index: %x, Start: %x, End: %x, DL: %X\n",(int)bucket.Offset, (int)bucket.Index, (int)bucket.BlockStartTime, (int)bucket.BlockEndTime, (int)bucket.DataLength);
-                    bucketJson->CreateNumberProperty("Offset", (int)bucket.Offset);
-                    bucketJson->CreateNumberProperty("Index", (int)bucket.Index);
+                    auto bucket = _manager.GetBucket(i);                   
+                    bucketJson->CreateNumberProperty("Offset", (double)bucket.Offset);
+                    bucketJson->CreateNumberProperty("Index", (double)bucket.Index);
                     if(bucket.BlockStartTime!=0xFFFFFFFFFFFFFFFF)
                         bucketJson->CreateNumberProperty("BlockStartTime", (double)bucket.BlockStartTime);
                     if(bucket.BlockEndTime!=0xFFFFFFFFFFFFFFFF)
                         bucketJson->CreateNumberProperty("BlockEndTime", (double)bucket.BlockEndTime);
-                    bucketJson->CreateNumberProperty("NumReadings", (int)bucket.NumReadings);
+                    bucketJson->CreateNumberProperty("NumReadings", (double)bucket.NumReadings);
                     bucketJson->CreateNumberProperty("DataLength", (double)bucket.DataLength);
                     buckets.push_back(bucketJson);
                 }

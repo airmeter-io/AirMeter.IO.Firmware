@@ -22,9 +22,9 @@ I2C::I2C(gpio_num_t pSdaPin, gpio_num_t pSclPin) {
     };
 
 
-    i2c_param_config(i2c_master_port, &conf);
+    i2c_param_config((i2c_port_t)i2c_master_port, &conf);
 
-    i2c_driver_install(i2c_master_port, conf.mode, I2C_MASTER_RX_BUF_DISABLE, I2C_MASTER_TX_BUF_DISABLE, 0);
+    i2c_driver_install((i2c_port_t)i2c_master_port, conf.mode, I2C_MASTER_RX_BUF_DISABLE, I2C_MASTER_TX_BUF_DISABLE, 0);
 #else 
     i2c_config_t conf;
 	conf.mode = I2C_MODE_MASTER;

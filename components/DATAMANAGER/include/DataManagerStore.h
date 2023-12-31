@@ -7,6 +7,7 @@
 #include "DataManagerStoreBucket.h"
 
 typedef struct {
+    DataManagerStoreBucketState State;
     uint32_t Offset;
     uint32_t Index;
     time_t BlockStartTime;
@@ -33,13 +34,14 @@ class DataManagerStore {
     std::vector<ValueSource*> _values;
    
     void OpenBucket(uint32_t pIndex);
+    void FreeOldestBuckets();
 public:
     DataManagerStore();
     ~DataManagerStore();
 
     void ScanBuckets();
     void EraseAll();
-    void WriteRecord();
+    void WriteRecord(time_t pTime);
     void GetBucketsForRange(time_t pFrom, time_t pTo, std::vector<DataStoreBucketInfo*>& pResult);
 
     inline const esp_partition_t * GetPartition() { return _partition; }

@@ -23,7 +23,7 @@ DevicePersonality* DevicePersonality::Load() {
     std::string profile = "default";
     std::string buildVersion = "MASTER";
     std::string buildAsset = "MASTERBUILD";
-    UartConfig uartConfig = { .Enabled = false,.UartNum = CONFIG_CO2_UART_NUM, .OverrideGpio = false, .RxGpio=GPIO_NUM_MAX, .TxGpio=GPIO_NUM_MAX};
+    UartConfig uartConfig = { .Enabled = false,.UartNum = (uart_port_t)CONFIG_CO2_UART_NUM, .OverrideGpio = false, .RxGpio=GPIO_NUM_MAX, .TxGpio=GPIO_NUM_MAX};
     DisplayConfig displayConfig = { .Enabled = false, .Driver = "", .DriverConfig = nullptr };
 
 
@@ -64,7 +64,7 @@ DevicePersonality* DevicePersonality::Load() {
             if(uartProp->HasProperty("enabled")) 
                 uartConfig.Enabled = uartProp->GetBoolProperty("enabled");
             if(uartProp->HasProperty("uartNum"))
-                uartConfig.UartNum = uartProp->GetIntProperty("uartNum");
+                uartConfig.UartNum = (uart_port_t)uartProp->GetIntProperty("uartNum");
             if(uartProp->HasObjectProperty("gpio")) {
                 auto gpioProp = uartProp->GetObjectProperty("gpio");
                 if(gpioProp->HasProperty("rx") && gpioProp->HasProperty("tx")) {

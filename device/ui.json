@@ -19,7 +19,7 @@
                     "H": 122,
                     "Justify": "Center",
                     "VerticalAlign": "Middle",
-                    "Text": "{Co2.PPM}ppm"
+                    "Text": "{Sunrise.CO2Smoothed}ppm"
                 },
                 {
                     "Type": "Text",
@@ -104,7 +104,7 @@
                     "H": 122,
                     "Justify": "Left",
                     "VerticalAlign": "Top",
-                    "Text": "{Co2.PPM}ppm"
+                    "Text": "{Sunrise.CO2Smoothed}ppm"
                 }
             ],
             "ButtonVeryLongReleased": [
@@ -230,7 +230,7 @@
                     "H": 122,
                     "Justify": "Center",
                     "VerticalAlign": "Top",
-                    "Text": "{Co2.PPM}ppm"
+                    "Text": "{Sunrise.CO2Smoothed}ppm"
                 },
                 {
                     "Type": "Text",
@@ -345,7 +345,7 @@
                     "H": 122,
                     "Justify": "Center",
                     "VerticalAlign": "Middle",
-                    "Text": "{Co2.PPM}ppm"
+                    "Text": "{Sunrise.CO2Smoothed}ppm"
                 },
                 {
                     "Type": "Text",
@@ -444,7 +444,7 @@
                     "H": 20,
                     "Justify": "Left",
                     "VerticalAlign": "Middle",
-                    "Text": "{Co2.PPM}ppm"
+                    "Text": "{Sunrise.CO2Smoothed}ppm"
                 },
                 {
                     "Type": "Text",
@@ -480,7 +480,7 @@
                     "H": 20,
                     "Justify": "Left",
                     "VerticalAlign": "Top",
-                    "Text": "{Pressure}hPa"
+                    "Text": "{Atmosphere.Pressure}hPa"
                 },
                 {
                     "Type": "Text",

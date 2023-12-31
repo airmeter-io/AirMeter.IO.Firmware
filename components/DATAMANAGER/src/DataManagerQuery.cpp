@@ -17,7 +17,7 @@ DataManagerQuery::~DataManagerQuery() {
     std::map<uint32_t, uint32_t> mappings;
     auto resultRow = 0;
     for(; resultRow<pResults->GetMaxEntries(); ) {
-        while(_reader == nullptr && _bucketIndex<_buckets.size() && !(_reader->ReadNext())) {
+        while(_reader == nullptr && _bucketIndex<_buckets.size()) {
             if(_reader==nullptr) {
                 _reader = new DataManagerStoreBucketReader(_store.GetPartition(), _buckets[_bucketIndex]->Offset,BUCKET_SIZE);
             }

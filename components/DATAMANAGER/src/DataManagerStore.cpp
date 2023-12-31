@@ -57,14 +57,24 @@ void DataManagerStore::ScanBuckets() {
                 if(maxCompletedBucketIndex ==-1 ||  bucket.GetHeader().BlockStartTime > _buckets[maxCompletedBucketIndex].BlockStartTime)
                     maxCompletedBucketIndex = bucket.GetHeader().Index;
                 break;
+            case IndexBucket :
+                break;
         }
         auto header = bucket.GetHeader();
-        _buckets[offset/BUCKET_SIZE]  = { .Offset = offset, .Index = header.Index, .BlockStartTime = header.BlockStartTime, .BlockEndTime = header.BlockEndTime, .DataLength = header.DataLength, .NumReadings = header.NumReadings };
+        _buckets[offset/BUCKET_SIZE]  = { .State = bucket.GetState(),  .Offset = offset, .Index = header.Index, .BlockStartTime = header.BlockStartTime, .BlockEndTime = header.BlockEndTime, .DataLength = header.DataLength, .NumReadings = header.NumReadings };
     
     }
    
     printf("Openning bucket, OpenBucketIndex  = %d, maxCompleted = %d\n",(int)openBucketIndex, (int)maxCompletedBucketIndex);
     OpenBucket(openBucketIndex!=-1 ? openBucketIndex : maxCompletedBucketIndex+1);
+}
+
+void DataManagerStore::FreeOldestBuckets() {
+  /*  for(auto i = 0; i < _numBuckets; i++)
+        if(_buckets[i].Index!=0xFFFFFFFF && 
+            !(_buckets[i].BlockStartTime<pFrom && _buckets[i].BlockEndTime<pTo) &&
+            !(_buckets[i].BlockStartTime>pFrom && _buckets[i].BlockEndTime>pTo))
+            pResult.push_back(&_buckets[i]);*/
 }
 
 void DataManagerStore::EraseAll() {
@@ -74,6 +84,7 @@ void DataManagerStore::EraseAll() {
             case InvalidBucket :
             case  DataManagerStoreBucketState::OpenBucket :
             case CompletedBucket :
+            case IndexBucket : 
                 bucket.Erase();
                 printf("Erasing %x\n", (int)offset);
                 break;
@@ -85,11 +96,11 @@ void DataManagerStore::EraseAll() {
     OpenBucket(0);
 }
 
-void DataManagerStore::WriteRecord() {
+void DataManagerStore::WriteRecord(time_t pTime){
     if(_values.size()==0) return;
-    if(!_bucket->WriteRecord()) {
+    if(!_bucket->WriteRecord(pTime)) {
         OpenBucket(_currentBucket+1);
-        _bucket->WriteRecord();
+        _bucket->WriteRecord(pTime);
     }
 }
 
@@ -99,7 +110,7 @@ void DataManagerStore::OpenBucket(uint32_t pIndex) {
         pIndex = 0;  
     if(_bucket!=nullptr) {
         auto header = _bucket->GetHeader();
-        _buckets[_currentBucket] = { .Offset = _currentBucket*BUCKET_SIZE, .Index = header.Index, .BlockStartTime = header.BlockStartTime, .BlockEndTime = header.BlockEndTime, .DataLength = header.DataLength, .NumReadings = header.NumReadings };
+        _buckets[_currentBucket] = { .State = _bucket->GetState(), .Offset = _currentBucket*BUCKET_SIZE, .Index = header.Index, .BlockStartTime = header.BlockStartTime, .BlockEndTime = header.BlockEndTime, .DataLength = header.DataLength, .NumReadings = header.NumReadings };
         delete _bucket;
     }
     _bucket = new DataManagerStoreBucket(_partition, pIndex*BUCKET_SIZE , BUCKET_SIZE);
@@ -124,7 +135,7 @@ void DataManagerStore::GetCurrentBucketInfo(DataManagerStoreCurrentBucketInfo& p
         .currentTime = _bucket->GetLastReading(), 
         .offset = _bucket->GetPayloadOffset(), 
         .size = BUCKET_SIZE,
-        .info =  { .Offset = _currentBucket*BUCKET_SIZE, .Index = header.Index, .BlockStartTime = header.BlockStartTime, .BlockEndTime = header.BlockEndTime, .DataLength = header.DataLength, .NumReadings = header.NumReadings } 
+        .info =  { .State = _bucket->GetState(), .Offset = _currentBucket*BUCKET_SIZE, .Index = header.Index, .BlockStartTime = header.BlockStartTime, .BlockEndTime = header.BlockEndTime, .DataLength = header.DataLength, .NumReadings = header.NumReadings } 
     };
 }
 

@@ -11,3 +11,4 @@ components/softserial/src/softuart.c
 components/utf8/tiny-utf8
 components/wifi/include/captivedns.h
 components/wifi/src/captivedns.cpp
+device/*.afnt

@@ -16,29 +16,22 @@ enum FlashDataBlockRecordType {
     FreeRecord = 7
 };
 
-
 typedef struct {
     uint32_t Magic;
     uint32_t Index;
-    uint16_t ValueCount;
     time_t BlockStartTime;
     time_t BlockEndTime;
-    time_t OpenTime;
-    time_t CloseTime;
     uint32_t DataLength;
     uint32_t NumReadings;
+    uint16_t ValueCount;
 } __attribute__((packed)) DataStoreBucketHeader;
-
-typedef struct  {
-    uint Type:2; // DataPointType::Full
-    int TimeDelta:30;
-} __attribute__((packed))  FlashDataBlockIndexRecordHeader;
 
 enum DataManagerStoreBucketState {
     UnusedBucket,
     OpenBucket,
     CompletedBucket,
-    InvalidBucket
+    InvalidBucket,
+    IndexBucket
 };
 
 class DataManagerStoreBucket {
@@ -57,8 +50,8 @@ class DataManagerStoreBucket {
     void CloseBucket();
     void WriteHeader();
     bool WriteRecord(uint8_t* pData, uint32_t pDatalength);
-    bool WriteDeltaRecord();
-    bool WriteFullRecord();
+    bool WriteDeltaRecord(time_t pTime);
+    bool WriteFullRecord(time_t pTime);
     void GetCurrentValues(int16_t* pValues);
 
 public:
@@ -68,7 +61,7 @@ public:
     bool Open(const std::vector<ValueSource*>& pValues);
     void Close();
     void Erase();
-    bool WriteRecord();
+    bool WriteRecord(time_t pTime);
     inline time_t GetLastReading() { return _lastReading; }
     uint32_t GetNumReadings() { return _numReadings; }
     inline size_t GetPayloadOffset() { return _payloadOffset; }

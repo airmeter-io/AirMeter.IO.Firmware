@@ -1,4 +1,7 @@
 #pragma once
+
+#include "Common.h"
+
 extern "C" {
     #include <stdio.h>
     #include <assert.h>

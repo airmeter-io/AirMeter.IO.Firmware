@@ -67,7 +67,7 @@ WifiTask::WifiTask(const std::string& pDeviceName, const std::string& pApPasswor
     AddValueSource(new ValueSource(*this,WIFI_STA_CONNNECTED  ,Bool,   Dimensionless, _valIsStaConnected,   NETWORK_INFO));
     AddValueSource(new ValueSource(*this,WIFI_STA_SSID        ,String, Dimensionless, _valStaSSID,          NETWORK_INFO));
     AddValueSource(new ValueSource(*this,WIFI_STA_AUTH        ,String, Dimensionless, _valStaAuth,          NETWORK_INFO));
-    AddValueSource(new ValueSource(*this,WIFI_STA_RSSI        ,String, Dimensionless, _valStaRssi,          NETWORK_INFO));
+    AddValueSource(new ValueSource(*this,WIFI_STA_RSSI        ,Int,    Dimensionless, _valStaRssi,          NETWORK_INFO));
     AddValueSource(new ValueSource(*this,WIFI_STA_IPV4_ADDR   ,String, Dimensionless, _valStaIPv4Addr,      NETWORK_INFO));
     AddValueSource(new ValueSource(*this,WIFI_STA_IPV4_MASK   ,String, Dimensionless, _valStaIPv4Mask,      NETWORK_INFO));
     AddValueSource(new ValueSource(*this,WIFI_STA_IPV4_GATEWAY,String, Dimensionless, _valStaIPv4Gateway,   NETWORK_INFO));

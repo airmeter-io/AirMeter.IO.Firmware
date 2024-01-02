@@ -201,6 +201,7 @@ void WifiManager::ProcessWifiStationStopEvent(){
 
 void WifiManager::ProcessWifiStationConnectedEvent(wifi_event_sta_connected_t* pEvent){
     printf("Wifi Station Connected to: %s\n", (char*)pEvent->ssid);
+    
     _callbacks.OnStationConnected(
         std::string((char*)pEvent->ssid, pEvent->ssid_len),
         pEvent->channel,

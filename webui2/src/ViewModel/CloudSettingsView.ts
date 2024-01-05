@@ -27,6 +27,10 @@ interface MQTTFrequency {
  
 const frequencies : MQTTFrequency[] = [
     {
+      seconds: 30,
+      label: t("frequencies.thirtySeconds")
+    },
+    {
        seconds: 60,
        label: t("frequencies.minute")
     },

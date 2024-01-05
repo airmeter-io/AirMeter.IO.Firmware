@@ -242,7 +242,7 @@ export const en = {
     },   
     
     frequencies: {
-       thirtySeconds: "thirty seconds",
+       thirtySeconds: "30 seconds",
        minute: "minute",
        twoMinutes: "two minutes",
        threeMinutes: "three minutes",

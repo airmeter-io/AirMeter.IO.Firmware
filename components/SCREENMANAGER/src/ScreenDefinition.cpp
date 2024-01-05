@@ -268,9 +268,8 @@ void DrawTimeSeriesAction::Execute(DrawContext& pContext) {
         if(fiveMins%3)
             pContext.Target.DrawLine( x+(totalGraphWidth*fiveMins)/12,_y+availableH, x+(totalGraphWidth*fiveMins)/12, _y+availableH+1, _color);
         
-    
-    
-    for(auto step = 0; step < _steps; step++) {
+       
+    for(auto step = 0; step < _steps && values.size()>step; step++) {
 
         if(!values[step]) continue;
         auto height = ((uint32_t )availableH* ((uint32_t)values[step]-min))/ range;

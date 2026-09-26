@@ -6,7 +6,7 @@
 #   OUT_DIR      where to write the zip (default: release)
 set -e
 
-RELEASE_TAG="${RELEASE_TAG:-$(git describe --tags --always --dirty)}"
+RELEASE_TAG="${RELEASE_TAG:-$(git describe --tags --always)}"
 OUT_DIR="${OUT_DIR:-release}"
 STAGE="$OUT_DIR/esp32zip"
 ZIP="$OUT_DIR/AirMeter.io-binary-esp32-$RELEASE_TAG.zip"

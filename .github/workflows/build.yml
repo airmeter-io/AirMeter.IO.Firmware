@@ -70,7 +70,12 @@ jobs:
 
       - name: Package
         shell: bash
+        env:
+          # Tag builds are named after the tag; other builds fall back to git describe.
+          RELEASE_TAG: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
         run: |
+          echo "Working tree status (for the record):"
+          git status --short
           chmod +x boards/esp32-idf/buildzipdir.sh
           boards/esp32-idf/buildzipdir.sh
 

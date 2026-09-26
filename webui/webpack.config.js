@@ -1,43 +1,42 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-  
-var webpack = require('webpack');
+
 module.exports = {
-  // the output bundle won't be optimized for production but suitable for development
+  entry: path.join(__dirname, "src", "index.tsx"),
   mode: 'production',
-  // the app entry point is /src/index.js
-  entry: path.resolve(__dirname, 'src', 'index.js'),
   output: {
-  	// the output of the webpack build will be in /dist directory
-    path: path.resolve(__dirname, 'dist'),
-    // the filename of the JS bundle will be bundle.js
-    filename: 'bundle.js'
+    path:path.resolve(__dirname, "dist"),
   },
   module: {
     rules: [
+        {
+            test: /\.tsx?$/,
+            exclude: /node_modules/,
+            loader: 'ts-loader'
+         },
+         {
+            test: /\.css$/i,
+            use: ["style-loader", "css-loader"],
+          },
       {
-      	// for any file with a suffix of js or jsx
-        test: /\.jsx?$/,
-        // ignore transpiling JavaScript from node_modules as it should be that state
+        test: /\.?js$/,
         exclude: /node_modules/,
-        // use the babel-loader for transpiling JavaScript to a suitable format
-        loader: 'babel-loader',
-        options: {
-          // attach the presets to the loader (most projects use .babelrc file instead)
-          presets: ["@babel/preset-env", "@babel/preset-react"]
+        use: {
+          loader: "babel-loader",
+          options: {
+            presets: ['@babel/preset-env', '@babel/preset-react']
+          }
         }
       },
-      {
-        test: /\.css$/,
-        use: [
-          'style-loader',
-          'css-loader'
-        ]
-      }
     ]
   },
-  // add a custom index.html as the template
+  resolve: {
+    extensions: ["*", ".js", ".jsx", ".ts", ".tsx", '.css'],    
+  },
   plugins: [
-    new HtmlWebpackPlugin({ template: path.resolve(__dirname, 'src', 'index.html'),favicon: "./src/favicon.png" })
-]
-};
+    new HtmlWebpackPlugin({
+      template: path.join(__dirname, "src", "index.html"),
+      favicon: "./src/favicon.png"
+    }),
+  ],
+}

@@ -16,9 +16,9 @@ jobs:
     name: Web UI
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -32,7 +32,7 @@ jobs:
         working-directory: webui
         run: npm run build
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: webui-dist
           path: webui/dist
@@ -45,7 +45,7 @@ jobs:
     container:
       image: espressif/idf:v5.3.2
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
           fetch-depth: 0
@@ -53,7 +53,7 @@ jobs:
       - name: Trust the checkout inside the container
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: webui-dist
           path: webui/dist
@@ -74,7 +74,7 @@ jobs:
           chmod +x boards/esp32-idf/buildzipdir.sh
           boards/esp32-idf/buildzipdir.sh
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: esp32-binaries
           path: release/*.zip
@@ -88,9 +88,9 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: esp32-binaries
           path: release
@@ -115,20 +115,21 @@ jobs:
         if: env.WFT_TOKEN == ''
         run: echo "::warning::WEBFLASHTOOL_TOKEN secret is not set, skipping publish to WebFlashTool"
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         if: env.WFT_TOKEN != ''
         with:
           repository: airmeter-io/WebFlashTool
           token: ${{ env.WFT_TOKEN }}
           path: WebFlashTool
+          persist-credentials: true
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         if: env.WFT_TOKEN != ''
         with:
           name: esp32-binaries
           path: WebFlashTool/public
 
-      - uses: stefanzweifel/git-auto-commit-action@v5
+      - uses: stefanzweifel/git-auto-commit-action@v7
         if: env.WFT_TOKEN != ''
         with:
           repository: WebFlashTool

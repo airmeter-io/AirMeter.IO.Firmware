@@ -1,234 +1,141 @@
-name: Build 
+name: Build
+
 on:
   push:
-    tags:
-      - 'v*'
+    branches: [develop]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref_type != 'tag' }}
+
 jobs:
-  build_esp32:
-    runs-on: ubuntu-20.04
+  webui:
+    name: Web UI
+    runs-on: ubuntu-latest
     steps:
-    - name: Install zip
-      run: sudo apt-get install -y zip
+      - uses: actions/checkout@v7
 
-    - name: Checkout ESP-IDF
-      uses: actions/checkout@v3
-      with:
-        repository: espressif/esp-idf
-        path: esp-idf
-        submodules: 'recursive'
-        ref: 'release/v5.0'
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: webui/package-lock.json
 
-    - name: Checkout repo
-      uses: actions/checkout@v3
-      with:
-        repository: airmeter-io/AirMeter.IO.Firmware
-        path: AirMeter.IO.Firmware
-        submodules: 'recursive'
-        ref: ${{ github.ref_name }}
+      - name: Install
+        working-directory: webui
+        run: npm ci
 
-    - name: Copy SDK Config
-      run: |
-        pwd
-        cp AirMeter.IO.Firmware/boards/esp32-idf/* AirMeter.IO.Firmware/
+      - name: Build
+        working-directory: webui
+        run: npm run build
 
-    - name: Installing ESP-IDF
-      run: |
-        cd esp-idf
-        ./install.sh
-        cd ..
+      - uses: actions/upload-artifact@v7
+        with:
+          name: webui-dist
+          path: webui/dist
+          if-no-files-found: error
 
-    - name: Disable ESP-IDF Wifi Provisioning
-      run: |
-        rm esp-idf/components/wifi_provisioning/CMakeLists.txt
-
-    - name: Build Airmeter.io Firmware
-      run: |
-        ls
-        cd esp-idf
-        . ./export.sh
-        cd ../AirMeter.IO.Firmware
-        idf.py build
-        cd ..       
-    - name: Build Artifacts
-      run: |
-        cd AirMeter.IO.Firmware
-        export
-        chmod a+x boards/esp32-idf/buildzipdir.sh
-        boards/esp32-idf/buildzipdir.sh
-        cd ..
-
-    - name: Store Artifacts
-      uses: actions/upload-artifact@v2
-      with:
-        name: esp32-binaries
-        path: |
-          /tmp/build/*.zip        
-
-  # # Borrowed from and credit to https://github.com/UncleRus/esp-idf-lib
-  # build_esp8266:
-  #   runs-on: ubuntu-20.04
-  #   strategy:
-  #     matrix:
-  #       build_method:
-
-  #         # XXX build examples with make only
-  #         # idf.py in ESP8266 RTOS SDK is broken in many ways.
-  #         - make
-  #       branch:
-  #         - v3.4
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v2
-  #       with:
-  #         submodules: 'recursive'        
-  #     - name: Copy SDK Config
-  #       run: |
-  #         cp boards/esp8266-rtossdk/* .
-  #     - name: Install python
-  #       uses: actions/setup-python@v2
-  #       with:
-  #         python-version: 3.8
-
-  #     - name: Install dependencies
-  #       run: |
-  #         sudo apt-get install \
-  #           bison \
-  #           ccache \
-  #           flex \
-  #           gcc \
-  #           git \
-  #           gperf \
-  #           libffi-dev \
-  #           libncurses-dev \
-  #           libssl-dev \
-  #           make \
-  #           wget
-  #     - name: Set environment variables
-  #       id: set_env
-  #       run: |
-  #         SDK_NAME="ESP8266_RTOS_SDK"
-  #         GCC_PREFIX="xtensa-lx106-elf"
-  #         GCC_FILE="${GCC_PREFIX}-gcc"
-  #         TOOLCHAIN_DIR="${HOME}/.espressif/tools"
-  #         REPO_DIR=`pwd`
-  #         __PROJECT_PATH=`pwd`
-  #         __PROJECT_TOOLCHAIN_VERSION="esp-2020r3-49-gd5524c1-8.4.0"
-  #         # XXX actions/checkout does not allow to checkout a repository other
-  #         # than under __PROJECT_PATH
-  #         IDF_PATH="${__PROJECT_PATH}/idf"
-  #         echo "IDF_PATH=${IDF_PATH}" >> ${GITHUB_ENV}
-  #         # cache-idf-tools needs PROJECT_TOOLCHAIN_DIR
-  #         echo "::set-output name=PROJECT_TOOLCHAIN_DIR::${TOOLCHAIN_DIR}"
-  #         # XXX prefix all the environment variables with `__PROJECT_` to avoid pollution
-  
-  #         echo "__PROJECT_GCC_FILE=${GCC_FILE}" >> ${GITHUB_ENV}
-  #         echo "__PROJECT_GCC_PREFIX=${GCC_PREFIX}" >> ${GITHUB_ENV}
-  #         echo "__PROJECT_TOOLCHAIN_DIR=${TOOLCHAIN_DIR}" >> ${GITHUB_ENV}
-  #         echo "__PROJECT_PATH=${__PROJECT_PATH}" >> ${GITHUB_ENV}
-  #         echo "__PROJECT_BUILD_COMMAND=${__PROJECT_BUILD_COMMAND}" >> ${GITHUB_ENV}
-  #         echo "__PROJECT_BUILD_COMMAND_ARG=${__PROJECT_BUILD_COMMAND_ARG}" >> ${GITHUB_ENV}
-  #         echo "__PROJECT_TOOLCHAIN_VERSION=${__PROJECT_TOOLCHAIN_VERSION}" >> ${GITHUB_ENV}
-  #     - name: Checkout the SDK
-  #       uses: actions/checkout@v2
-  #       with:
-  #         repository: espressif/ESP8266_RTOS_SDK
-  #         path: idf
-  #         submodules: recursive
-  #         ref: ${{ matrix.branch }}
-  #         # XXX git.eclipse.org does not allow to fetch a commit. fetch all
-  #         # the commits.
-  #         fetch-depth: 0
-
-  #     - name: Install python requirements (pip)
-  #       run: |
-  #         python -m pip install --user -r ${IDF_PATH}/requirements.txt
-  #     - name: Cache toolchain
-  #       id: cache-idf-tools
-  #       if: ${{ matrix.branch != 'master' }}
-  #       uses: actions/cache@v2
-  #       with:
-  #         path: ${{ steps.set_env.outputs.PROJECT_TOOLCHAIN_DIR }}
-  #         key: ${{ runner.os }}-${{ matrix.branch }}-esp8266-cache-tools
-
-  #     - name: Install toolchain
-  #       if: ${{ steps.cache-idf-tools.outputs.cache-hit != 'true' || matrix.branch == 'master' }}
-  #       run: |
-  #         ${IDF_PATH}/install.sh
-  #     - name: Setup ccache (make)
-  #       run: |
-  #         __PROJECT_CCACHE_BIN_DIR="${HOME}/ccache_bin"
-  #         mkdir -p "${__PROJECT_CCACHE_BIN_DIR}"
-  #         (cd "${__PROJECT_CCACHE_BIN_DIR}" && ln -s /usr/bin/ccache "${__PROJECT_GCC_FILE}")
-  #         echo "PATH=${__PROJECT_CCACHE_BIN_DIR}:$PATH:${__PROJECT_TOOLCHAIN_DIR}/${__PROJECT_GCC_PREFIX}/${__PROJECT_TOOLCHAIN_VERSION}/${__PROJECT_GCC_PREFIX}/bin" >> ${GITHUB_ENV}
-  #         echo "CCACHE_NOHASHDIR=true" >> ${GITHUB_ENV}
-  #     - name: Build (make)
-  #       if: ${{ matrix.build_method == 'make' }}
-  #       run: |         
-  #         make
-  #     - name: Build Artifacts
-  #       run: |
-  #         chmod a+x build-esp8266-web-partition.sh build-esp8266-device-partition.sh
-  #         ./build-esp8266-web-partition.sh
-  #         ./build-esp8266-device-partition.sh
-  #         chmod a+x boards/esp8266-rtossdk/buildzipdir.sh
-  #         boards/esp8266-rtossdk/buildzipdir.sh          
-  #     - name: Store Artifacts
-  #       uses: actions/upload-artifact@v2
-  #       with:
-  #         name: esp8266-binaries
-  #         path: |
-  #           /tmp/build/*.zip
-          
-  release_and_tweet:
-    name: Releasing new version
-    needs: [build_esp32]
-    runs-on: ubuntu-20.04
+  firmware:
+    name: Firmware (ESP32, ESP-IDF v5.3.2)
+    needs: webui
+    runs-on: ubuntu-latest
+    container:
+      image: espressif/idf:v5.3.2
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2    
-      - name: Download artifacts
-        uses: actions/download-artifact@v2
-      - name: List Artifacts
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Trust the checkout inside the container
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: webui-dist
+          path: webui/dist
+
+      - name: Select ESP32 board configuration
+        run: cp boards/esp32-idf/sdkconfig boards/esp32-idf/sdkconfig.defaults .
+
+      - name: Build
         shell: bash
         run: |
-          ls
-      - name: Checkout WebFlashTool repo
-        uses: actions/checkout@v3
-        with:
-          repository: airmeter-io/WebFlashTool
-          path: WebFlashTool
-          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          . "$IDF_PATH/export.sh"
+          idf.py build
+          idf.py size
 
-      - name: Copy binary release to WebFlashTool working folder.
+      - name: Package
         shell: bash
+        env:
+          # Tag builds are named after the tag; other builds fall back to git describe.
+          RELEASE_TAG: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
         run: |
-          cp esp32-binaries/*.zip WebFlashTool/public
-      - uses: stefanzweifel/git-auto-commit-action@v4
+          echo "Working tree status (for the record):"
+          git status --short
+          chmod +x boards/esp32-idf/buildzipdir.sh
+          boards/esp32-idf/buildzipdir.sh
+
+      - uses: actions/upload-artifact@v7
         with:
-          commit_message: Added new release
-          repository: WebFlashTool
-      
+          name: esp32-binaries
+          path: release/*.zip
+          if-no-files-found: error
+
+  release:
+    name: GitHub release
+    if: github.ref_type == 'tag'
+    needs: firmware
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: esp32-binaries
+          path: release
+
       - uses: ncipollo/release-action@v1
         with:
-          artifacts: "esp32-binaries/*.zip, esp8266-binaries/*.zip"
-          bodyFile: "CHANGELOG.md"
+          artifacts: release/*.zip
+          bodyFile: CHANGELOG.md
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract branch name
-        shell: bash
-        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/tags/})"
-        id: extract_branch        
-      - uses: julb/action-post-twitter-status@v1
+  publish-flash-tool:
+    name: Publish to WebFlashTool
+    if: github.ref_type == 'tag'
+    needs: firmware
+    runs-on: ubuntu-latest
+    env:
+      # Fine-grained PAT with "Contents: read and write" on airmeter-io/WebFlashTool.
+      # The flash tool serves release zips from its own public/ folder.
+      WFT_TOKEN: ${{ secrets.WEBFLASHTOOL_TOKEN }}
+    steps:
+      - name: Token check
+        if: env.WFT_TOKEN == ''
+        run: echo "::warning::WEBFLASHTOOL_TOKEN secret is not set, skipping publish to WebFlashTool"
+
+      - uses: actions/checkout@v7
+        if: env.WFT_TOKEN != ''
         with:
-          message: "AirMeter ${{ steps.extract_branch.outputs.branch }} is now available for download: https://github.com/airmeter-io/AirMeter.io.Firmware/releases/tag/${{ steps.extract_branch.outputs.branch }}"
-          twitter_app_consumer_api_key: ${{ secrets.TWITTER_CONSUMER_API_KEY }}
-          twitter_app_consumer_api_secret_key: ${{ secrets.TWITTER_CONSUMER_API_SECRET }}
-          twitter_app_access_token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
-          twitter_app_access_token_secret: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
+          repository: airmeter-io/WebFlashTool
+          token: ${{ env.WFT_TOKEN }}
+          path: WebFlashTool
+          persist-credentials: true
 
+      - uses: actions/download-artifact@v8
+        if: env.WFT_TOKEN != ''
+        with:
+          name: esp32-binaries
+          path: WebFlashTool/public
 
-
-
-
-
-    
+      - uses: stefanzweifel/git-auto-commit-action@v7
+        if: env.WFT_TOKEN != ''
+        with:
+          repository: WebFlashTool
+          commit_message: Add firmware release ${{ github.ref_name }}

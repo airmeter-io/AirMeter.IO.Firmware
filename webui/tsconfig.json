@@ -6,6 +6,6 @@
       "noImplicitAny": true,
       "noImplicitThis": true,
       "strictNullChecks": true,
-      "types": ["react/next", "react-dom/next"]
+      "types": ["react", "react-dom"]
     }
   }
